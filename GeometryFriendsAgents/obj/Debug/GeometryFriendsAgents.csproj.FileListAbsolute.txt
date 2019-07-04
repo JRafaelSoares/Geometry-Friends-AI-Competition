@@ -1,0 +1,6 @@
+Z:\Documents\GitHub\Geometry-Friends-AI-Competition\GeometryFriendsAgents\GeometryFriendsGame\Release\Agents\GeometryFriendsAgents.dll
+Z:\Documents\GitHub\Geometry-Friends-AI-Competition\GeometryFriendsAgents\GeometryFriendsGame\Release\Agents\GeometryFriendsAgents.pdb
+Z:\Documents\GitHub\Geometry-Friends-AI-Competition\GeometryFriendsAgents\obj\Debug\GeometryFriendsAgents.csprojAssemblyReference.cache
+Z:\Documents\GitHub\Geometry-Friends-AI-Competition\GeometryFriendsAgents\obj\Debug\GeometryFriendsAgents.csproj.CoreCompileInputs.cache
+Z:\Documents\GitHub\Geometry-Friends-AI-Competition\GeometryFriendsAgents\obj\Debug\GeometryFriendsAgents.dll
+Z:\Documents\GitHub\Geometry-Friends-AI-Competition\GeometryFriendsAgents\obj\Debug\GeometryFriendsAgents.pdb

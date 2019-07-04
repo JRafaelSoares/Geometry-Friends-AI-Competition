@@ -19,6 +19,9 @@
     <GreenElevators />
     <OrangeElevators />
     <TimeLimit value="120" />
+    <HighScores>
+      <HighScore name="RandPredictorCircle" value="26" />
+    </HighScores>
   </Level1>
   <Level2>
     <Description />
@@ -41,7 +44,10 @@
     <YellowObstacles />
     <GreenElevators />
     <OrangeElevators />
-	<TimeLimit value="120" />
+    <TimeLimit value="120" />
+    <HighScores>
+      <HighScore name="RandPredictorCircle" value="51" />
+    </HighScores>
   </Level2>
   <Level3>
     <Description />
@@ -65,6 +71,10 @@
     <GreenElevators />
     <OrangeElevators />
     <TimeLimit value="120" />
+    <HighScores>
+      <HighScore name="RandPredictorCircle" value="34" />
+      <HighScore name="RandPredictorCircle" value="35" />
+    </HighScores>
   </Level3>
   <Level4>
     <Description />
@@ -82,6 +92,9 @@
     <GreenElevators />
     <OrangeElevators />
     <TimeLimit value="120" />
+    <HighScores>
+      <HighScore name="RandPredictorCircle" value="16" />
+    </HighScores>
   </Level4>
   <Level5>
     <Description />
@@ -101,5 +114,8 @@
     <GreenElevators />
     <OrangeElevators />
     <TimeLimit value="120" />
+    <HighScores>
+      <HighScore name="RandPredictorCircle" value="12" />
+    </HighScores>
   </Level5>
-  </Levels>
+</Levels>

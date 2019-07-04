@@ -25,7 +25,6 @@ namespace GeometryFriendsAgents
         private List<Moves> possibleMoves;
         private long lastMoveTime;
         private Random rnd;
-
         //predictor of actions for the circle
         private ActionSimulator predictor = null;
         private DebugInformation[] debugInfo = null;
@@ -53,6 +52,12 @@ namespace GeometryFriendsAgents
         //Area of the game screen
         private Rectangle area;
 
+        //Extras
+        private mapAnal mapAnalyzed = new mapAnal();
+        private Queue<ActionNode> ActionPlan = new Queue<ActionNode>();
+        private int old_nC = -1;
+        private ActionMap AM;
+
         public CircleAgent()
         {
             //Change flag if agent is not to be used
@@ -63,8 +68,8 @@ namespace GeometryFriendsAgents
             currentAction = Moves.NO_ACTION;
             rnd = new Random();
 
-            //prepare the possible moves  
-            possibleMoves = new List<Moves>();
+                //prepare the possible moves  
+                possibleMoves = new List<Moves>();
             possibleMoves.Add(Moves.ROLL_LEFT);
             possibleMoves.Add(Moves.ROLL_RIGHT);
             possibleMoves.Add(Moves.JUMP);                
@@ -92,6 +97,12 @@ namespace GeometryFriendsAgents
             uncaughtCollectibles = new List<CollectibleRepresentation>(collectiblesInfo);
             this.area = area;
 
+            //Add obstacles information to analysis map
+            this.mapAnalyzed.addObstacleInfo(obstaclesInfo);
+            this.mapAnalyzed.Analysis();
+            this.DebugSensorsInfo();
+            this.SensorsUpdated(nI.CollectiblesCount, rI, cI, colI);
+
             //send a message to the rectangle informing that the circle setup is complete and show how to pass an attachment: a pen object
             messages.Add(new AgentMessage("Setup complete, testing to send an object as an attachment.", new Pen(Color.AliceBlue)));
 
@@ -104,6 +115,7 @@ namespace GeometryFriendsAgents
          */
         public override void SensorsUpdated(int nC, RectangleRepresentation rI, CircleRepresentation cI, CollectibleRepresentation[] colI)
         {
+
             nCollectiblesLeft = nC;
 
             rectangleInfo = rI;
@@ -114,7 +126,64 @@ namespace GeometryFriendsAgents
                 remaining = new List<CollectibleRepresentation>(collectiblesInfo);
             }
 
-            //DebugSensorsInfo();
+            if ((nC > 0) && ((this.ActionPlan.Count == 0) || (nC != this.old_nC)))
+            {
+                this.old_nC = nC;
+                this.mapAnalyzed.removeAllAssistPoint();
+                int num3 = 0;
+                while (true)
+                {
+                    if (num3 >= nC)
+                    {
+                        this.AM = this.mapAnalyzed.Generating();
+                        this.AM.RemoveDuplicate();
+                        ActionMapDijkstra dijkstra = new ActionMapDijkstra(this.AM);
+                        dijkstra.process(dijkstra.getTNnear(new CVector2(circleInfo.X, circleInfo.Y), this.mapAnalyzed));
+                        int closestDiamond = 0;
+                        float num6 = dijkstra.getActionDistance(dijkstra.getTNnear(new CVector2(colI[0].X, colI[0].Y), this.mapAnalyzed));
+
+                        int num7 = 1;
+                        while (true)
+                        {
+                            if (num7 >= nC)
+                            {
+                                List<ActionNode> list = dijkstra.getActionPlan(dijkstra.getTNnear(new CVector2(colI[closestDiamond].X, colI[(closestDiamond)].Y), this.mapAnalyzed));
+                                Queue<ActionNode> queue = dijkstra.smoothing(list);
+                                List<DebugInformation> newDebugInfo = new List<DebugInformation>();
+
+                                this.ActionPlan = queue;
+                                
+                                //debugging
+                                foreach (ActionNode action in list)
+                                {
+                                    newDebugInfo.Add(DebugInformationFactory.CreateCircleDebugInfo(new PointF(action.posX - debugCircleSize / 2, action.posY - debugCircleSize / 2), debugCircleSize, GeometryFriends.XNAStub.Color.Red));
+
+                                    Log.LogInformation("Cmd: " + action.cmd + " Platform: " + action.platform, true); 
+                                }
+
+                                debugInfo = newDebugInfo.ToArray();
+                                break;
+                            }
+
+                            int num8 = num7;
+                            float num9 = dijkstra.getActionDistance(dijkstra.getTNnear(new CVector2(colI[num8].X, colI[num8].Y), this.mapAnalyzed));
+                            if (num9 < num6)
+                            {
+                                closestDiamond = num7;
+                                num6 = num9;
+                            }
+                            num7++;
+                        }
+                        break;
+                    }
+                    int index = num3;
+                    this.mapAnalyzed.addAssistPoint(new CVector2(colI[index].X, colI[index].Y));
+                    num3++;
+
+                }
+            }
+
+            DebugSensorsInfo();
         }
 
         //implements abstract circle interface: provides the circle agent with a simulator to make predictions about the future level state
@@ -160,6 +229,7 @@ namespace GeometryFriendsAgents
         //implements abstract circle interface: updates the agent state logic and predictions
         public override void Update(TimeSpan elapsedGameTime)
         {
+
             //Every second one new action is choosen
             if (lastMoveTime == 60)
                 lastMoveTime = 0;
@@ -168,7 +238,7 @@ namespace GeometryFriendsAgents
             {
                 if (!(DateTime.Now.Second == 59))
                 {
-                    RandomAction();
+                    this.Action();
                     lastMoveTime = lastMoveTime + 1;
                     //DebugSensorsInfo();                    
                 }
@@ -240,12 +310,77 @@ namespace GeometryFriendsAgents
                     foreach (CollectibleRepresentation item in caughtCollectibles)
                     {
                         newDebugInfo.Add(DebugInformationFactory.CreateCircleDebugInfo(new PointF(item.X - debugCircleSize / 2, item.Y - debugCircleSize / 2), debugCircleSize, GeometryFriends.XNAStub.Color.GreenYellow));
-                    }                 
+                    }
                     //set all the debug information to be read by the agents manager
-                    debugInfo = newDebugInfo.ToArray();                    
+                    // DebuggingDijkstra(newDebugInfo, obstaclesInfo);
+                    //debugInfo = newDebugInfo.ToArray();                    
                 }
             }
         }
+        //Chooses action
+        private void Action()
+        {
+            if (this.ActionPlan.Count != 0)
+            {
+                ActionNode act = this.ActionPlan.Peek();
+                switch (act.cmd)
+                {
+                    case 0:
+                        this.SetAction(0);
+                        break;
+
+                    case 1:
+                        this.SetAction(this.stay(act));
+                        break;
+
+                    case 2:
+                        this.SetAction(this.jump(act));
+                        break;
+
+                    default:
+                        break;
+                }
+                if (((act.posX - 2) <= this.circleInfo.X) && (this.circleInfo.X <= (act.posX + 2)))
+                {
+                    Log.LogInformation("rly?", true);
+                    this.ActionPlan.Dequeue();
+                }
+            }
+        }
+        private void SetAction(Moves move)
+        {
+            this.currentAction = move;
+        }
+
+        //Decides which way to roll
+        private Moves stay(ActionNode act)
+        {
+            //Log.LogInformation("Velocity: " + this.circleInfo.VelocityX, true);
+
+            float distanceToTarget = (this.circleInfo.X ) - act.posX;
+            return ((distanceToTarget <= 0) ? ( (distanceToTarget >= 0) ? 0 : Moves.ROLL_RIGHT) : Moves.ROLL_LEFT);
+        }
+
+        //Predicts which way to roll and/or jump
+        private Moves jump(ActionNode act)
+        {
+            CVector2 vec = new CVector2(act.posX - this.circleInfo.X, act.posY - this.circleInfo.Y);
+            float distanceToTarget = (this.circleInfo.X + this.predict_jump(this.circleInfo.VelocityX, vec)) - act.posX;
+            if (((act.action != 0) || (-5 > distanceToTarget)) || (distanceToTarget > 5))
+            {
+                return ((distanceToTarget <= 0) ? ((distanceToTarget >= 0) ? 0 : Moves.ROLL_RIGHT) : Moves.ROLL_LEFT);
+            }
+            return Moves.JUMP;
+        }
+
+        //Predictions using speed
+        //Value to be determined
+        private float predict(float velocity) =>
+            (velocity / 300f);
+
+        private float predict_jump(float Vx, CVector2 vec) =>
+            (Vx * (3 + (0.5f * (vec.y / 300))));
+
 
         //typically used console debugging used in previous implementations of GeometryFriends
         protected void DebugSensorsInfo()
@@ -311,6 +446,18 @@ namespace GeometryFriendsAgents
                         Log.LogInformation("The attachment is a pen, let's see its color: " + ((Pen)item.Attachment).Color.ToString());
                     }
                 }
+            }
+        }
+
+        public void DebuggingDijkstra(List<DebugInformation> newDebugInfo, ObstacleRepresentation[] obstacles)
+        {
+            foreach (ObstacleRepresentation obstacle in obstacles)
+            {
+                newDebugInfo.Add(DebugInformationFactory.CreateCircleDebugInfo(new PointF(obstacle.X - obstacle.Width/2 - debugCircleSize / 2, obstacle.Y + obstacle.Height/2 - debugCircleSize / 2), debugCircleSize, GeometryFriends.XNAStub.Color.Red));
+                newDebugInfo.Add(DebugInformationFactory.CreateCircleDebugInfo(new PointF(obstacle.X + obstacle.Width/2 - debugCircleSize / 2, obstacle.Y + obstacle.Height/2 - debugCircleSize / 2), debugCircleSize, GeometryFriends.XNAStub.Color.Red));
+                newDebugInfo.Add(DebugInformationFactory.CreateCircleDebugInfo(new PointF(obstacle.X - obstacle.Width/2 - debugCircleSize / 2, obstacle.Y - obstacle.Height/2 - debugCircleSize / 2), debugCircleSize, GeometryFriends.XNAStub.Color.Red));
+                newDebugInfo.Add(DebugInformationFactory.CreateCircleDebugInfo(new PointF(obstacle.X + obstacle.Width/2 - debugCircleSize / 2, obstacle.Y - obstacle.Height/2 - debugCircleSize / 2), debugCircleSize, GeometryFriends.XNAStub.Color.Red));
+
             }
         }
     }

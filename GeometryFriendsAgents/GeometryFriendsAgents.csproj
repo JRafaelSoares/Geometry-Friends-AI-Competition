@@ -38,6 +38,8 @@
     <Reference Include="System" />
     <Reference Include="System.Core" />
     <Reference Include="System.Drawing" />
+    <Reference Include="System.Net" />
+    <Reference Include="System.Numerics" />
     <Reference Include="System.Xml.Linq" />
     <Reference Include="System.Data.DataSetExtensions" />
     <Reference Include="Microsoft.CSharp" />
@@ -45,9 +47,20 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ActEnum.cs" />
+    <Compile Include="ActionMap.cs" />
+    <Compile Include="ActionMapDijkstra.cs" />
+    <Compile Include="ActionNode.cs" />
+    <Compile Include="ActionPoint.cs" />
+    <Compile Include="ADNode.cs" />
     <Compile Include="CircleAgent.cs" />
+    <Compile Include="CVector2.cs" />
+    <Compile Include="Edge.cs" />
+    <Compile Include="mapAnal.cs" />
+    <Compile Include="Parameter.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="RectangleAgent.cs" />
+    <Compile Include="TreeNode!1.cs" />
   </ItemGroup>
   <ItemGroup />
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

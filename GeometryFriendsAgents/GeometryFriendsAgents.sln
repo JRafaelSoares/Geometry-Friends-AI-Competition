@@ -1,7 +1,22 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
+# Visual Studio Version 16
+VisualStudioVersion = 16.0.29001.49
+MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GeometryFriendsAgents", "GeometryFriendsAgents.csproj", "{6F45AB29-7874-4B3D-8073-B2D5F0C1A35F}"
+EndProject
+Project("{911E67C6-3D85-4FCE-B560-20A9C3E3FF48}") = "GeometryFriends", "GeometryFriendsGame\Release\GeometryFriends.exe", "{F0C0A14C-D07B-446D-8D97-314A56F849C3}"
+	ProjectSection(DebuggerProjectSystem) = preProject
+		PortSupplier = 00000000-0000-0000-0000-000000000000
+		Executable = C:\Users\João Rafael Soares\Documents\GitHub\Geometry-Friends-AI-Competition\GeometryFriendsAgents\GeometryFriendsGame\Release\GeometryFriends.exe
+		RemoteMachine = DESKTOP-AL48HJV
+		StartingDirectory = C:\Users\João Rafael Soares\Documents\GitHub\Geometry-Friends-AI-Competition\GeometryFriendsAgents\GeometryFriendsGame\Release
+		Environment = Default
+		LaunchingEngine = 00000000-0000-0000-0000-000000000000
+		UseLegacyDebugEngines = No
+		LaunchSQLEngine = No
+		AttachLaunchAction = No
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -23,8 +38,17 @@ Global
 		{6F45AB29-7874-4B3D-8073-B2D5F0C1A35F}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
 		{6F45AB29-7874-4B3D-8073-B2D5F0C1A35F}.Release|Mixed Platforms.Build.0 = Release|Any CPU
 		{6F45AB29-7874-4B3D-8073-B2D5F0C1A35F}.Release|x86.ActiveCfg = Release|Any CPU
+		{F0C0A14C-D07B-446D-8D97-314A56F849C3}.Debug|Any CPU.ActiveCfg = Release|Any CPU
+		{F0C0A14C-D07B-446D-8D97-314A56F849C3}.Debug|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{F0C0A14C-D07B-446D-8D97-314A56F849C3}.Debug|x86.ActiveCfg = Release|Any CPU
+		{F0C0A14C-D07B-446D-8D97-314A56F849C3}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F0C0A14C-D07B-446D-8D97-314A56F849C3}.Release|Mixed Platforms.ActiveCfg = Release|Any CPU
+		{F0C0A14C-D07B-446D-8D97-314A56F849C3}.Release|x86.ActiveCfg = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {E7BFD00A-1168-428C-957C-1349960F334D}
 	EndGlobalSection
 EndGlobal

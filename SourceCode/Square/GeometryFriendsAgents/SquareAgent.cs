@@ -11,10 +11,13 @@
     internal class SquareAgent : ISquareAgent, IAgent
     {
         private bool implementedAgent;
+        private string agentName = "RandRect";
+
         private int lastAction;
         private int currentAction;
         private long lastMoveTime;
         private Random rnd;
+
         private int[] numbersInfo;
         private float[] squareInfo;
         private float[] circleInfo;
@@ -22,9 +25,12 @@
         private float[] squarePlatformsInfo;
         private float[] circlePlatformsInfo;
         private float[] collectiblesInfo;
+
         private int nCollectiblesLeft;
-        private string agentName = "RandRect";
+
+
         protected Rectangle area;
+
         private int cellsize;
         private float start_point;
         private float pre_velocity;

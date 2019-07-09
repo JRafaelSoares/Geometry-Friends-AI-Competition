@@ -1,0 +1,12 @@
+
+*.ide-shm
+*.dll
+*.pdb
+*.cache
+UpdatedRectangleA-Star/obj/Debug/GeometryFriendsAgents.csproj.FileListAbsolute.txt
+*.pdb
+*.dll
+UpdatedRectangleA-Star/.vs/GeometryFriendsAgents/v16/.suo
+UpdatedRectangleA-Star/.vs/GeometryFriendsAgents/v16/Server/sqlite3/storage.ide-shm
+*.ide-shm
+*.ide-wal

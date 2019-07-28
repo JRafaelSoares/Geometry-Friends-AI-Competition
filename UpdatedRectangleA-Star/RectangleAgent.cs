@@ -75,11 +75,8 @@ namespace GeometryFriendsAgents
         private bool obstacle_Rbottom;
         private bool obstacle_Lbottom;
         private bool break_state;
-        private bool break_around;
         private bool hang_check;
-        private AStar S_astar = new AStar();
-        private string[] S_Path_print;
-        private string[] EndNode_print;
+        private AStar astar = new AStar();
         private List<node> nearest;
         private int y_max;
         private int dest_x;
@@ -91,7 +88,6 @@ namespace GeometryFriendsAgents
         private int dia_y;
         private float dia_Rx;
         private float dia_Ry;
-        private List<Vector4> obs = new List<Vector4>();
         
 
         public RectangleAgent()
@@ -103,7 +99,7 @@ namespace GeometryFriendsAgents
             lastAction = Moves.NO_ACTION;
             currentAction = Moves.NO_ACTION;
 
-            S_astar.a_cnt++;
+            astar.a_cnt++;
 
             if (File.Exists(@"C:\test\testPrint.txt"))
             {
@@ -121,7 +117,7 @@ namespace GeometryFriendsAgents
 		{
 			this.cnt++;
 
-			this.get_yDNode();
+			this.getBottomNodeYIndex();
 
 			this.now_dist = this.rectangleInfo.X - this.start_point;
 			this.now_velocity = this.now_dist - this.pre_dist;
@@ -171,6 +167,7 @@ namespace GeometryFriendsAgents
 
 				case 3:
 					this.up = ((int)(this.rectangleInfo.Y - ((this.rectangleInfo.Height / 2f) + 16f))) / this.cellsize;
+
 					if (!this.down_check || !this.down_Realcheck)
 					{
 						if (this.block(this.up))
@@ -194,6 +191,7 @@ namespace GeometryFriendsAgents
 						this.currentAction = this.decide_action(this.diff_dist(this.rectangleInfo.Y - (this.rectangleInfo.Height / 2f), (float)this.dest_y));
 						this.down_Realcheck = false;
 					}
+
 					this.hang_check = false;
 					this.astar_upstate = true;
 					break;
@@ -224,6 +222,7 @@ namespace GeometryFriendsAgents
 				default:
 					break;
 			}
+
 			this.pre_dist = this.now_dist;
 			this.pre_velocity = this.now_velocity;
 			this.lastAction = this.currentAction;
@@ -232,18 +231,22 @@ namespace GeometryFriendsAgents
 		private bool block(int y)
 		{
 			bool flag = false;
+
 			int num = this.x_left;
 			int num2 = this.x_right;
 			int num3 = 0;
 			int num4 = 0;
+
 			if (this.x_left < this.x)
 			{
 				num++;
 			}
+
 			if (this.x < this.x_right)
 			{
 				num2--;
 			}
+
 			for (int i = num; i <= num2; i++)
 			{
 				if (AStar.Nodes[i][y].obstacle)
@@ -253,6 +256,7 @@ namespace GeometryFriendsAgents
 					flag = true;
 				}
 			}
+
 			if ((num4 != 1) || (num2 != (num + 2)))
 			{
 				this.block_goX = 0;
@@ -265,6 +269,7 @@ namespace GeometryFriendsAgents
 			{
 				this.block_goX = num;
 			}
+
 			if (((this.dest_x / this.cellsize) > num3) && (this.block_goX > num3))
 			{
 				this.block_goX = this.update_coor(this.block_goX);
@@ -277,6 +282,7 @@ namespace GeometryFriendsAgents
 			{
 				this.block_goX = this.update_coor(this.block_goX);
 			}
+
 			return flag;
 		}
 
@@ -318,13 +324,14 @@ namespace GeometryFriendsAgents
 				}
 			}
 			return;
+
 		BreakState:
 			this.break_state = true;
 		}
 
 		private void check()
 		{
-			this.bottom = this.get_maxyNode() + 1;
+			this.bottom = this.getMaxBottomNodeYIndex() + 1;
 			int num = 0;
 			if (!this.down_check && (this.bottom < Board.yCellsNum))
 			{
@@ -340,6 +347,7 @@ namespace GeometryFriendsAgents
 					}
 				}
 			}
+
 			if ((0 >= num) || (num >= 3))
 			{
 				this.down_check = false;
@@ -348,7 +356,9 @@ namespace GeometryFriendsAgents
 			{
 				this.down_check = true;
 			}
+
 			this.down_Realcheck = this.rectangleInfo.Height <= 54f;
+
 			if ((!this.obstacle_Lbottom && !this.obstacle_Rbottom) && ((this.cnt - this.hang_time) >= 130))
 			{
 				this.hang_check = false;
@@ -361,71 +371,56 @@ namespace GeometryFriendsAgents
 
 		private void check_surround()
 		{
-			float num = 5000f / this.rectangleInfo.Height;
-			this.right = ((int)((this.rectangleInfo.X + num) + 10f)) / this.cellsize;
-			this.left = ((int)((this.rectangleInfo.X - num) - 10f)) / this.cellsize;
+			float halfWidth = 500f / this.rectangleInfo.Height;
+
+			this.right = ((int)((this.rectangleInfo.X + halfWidth) + 10f)) / this.cellsize;
+			this.left = ((int)((this.rectangleInfo.X - halfWidth) - 10f)) / this.cellsize;
+
 			this.obstacle_Lbottom = false;
 			this.obstacle_Rbottom = false;
 			this.obstacle_Rup = false;
 			this.obstacle_Lup = false;
 			this.obstacle_Rtop = false;
 			this.obstacle_Ltop = false;
-			if ((this.right != 0x1f) && AStar.Nodes[this.right][this.y + 1].obstacle)
+
+			if ((this.right != 31) && AStar.Nodes[this.right][this.y + 1].obstacle)
 			{
 				this.obstacle_Rtop = true;
 			}
+
 			if ((this.left != 0) && AStar.Nodes[this.left][this.y + 1].obstacle)
 			{
 				this.obstacle_Ltop = true;
 			}
+
 			for (int i = this.y; i < this.y_max; i++)
 			{
-				if ((this.right != 0x1f) && AStar.Nodes[this.right][i].obstacle)
+				if ((this.right != 31) && AStar.Nodes[this.right][i].obstacle)
 				{
 					this.obstacle_Rup = true;
 				}
+
 				if ((this.left != 0) && AStar.Nodes[this.left][i].obstacle)
 				{
 					this.obstacle_Lup = true;
 				}
 			}
-			if ((this.right != 0x1f) && AStar.Nodes[this.right][this.y_max].obstacle)
+
+			if ((this.right != 31) && AStar.Nodes[this.right][this.y_max].obstacle)
 			{
 				this.obstacle_Rbottom = true;
 			}
+
 			if ((this.left != 0) && AStar.Nodes[this.left][this.y_max].obstacle)
 			{
 				this.obstacle_Lbottom = true;
 			}
 		}
 
-		public Vector4 Col_obs(float in_x, float in_y)
-		{
-			using (List<Vector4>.Enumerator enumerator = this.obs.GetEnumerator())
-			{
-				while (true)
-				{
-					if (!enumerator.MoveNext())
-					{
-						break;
-					}
-					Vector4 current = enumerator.Current;
-					float x = current.X;
-					float y = current.Y;
-					float num3 = current.Z / 2f;
-					float num4 = current.W / 2f;
-					if (((x - num3) <= in_x) && ((in_x <= (x + num3)) && (((y - num4) <= in_y) && (in_y <= (y + num4)))))
-					{
-						return current;
-					}
-				}
-			}
-			return new Vector4();
-		}
-
 		private Moves decide_action(float diff_dist)
 		{
 			int delta = 0;
+
 			switch (this.direction_switch)
 			{
 				case 1:
@@ -435,6 +430,7 @@ namespace GeometryFriendsAgents
 				case 3:
 					return ((diff_dist < delta) ? ((diff_dist > -delta) ? Moves.NO_ACTION : Moves.MORPH_UP) : Moves.MORPH_DOWN);
 			}
+
 			return Moves.NO_ACTION;
 		}
 
@@ -458,61 +454,73 @@ namespace GeometryFriendsAgents
 		private float diff_dist(float start_x, float end_x, double predict_dist)
 		{
 			float num = (float)predict_dist;
+
 			return (end_x - (start_x + num));
 		}
 
 		private Moves down_action(float diff_dist)
 		{
 			int delta = 1;
+
 			return ((diff_dist <= delta) ? ((diff_dist >= -delta) ? 0 : Moves.MORPH_UP) : Moves.MORPH_DOWN);
 		}
 
-		private int get_LxNode()
+		private int getLeftNodeXIndex()
 		{
-			int num = ((int)(this.rectangleInfo.X - (5000f / this.rectangleInfo.Height))) / this.cellsize;
-			if (((this.rectangleInfo.X - (5000f / this.rectangleInfo.Height)) % ((float)this.cellsize)) > 20f)
+			int index = ((int)(this.rectangleInfo.X - (500.0 / this.rectangleInfo.Height))) / this.cellsize;
+
+			if (((this.rectangleInfo.X - (500.0 / this.rectangleInfo.Height)) % ((float)this.cellsize)) > this.cellsize / 2)
 			{
-				num++;
+				index++;
 			}
-			return num;
+
+			return index;
 		}
 
-		private int get_maxyNode()
+		private int getMaxBottomNodeYIndex()
 		{
-			int index = ((int)(this.rectangleInfo.Y + (this.rectangleInfo.Height / 2f))) / this.cellsize;
+			int index = ((int)(this.rectangleInfo.Y + (this.rectangleInfo.Height / 2.0))) / this.cellsize;
+
+            
 			if (index >= Board.yCellsNum)
 			{
-				index = 0x12;
+				index = 18;
 			}
-			if (AStar.Nodes[this.get_xNode()][index].obstacle || AStar.Nodes[this.get_RxNode()][index].obstacle)
+
+			if (AStar.Nodes[this.getNodeXIndex()][index].obstacle || AStar.Nodes[this.getRightNodeXIndex()][index].obstacle)
+			{
+				index--;
+			}
+
+			return index;
+		}
+
+		private int getRightNodeXIndex()
+		{
+			int index = ((int)(this.rectangleInfo.X + (500.0 / this.rectangleInfo.Height))) / this.cellsize;
+
+			if(((this.rectangleInfo.X + (500.0 / this.rectangleInfo.Height)) % ((float)this.cellsize)) < this.cellsize / 2)
 			{
 				index--;
 			}
 			return index;
 		}
 
-		private int get_RxNode()
-		{
-			int num = ((int)(this.rectangleInfo.X + (5000f / this.rectangleInfo.Height))) / this.cellsize;
-			if (((this.rectangleInfo.X + (5000f / this.rectangleInfo.Height)) % ((float)this.cellsize)) < 20f)
-			{
-				num--;
-			}
-			return num;
-		}
-
-		private int get_xNode()
+		private int getNodeXIndex()
 		{
 			return (((int)this.rectangleInfo.X) / this.cellsize);
 		}
-		private int get_yDNode()
+
+		private int getBottomNodeYIndex()
 		{
-			return (((int)(this.rectangleInfo.Y + (this.rectangleInfo.Height / 2f))) / this.cellsize);
+			return (((int)(this.rectangleInfo.Y + (this.rectangleInfo.Height / 2.0))) / this.cellsize);
 		}
-		private int get_yNode()
+
+		private int getTopNodeYIndex()
 		{
-			return (((int)(this.rectangleInfo.Y - (this.rectangleInfo.Height / 2f))) / this.cellsize);
+			return (((int)(this.rectangleInfo.Y - (this.rectangleInfo.Height / 2.0))) / this.cellsize);
 		}
+
 		private void hang()
 		{
 			bool flag = false;
@@ -568,8 +576,8 @@ namespace GeometryFriendsAgents
 
 		private void PathFinder()
 		{
-			node startNode = this.S_astar.checkStartNode(this.rectangleInfo);
-			this.S_astar.getUpdateEndNode(this.collectiblesInfo);
+			node startNode = this.astar.checkStartNode(this.rectangleInfo);
+			this.astar.getUpdateEndNode(this.collectiblesInfo);
 
 			if (AStar.endNodes.Count != 0)
 			{
@@ -617,9 +625,9 @@ namespace GeometryFriendsAgents
 					}
 					Board.Acount++;
 
-					this.S_astar.UpdateNew(AStar.endNodes[num][0], AStar.endNodes[num][1]);
+					this.astar.UpdateNew(AStar.endNodes[num][0], AStar.endNodes[num][1]);
 
-					list.Add(this.S_astar.AStarFinder(startNode, AStar.endNodes[num][0], AStar.endNodes[num][1]));
+					list.Add(this.astar.AStarFinder(startNode, AStar.endNodes[num][0], AStar.endNodes[num][1]));
 
 					num++;
 				}
@@ -731,21 +739,25 @@ namespace GeometryFriendsAgents
 
 		private void update_path()
 		{
-			this.x = this.get_xNode();
-			this.y = this.get_yNode();
-			this.y_max = this.get_maxyNode();
-			this.x_right = this.get_RxNode();
-			this.x_left = this.get_LxNode();
+			this.x = this.getNodeXIndex();
+			this.y = this.getTopNodeYIndex();
+			this.y_max = this.getMaxBottomNodeYIndex();
+			this.x_right = this.getRightNodeXIndex();
+			this.x_left = this.getLeftNodeXIndex();
+
 			int num = this.nearest.Count - 1;
+
 			if (this.nearest.Count != 0)
 			{
 				int x = this.nearest[num].x;
 				int y = this.nearest[num].y;
 				int num4 = this.nearest[this.nearest.Count - 1].x;
 				int num5 = this.nearest[this.nearest.Count - 1].y;
+
 				bool flag = false;
 				bool flag2 = false;
 				bool flag3 = false;
+
 				if (this.nearest[num].x != 0x7cf)
 				{
 					if (((this.x == x) && (this.y <= y)) && (y <= this.y_max))
@@ -848,14 +860,14 @@ namespace GeometryFriendsAgents
             collectiblesInfo = colI;
             this.area = area;
 
-			//DebugSensorsInfo();
+            //DebugSensorsInfo();
 
-			this.start_point = this.rectangleInfo.X;
-			this.S_astar.Access();
-			this.S_astar.getBoardValue(this.obstaclesInfo);
+            this.start_point = this.rectangleInfo.X;
+			this.astar.Access();
+			this.astar.getBoardValue(this.obstaclesInfo);
 			this.cellsize = Board.cellMinSize;
 			this.PathFinder();
-			this.S_astar.a_cnt++;
+			this.astar.a_cnt++;
 		}
 
         //implements abstract rectangle interface: registers updates from the agent's sensors that it is up to date with the latest environment information
@@ -864,6 +876,9 @@ namespace GeometryFriendsAgents
             nCollectiblesLeft = nC;
 
             rectangleInfo = rI;
+
+            //Log.LogInformation(rI.ToString(), true);
+
             circleInfo = cI;
             collectiblesInfo = colI;
         }

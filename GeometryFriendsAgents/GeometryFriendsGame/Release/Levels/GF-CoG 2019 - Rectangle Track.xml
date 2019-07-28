@@ -105,11 +105,11 @@
     <OrangeElevators />
     <TimeLimit value="120" />
     <HighScores>
-      <HighScore name="AStarAgent" value="6" />
-      <HighScore name="AStarAgent" value="7" />
-      <HighScore name="AStarAgent" value="7" />
-      <HighScore name="AStarAgent" value="7" />
-      <HighScore name="AStarAgent" value="8" />
+      <HighScore name="AStarAgent" value="9" />
+      <HighScore name="AStarAgent" value="9" />
+      <HighScore name="AStarAgent" value="9" />
+      <HighScore name="AStarAgent" value="9" />
+      <HighScore name="AStarAgent" value="11" />
     </HighScores>
   </Level5>
 </Levels>

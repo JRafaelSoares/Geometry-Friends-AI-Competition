@@ -23,3 +23,12 @@ UpdatedRectangleA-Star/GeometryFriendsAgents.csproj
 UpdatedRectangleA-Star/.vs/GeometryFriendsAgents/xs/UserPrefs.xml
 UpdatedRectangleA-Star/.vs/GeometryFriendsAgents/xs/sqlite3/storage.ide
 UpdatedRectangleA-Star/.vs/GeometryFriendsAgents/xs/sqlite3/db.lock
+GeometryFriendsCoop/.vs/GeometryFriendsAgents/v16/.suo
+*.sln
+*.dll
+*.pdb
+GeometryFriendsCoop/obj/Debug/GeometryFriendsAgents.csproj.CoreCompileInputs.cache
+GeometryFriendsCoop/obj/Debug/GeometryFriendsAgents.csproj.FileListAbsolute.txt
+GeometryFriendsCoop/obj/Debug/GeometryFriendsAgents.csprojAssemblyReference.cache
+*.dll
+*.pdb

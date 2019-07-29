@@ -1,0 +1,104 @@
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\Agents\Debug\RandomAgents.dll
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\Agents\Debug\RandomAgents.pdb
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\Agents\Debug\RapidlyExploringRandomTreeAgents.dll
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\Agents\Debug\RapidlyExploringRandomTreeAgents.pdb
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\Agents\Debug\ReinforcementLearningAgents.dll
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\Agents\Debug\ReinforcementLearningAgents.pdb
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\Agents\Debug\SubGoalAStarAgents.dll
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\Agents\Debug\SubGoalAStarAgents.pdb
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\Agents\Release\RandomAgents.dll
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\Agents\Release\RandomAgents.pdb
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\Agents\Release\RapidlyExploringRandomTreeAgents.dll
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\Agents\Release\RapidlyExploringRandomTreeAgents.pdb
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\Agents\Release\ReinforcementLearningAgents.dll
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\Agents\Release\ReinforcementLearningAgents.pdb
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\Agents\Release\SubGoalAStarAgents.dll
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\Agents\Release\SubGoalAStarAgents.pdb
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\Common\background.png
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\Common\blank.png
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\Common\geometryfriends-logo.png
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\Common\geometryfriends-logo1.png
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\Common\gradient.png
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\Common\Lock-icon.png
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\Common\logo.png
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\Common\test.png
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\Common\tools.png
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\Common\wiimote.png
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\LevelEditor\BlackPlatformToolCursor.png
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\LevelEditor\BlackPlatformToolIcon.png
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\LevelEditor\CircleStartToolIcon.png
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\LevelEditor\CollectibleToolIcon.png
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\LevelEditor\DialogBg.png
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\LevelEditor\EraserToolIcon.png
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\LevelEditor\ExitToolIcon.png
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\LevelEditor\GreenPlatformToolIcon.png
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\LevelEditor\SquareStartToolIcon.png
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\LevelEditor\YellowPlatformToolIcon.png
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\Levels\AlfaCircleLevels.xml
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\Levels\AlfaSquareLevels.xml
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\Levels\Circle 2013 Competition.xml
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\Levels\Circle 2014 Competition.xml
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\Levels\Comp C.xml
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\Levels\Comp R.xml
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\Levels\Compcoop.xml
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\Levels\Cooperative 2013 Competition.xml
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\Levels\Cooperative 2014 Competition.xml
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\Levels\Dangerous.xml
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\Levels\Draft Circle 2016.xml
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\Levels\Draft Cooperative 2016.xml
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\Levels\Draft Rectangle 2016.xml
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\Levels\GF 2015 Circle Track.xml
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\Levels\GF 2015 Coop Track.xml
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\Levels\GF 2015 Rectangle Track.xml
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\Levels\GF 2016 Circle Private.xml
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\Levels\GF 2016 Circle Public.xml
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\Levels\GF 2016 Circle.xml
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\Levels\GF 2016 Cooperative Private.xml
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\Levels\GF 2016 Cooperative Public.xml
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\Levels\GF 2016 Cooperative.xml
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\Levels\GF 2016 Rectangle Private.xml
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\Levels\GF 2016 Rectangle Public.xml
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\Levels\GF 2016 Rectangle.xml
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\Levels\Hard Core.xml
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\Levels\Levels.xml
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\Levels\New World.xml
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\Levels\OtherWorld.xml
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\Levels\Recommended.xml
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\Levels\Rectangle 2013 Competition.xml
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\Levels\Rectangle 2014 Competition.xml
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\Levels\SingleTest.xml
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\Levels\tutorials.xml
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\Sound\contract.wav
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\Sound\down.wav
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\Sound\grow.wav
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\Sound\levelMusic.wav
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\Sound\menuMusic.wav
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\Sound\nyanyan.wav
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\Sound\spring1.wav
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\Sound\up.wav
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\Sound\victoryMusic.wav
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\XBoxLogoWithBorder.png
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\Common\geometryfriends-logo.xcf
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\Fonts\Arista.ttf
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\Fonts\CARTOONIA.TTF
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\Fonts\subtitleFont.spritefont
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\Fonts\detailsFont.spritefont
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\Fonts\diagnosticFont.spritefont
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\Fonts\elevatorCollFont.spritefont
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\Fonts\frameRateCounterFont.spritefont
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\Fonts\gameFont.spritefont
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\Fonts\menuFont.spritefont
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\Content\Fonts\titleFont.spritefont
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\RRTAgents.dll
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\RRTAgents.pdb
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\GeometryFriends.exe
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\FarseerPhysics.dll
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\OpenTK.dll
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\WiimoteInput.dll
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\WiimoteLib.dll
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\GeometryFriends.pdb
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\FarseerPhysics.pdb
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\OpenTK.pdb
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\bin\Release\OpenTK.xml
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\obj\Release\RRTAgents.dll
+C:\IST\2Ano\2Semestre\Tese\Geometry Friends\Copia Rep\Rep\RRTAgents\obj\Release\RRTAgents.pdb

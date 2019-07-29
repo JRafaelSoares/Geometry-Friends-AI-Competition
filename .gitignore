@@ -32,3 +32,7 @@ GeometryFriendsCoop/obj/Debug/GeometryFriendsAgents.csproj.FileListAbsolute.txt
 GeometryFriendsCoop/obj/Debug/GeometryFriendsAgents.csprojAssemblyReference.cache
 *.dll
 *.pdb
+GeometryFriendsCoop/GeometryFriendsAgents.sln
+GeometryFriendsCoop/GeometryFriendsAgents.sln
+GeometryFriendsCoop/.vs/GeometryFriendsAgents/v16/.suo
+GeometryFriendsCoop/.vs/GeometryFriendsAgents/v16/Server/sqlite3/storage.ide

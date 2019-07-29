@@ -463,7 +463,7 @@ namespace GeometryFriendsAgents
             //if it is jump to avoid multiple jumps in one simulation
             if (newAction == Moves.JUMP)
             {
-                stateSim.AddInstruction(newAction, 0.05f);
+                stateSim.AddInstruction(newAction, 0.1f);
             }
             else
             {

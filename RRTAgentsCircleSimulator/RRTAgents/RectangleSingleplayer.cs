@@ -66,7 +66,7 @@ namespace GeometryFriendsAgents
         private bool planRRT = true;
         private bool newPlan = true;
         //simulator
-        Simulator sim;
+        private Simulator sim;
         //time of simulation
         private float actionTime = 2.1f;
         private float actionTimeMargin = 0.5f;
@@ -104,6 +104,8 @@ namespace GeometryFriendsAgents
         private bool firstAction3;
         private bool lastAction = false;
         private List<DiamondInfo> Diamonds;
+        private List<DiamondInfo> remainingDiamonds = new List<DiamondInfo>();
+        private List<DiamondInfo> caughtDiamonds = new List<DiamondInfo>();
         private List<Platform> Platforms;
         private Platform ground;
         private int[,] levelLayout;
@@ -170,7 +172,7 @@ namespace GeometryFriendsAgents
         //implements abstract rectangle interface: used to setup the initial information so that the agent has basic knowledge about the level
         public void Setup(CountInformation nI, RectangleRepresentation rI, CircleRepresentation cI, ObstacleRepresentation[] oI, ObstacleRepresentation[] rPI, ObstacleRepresentation[] cPI, CollectibleRepresentation[] colI, Rectangle area, double timeLimit)
         {
-            ground = new Platform(0, area.Bottom, 0, 0, PlatformType.Black);
+            ground = new Platform(0, area.Bottom, 0, 0);
             utils = new Utils(ground, circleInfo.Radius, area);
             numbersInfo = nI;
             nCollectiblesLeft = nI.CollectiblesCount;
@@ -195,7 +197,7 @@ namespace GeometryFriendsAgents
             previousRectanglePosX = rectangleInfo.X;
             previousRectanglePosY = rectangleInfo.Y;
 
-            Platforms = utils.setupPlatforms(obstaclesInfo, rPI, cPI);
+            Platforms = utils.setupPlatforms(obstaclesInfo);
             Diamonds = utils.setupDiamonds(collectiblesInfo, levelLayout);
 
             /*************TESTS*************/
@@ -203,7 +205,7 @@ namespace GeometryFriendsAgents
             utils.writeStart(1);
 
             //search - state - original; action - original; no partial plans
-            RRT = new RRTUtils(actionTime, simTime, simTimeFinish, getPossibleMoves(), type, area, collectiblesInfo.Length, RRTTypes.Original, RRTTypes.Original, obstaclesInfo, gSpeed, Diamonds, Platforms, utils, false, false);
+            //RRT = new RRTUtils(actionTime, simTime, simTimeFinish, getPossibleMoves(), type, area, collectiblesInfo.Length, RRTTypes.Original, RRTTypes.Original, obstaclesInfo, gSpeed, Diamonds, Platforms, utils, false, false);
             //search - state - original; action - STP; biasSTP - 0.25/0.5/0.75; no partial plans
             //RRT = new RRTUtils(actionTime, simTime, simTimeFinish, getPossibleMoves(), type, area, collectiblesInfo.Length, RRTTypes.Original, RRTTypes.STP, obstaclesInfo, gSpeed, Diamonds, Platforms, utils, false, false);
             //search - state - bias - 0.25/0.50/0.75; action - STP; biasSTP;  no partial plans
@@ -218,13 +220,13 @@ namespace GeometryFriendsAgents
             //RRT = new RRTUtils(actionTime, simTime, simTimeFinish, getPossibleMoves(), type, area, collectiblesInfo.Length, RRTTypes.AreaBias, RRTTypes.STP, obstaclesInfo, gSpeed, Diamonds, Platforms, utils, false, false);
 
             /*************FINAL*************/
-            RRT = new RRTUtils(actionTime, simTime, simTimeFinish, getPossibleMoves(), type, area, collectiblesInfo.Length, RRTTypes.BGT, RRTTypes.STP, obstaclesInfo, gSpeed, Diamonds, Platforms, utils, true, true);
-
-            //RRT = new RRTUtils(actionTime, simTime, simTimeFinish, getPossibleMoves(), type, area, collectiblesInfo.Length, RRTTypes.BGT, RRTTypes.Original, obstaclesInfo, gSpeed, Diamonds, Platforms, utils, false, false);
+            RRT = new RRTUtils(actionTime, simTime, simTimeFinish, getPossibleMoves(), type, area, collectiblesInfo.Length, RRTTypes.BGTBias, RRTTypes.STP, obstaclesInfo, gSpeed, Diamonds, Platforms, utils, true, true);
 
             RRT.setRadius(rectangleInfo.Height / 2);
             pathPlan = new PathPlan(cutplan, colI.GetLength(0), utils);
             controller = new RectangleController(gSpeed, utils);
+
+            sim = new CircleSimulator(Platforms);
 
            
         }
@@ -412,23 +414,8 @@ namespace GeometryFriendsAgents
                 //if the plan is new build a new tree
                 if (newPlan)
                 {
-                    List<DiamondInfo> remainingDiamonds = new List<DiamondInfo>();
-                    List<DiamondInfo> caughtDiamonds = new List<DiamondInfo>();
-                    foreach (DiamondInfo diamond in Diamonds)
-                    {
-                        if (!diamond.wasCaught())
-                        {
-                            remainingDiamonds.Add(diamond);
-                        }
-                        else
-                        {
-                            caughtDiamonds.Add(diamond);
-                        }
-                    }
-
-                    //Initialize simulator
-                    sim.setSimulator(rectangleInfo.X, rectangleInfo.Y, rectangleInfo.VelocityX, rectangleInfo.VelocityY, Diamonds);
-
+                    updateDiamonds();
+                    sim.setSimulator(rectangleInfo.X, rectangleInfo.Y, rectangleInfo.VelocityX, rectangleInfo.VelocityY, remainingDiamonds);
                     //update the diamond list
                     RRT.setDiamonds(Diamonds);
                     State initialState = new State(rectangleInfo.X, rectangleInfo.Y, rectangleInfo.VelocityX, rectangleInfo.VelocityY, rectangleInfo.Height / 2, 0, caughtDiamonds, remainingDiamonds);
@@ -452,10 +439,7 @@ namespace GeometryFriendsAgents
                 {
                     if (!written)
                     {
-                        int exploredNodesOnce = RRT.getExploredNodesOnce();
-                        int exploredNodesTotal = RRT.getExploredNodesTotal();
-                        int totalNodes = T.getNodes().Count;
-                        utils.writeTimeToFile(1, 1, searchTime, exploredNodesOnce, exploredNodesTotal, totalNodes, gSpeed);
+                        utils.writeTimeToFile(1, 1, searchTime, gSpeed);
                         written = true;
                     }
 
@@ -739,6 +723,23 @@ namespace GeometryFriendsAgents
                 hasStarted = true;
                 searchTime = new Stopwatch();
                 searchTime.Start();
+            }
+        }
+
+        private void updateDiamonds()
+        {
+            remainingDiamonds = new List<DiamondInfo>();
+            caughtDiamonds = new List<DiamondInfo>();
+            foreach (DiamondInfo diamond in Diamonds)
+            {
+                if (!diamond.wasCaught())
+                {
+                    remainingDiamonds.Add(diamond);
+                }
+                else
+                {
+                    caughtDiamonds.Add(diamond);
+                }
             }
         }
     }

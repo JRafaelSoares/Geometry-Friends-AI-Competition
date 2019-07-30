@@ -534,15 +534,33 @@ namespace GeometryFriendsAgents
                 //if the plan is new build a new tree
                 if (newPlan)
                 {
+                    List<DiamondInfo> remainingDiamonds = new List<DiamondInfo>();
+                    List<DiamondInfo> caughtDiamonds = new List<DiamondInfo>();
+                    foreach (DiamondInfo diamond in Diamonds)
+                    {
+                        if (!diamond.wasCaught())
+                        {
+                            remainingDiamonds.Add(diamond);
+                        }
+                        else
+                        {
+                            caughtDiamonds.Add(diamond);
+                        }
+                    }
+
                     //FIRST STEP
                     //always try to catch a diamond by itself first - to be changed
                     goalMode = GoalType.FirstPossible;
                     //update the diamond list
                     RRT.setDiamonds(Diamonds);
                     //create initial state
-                    State initialState = new State(circleInfo.X, circleInfo.Y, circleInfo.VelocityX, circleInfo.VelocityY, circleInfo.Radius / 2, 0, caughtCollectibles, uncaughtCollectibles);
+                    State initialState = new State(circleInfo.X, circleInfo.Y, circleInfo.VelocityX, circleInfo.VelocityY, circleInfo.Radius / 2, 0, caughtDiamonds, remainingDiamonds);
+                    //Creates simulator
+                    Simulator sim = new CircleSimulator(Platforms);
+                    sim.setSimulator(circleInfo.X, circleInfo.Y, circleInfo.VelocityX, circleInfo.VelocityY, Diamonds);
+
                     //run algorithm
-                    T = RRT.buildNewMPRRT(initialState, predictor, goalMode, iterationsFirst);
+                    T = RRT.buildNewMPRRT(initialState, sim, goalMode, iterationsFirst);
                 }
                 else //continue the previous tree
                 {
@@ -558,11 +576,25 @@ namespace GeometryFriendsAgents
                 //if a diamond was found when searching for a single diamond
                 if (T.getGoal() != null && goalMode == GoalType.FirstPossible)
                 {
+                    List<DiamondInfo> remainingDiamonds = new List<DiamondInfo>();
+                    List<DiamondInfo> caughtDiamonds = new List<DiamondInfo>();
+                    foreach (DiamondInfo diamond in Diamonds)
+                    {
+                        if (!diamond.wasCaught())
+                        {
+                            remainingDiamonds.Add(diamond);
+                        }
+                        else
+                        {
+                            caughtDiamonds.Add(diamond);
+                        }
+                    }
+
                     //check if it is possible to return
                     State goalState = T.getGoal().getState();
                     goalMode = GoalType.Return;
                     //create initial state
-                    State finalState = new State(goalState.getPosX(), goalState.getPosY(), goalState.getVelX(), goalState.getVelY(), goalState.getHeight() / 2, 0, caughtCollectibles, uncaughtCollectibles);
+                    State finalState = new State(goalState.getPosX(), goalState.getPosY(), goalState.getVelX(), goalState.getVelY(), goalState.getHeight() / 2, 0, caughtDiamonds, remainingDiamonds);
                     //run algorithm
                     RRTUtils tempRRT = new RRTUtils(actionTime, simTime, simTimeFinish, getPossibleMoves(), type, area, collectiblesInfo.Length, RRTTypes.Bias, RRTTypes.STP, obstaclesInfo, gSpeed, Diamonds, Platforms, utils, true, true);
                     float[] returnPos = new float[2];
@@ -595,15 +627,15 @@ namespace GeometryFriendsAgents
                             int currentDiamonds = auxNode.getParent().getState().getUncaughtCollectibles().Count;
                             if (currentDiamonds > prevDiamonds)
                             {
-                                List<CollectibleRepresentation> prevDiamondsList = auxNode.getState().getUncaughtCollectibles();
-                                List<CollectibleRepresentation> currentDiamondsList = auxNode.getParent().getState().getUncaughtCollectibles();
+                                List<DiamondInfo> prevDiamondsList = auxNode.getState().getUncaughtCollectibles();
+                                List<DiamondInfo> currentDiamondsList = auxNode.getParent().getState().getUncaughtCollectibles();
 
-                                foreach (CollectibleRepresentation d1 in prevDiamondsList)
+                                foreach (DiamondInfo d1 in prevDiamondsList)
                                 {
                                     bool inCurrent = false;
-                                    foreach (CollectibleRepresentation d2 in currentDiamondsList)
+                                    foreach (DiamondInfo d2 in currentDiamondsList)
                                     {
-                                        if (d1.X == d2.X && d1.Y == d2.Y)
+                                        if (d1.getX() == d2.getX() && d1.getY() == d2.getY())
                                         {
                                             inCurrent = true;
                                             break;
@@ -613,8 +645,8 @@ namespace GeometryFriendsAgents
                                     {
                                         foreach (DiamondInfo d3 in Diamonds)
                                         {
-                                            if (Math.Round(d1.X) == Math.Round(d3.getX()) &&
-                                                Math.Round(d1.Y) == Math.Round(d3.getY()))
+                                            if (Math.Round(d1.getX()) == Math.Round(d3.getX()) &&
+                                                Math.Round(d1.getY()) == Math.Round(d3.getY()))
                                             {
                                                 RRT.diamondToIgnore(d3);
                                             }
@@ -781,12 +813,30 @@ namespace GeometryFriendsAgents
             //if no platform in common was found, then replan
             else if (pathPlan.getPathPoints().Count != 0)
             {
-                State initialState = new State(circleInfo.X, circleInfo.Y, circleInfo.VelocityX, circleInfo.VelocityY, circleInfo.Radius, circleInfo.Radius, caughtCollectibles, uncaughtCollectibles);
+                List<DiamondInfo> remainingDiamonds = new List<DiamondInfo>();
+                List<DiamondInfo> caughtDiamonds = new List<DiamondInfo>();
+                foreach (DiamondInfo diamond in Diamonds)
+                {
+                    if (!diamond.wasCaught())
+                    {
+                        remainingDiamonds.Add(diamond);
+                    }
+                    else
+                    {
+                        caughtDiamonds.Add(diamond);
+                    }
+                }
+
+                //Simulator
+                Simulator sim = new CircleSimulator(Platforms);
+                sim.setSimulator(circleInfo.X, circleInfo.Y, circleInfo.VelocityX, circleInfo.VelocityY, Diamonds);
+
+                State initialState = new State(circleInfo.X, circleInfo.Y, circleInfo.VelocityX, circleInfo.VelocityY, circleInfo.Radius, circleInfo.Radius, caughtDiamonds, remainingDiamonds);
                 float[] returnPos = new float[2];
                 returnPos[0] = pathPlan.getPathPoints()[0].getPosX();
                 returnPos[1] = pathPlan.getPathPoints()[0].getPosY();
                 RRT.setReturnPos(returnPos);
-                Tree t = RRT.buildNewMPRRT(initialState, predictor, GoalType.Return, iterationsS);
+                Tree t = RRT.buildNewMPRRT(initialState, sim, GoalType.Return, iterationsS);
 
                 if (t.getGoal() != null)
                 {

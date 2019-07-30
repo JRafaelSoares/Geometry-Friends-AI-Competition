@@ -8,25 +8,31 @@ using GeometryFriends.AI.Perceptions.Information;
 
 namespace GeometryFriendsAgents
 {
-    public class Point
+    public class PointMP
     {
         private float posX;
         private float posY;
         private float velX;
         private float height;
+        private float posXPartner;
+        private float posYPartner;
         private Moves action;
-        private List<DiamondInfo> uncaughtCollectibles;
+        private List<CollectibleRepresentation> uncaughtCollectibles;
         private int timesPassed;
+        private NodeMP node;
 
-        public Point(float pX, float pY, float vX, float h, Moves a, List<DiamondInfo> uC)
+        public PointMP(float pX, float pY, float vX, float h, float pXp, float pYp, Moves a, List<CollectibleRepresentation> uC, NodeMP n)
         {
             posX = pX;
             posY = pY;
             velX = vX;
             height = h;
+            posXPartner = pXp;
+            posYPartner = pYp;
             action = a;
             uncaughtCollectibles = uC;
             timesPassed = 0;
+            node = n;
         }
 
         public float getPosX()
@@ -55,12 +61,22 @@ namespace GeometryFriendsAgents
             return height;
         }
 
+        public float getPartnerX()
+        {
+            return posXPartner;
+        }
+
+        public float getPartnerY()
+        {
+            return posYPartner;
+        }
+
         public Moves getAction()
         {
             return action;
         }
 
-        public List<DiamondInfo> getUncaughtColl()
+        public List<CollectibleRepresentation> getUncaughtColl()
         {
             return uncaughtCollectibles;
         }
@@ -78,6 +94,11 @@ namespace GeometryFriendsAgents
         public int getTimesPassed()
         {
             return timesPassed;
+        }
+
+        public NodeMP getNode()
+        {
+            return node;
         }
     }
 }

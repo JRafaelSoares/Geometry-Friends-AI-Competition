@@ -15,12 +15,10 @@ namespace GeometryFriendsAgents
         private bool semiplanTest;
         private bool cutplan;
         private bool bgt;
-        private int mu = 300;
+        private int mu = 200;
         private float bias = 0.25f; //TODO test
         private float stpBias = 0.25f;
-        private float stpBiasRectangle = 0.25f;
-        private int exploredNodesOnce = 0;
-        private int exploredNodesTotal = 0;
+        private float stpBiasRectangle = 0.75f;
         /******Algorithm variables******/
         private float actionTime = 1.0f;
         private float simTime;
@@ -40,7 +38,7 @@ namespace GeometryFriendsAgents
         private int iterations;
         private int rrtIterations = 1;
         private int correctionIterations = 1000;
-        private int matrixSize;
+        private float matrixSize;
         private int matrixDec;
         private int initialMatrixSize = 20;
         private int initialMatrixDec = 5;
@@ -151,15 +149,15 @@ namespace GeometryFriendsAgents
         /*******************************************************/
 
         //Builds a new tree from scratch
-        public Tree buildNewRRT(State initialState, Simulator sim, int it)
+        public Tree buildNewRRT(State initialState, Simulator predictor, int it)
         {
             goal = false;
-            simulator = sim;
+            simulator = predictor;
             time.Restart();
 
             initialPosX = initialState.getPosX();
             initialPosY = initialState.getPosY();
-            initialPlatform = utils.platformBelow(initialPosX, initialPosY);
+            initialPlatform = platformBelow(initialPosX, initialPosY);
             iterations = it;
             matrixSize = initialMatrixSize;
             matrixDec = initialMatrixDec;
@@ -172,34 +170,31 @@ namespace GeometryFriendsAgents
             return buildRRT(initialState, simulator);
         }
 
-        public Tree buildNewMPRRT(State initialState, Simulator sim, GoalType gType, int it)
+        public Tree buildNewMPRRT(State initialState, Simulator predictor, GoalType gType, int it)
         {
             //TODO / CAUTION - when using coop tree, do not call buildnewrrt
             goalType = gType;
             multiplayer = true;
             iterations = it;
-            return buildNewRRT(initialState, sim, it);
+            return buildNewRRT(initialState, predictor, it);
         }
 
         //RRT algorithm
-        public Tree buildRRT(State initialState, Simulator sim)
+        public Tree buildRRT(State initialState, Simulator predictor)
         {
             //initialize tree
             goal = false;
-            positions = new bool[area.Right / matrixSize, area.Bottom / matrixSize, totalCollectibles + 1];
-            Tree currentTree = new Tree(initialState, sim, copyMoves(), bgt);
-            simulator = sim;
+            positions = new bool[(int)(area.Right / matrixSize), (int)(area.Bottom / matrixSize), totalCollectibles + 1];
+            Tree currentTree = new Tree(initialState, predictor, copyMoves(), bgt);
+            simulator = predictor;
             return RRT(currentTree);
         }
-        
+
         public Tree RRT(Tree currentTree)
         {
             Node randNode;
-            //tree with a maximum number (iterations) of branches 
-            for (int i = 1; i <= iterations; i++)
-            {
-                //if it has already passed too much time and there is a state with caught diamonds, then start the plan from there
-                if (semiplanTest && samePlatformTime < maxTime)
+            //if it has already passed too much time and there is a state with caught diamonds, then start the plan from there
+            if (semiplanTest && samePlatformTime < maxTime)
             {
                 if ((time.ElapsedMilliseconds * 0.001f * gSpeed > samePlatformTime && bestSemiPlanNode != null && samePlatformPlan && !correction))
                 {
@@ -215,39 +210,41 @@ namespace GeometryFriendsAgents
                 bestSemiPlanNode = null;
                 return currentTree;
             }
-
-            //if there are no more open nodes, start new tree with new position matrix
-            while (currentTree.getOpenNodes().Count == 0)
+            //tree with a maximum number (iterations) of branches 
+            for (int i = 1; i <= iterations; i++)
             {
-                if (matrixSize > 15)
-                {
-                    matrixSize -= 3;
-                }
-                else if (matrixSize > 10)
-                {
-                    matrixSize -= 2;
-                }
-                else if (matrixSize <= 10)
-                {
-                    matrixSize--;
-                }
-                if (matrixSize < 1)
-                {
-                    matrixSize = 1;
-                }
-                currentTree = repopulateMatrix(currentTree);
+                
 
-                goal = false;
-            }
-            
+                //if there are no more open nodes, start new tree with new position matrix
+                while (currentTree.getOpenNodes().Count == 0)
+                {
+                    if (matrixSize > 15)
+                    {
+                        matrixSize -= 3;
+                    }
+                    else if (matrixSize > 10)
+                    {
+                        matrixSize -= 2;
+                    }
+                    else if (matrixSize <= 10)
+                    {
+                        matrixSize--;
+                    }
+                    if (matrixSize < 1)
+                    {
+                        matrixSize -= 0.1f;
+                    }
+                    if (matrixSize < 0.1)
+                    {
+                        matrixSize = 0.1f;
+                    }
+                    currentTree = repopulateMatrix(currentTree);
+
+                    goal = false;
+                }
+
                 //select a random node according to selection type
                 randNode = getNextNode(currentTree);
-                if(!randNode.wasExplored())
-                {
-                    randNode.nodeExplored();
-                    exploredNodesOnce++;
-                }
-                exploredNodesTotal++;
                 extend(currentTree, randNode);
                 if (goal)
                 {
@@ -290,7 +287,7 @@ namespace GeometryFriendsAgents
             }
 
             //if the action is not no_action, remove the move from the node
-            if(newAction != Moves.NO_ACTION)
+            if (newAction != Moves.NO_ACTION)
             {
                 if (bgt)
                 {
@@ -457,9 +454,8 @@ namespace GeometryFriendsAgents
                     actionTime = mediumPlatformTime;
                 }
             }
-            List<CollectibleRepresentation> simCaughtCollectibles = new List<CollectibleRepresentation>();
-            //add action to simulator with the associated time to be simulated
-            
+            //actionTime = smallPlatformTime;
+
             //if it is jump to avoid multiple jumps in one simulation
             debugInfo = stateSim.simulate(newAction, actionTime);
 
@@ -501,9 +497,9 @@ namespace GeometryFriendsAgents
 
         private bool inArea(List<Area> areas, float x, float y)
         {
-            foreach(Area area in areas)
+            foreach (Area area in areas)
             {
-                if(x <= area.rX() && x >= area.lX() && y <= area.bY() && y >= area.tY())
+                if (x <= area.rX() && x >= area.lX() && y <= area.bY() && y >= area.tY())
                 {
                     return true;
                 }
@@ -514,7 +510,7 @@ namespace GeometryFriendsAgents
         //get a random node from tree biased to a diamond area
         private Node getAreaBiasNode(Tree tree)
         {
-            if(bias > rnd.NextDouble())
+            if (bias > rnd.NextDouble())
             {
                 return getNearestNode(tree, false);
             }
@@ -528,19 +524,19 @@ namespace GeometryFriendsAgents
             DiamondInfo diamond = diamondsInfo[rnd.Next(diamondsInfo.Count)];
             foreach (Area area in diamond.getSamllAreasList())
             {
-                if(area.lX() < maxLeft)
+                if (area.lX() < maxLeft)
                 {
                     maxLeft = area.lX();
                 }
-                if(area.rX() > maxRight)
+                if (area.rX() > maxRight)
                 {
                     maxRight = area.rX();
                 }
-                if(area.tY() < maxTop)
+                if (area.tY() < maxTop)
                 {
                     maxTop = area.tY();
                 }
-                if(area.bY() > maxBottom)
+                if (area.bY() > maxBottom)
                 {
                     maxBottom = area.bY();
                 }
@@ -554,7 +550,7 @@ namespace GeometryFriendsAgents
 
             List<Area> areas = diamond.getSamllAreasList();
 
-            while(!inArea(areas, stateX, stateY))
+            while (!inArea(areas, stateX, stateY))
             {
                 random = rnd.NextDouble();
                 stateX = (float)random * (maxRight - maxLeft) + maxLeft;
@@ -619,7 +615,7 @@ namespace GeometryFriendsAgents
 
                     if (stateSelection == RRTTypes.STP)
                     {
-                        if(charType == 0)
+                        if (charType == 0)
                         {
                             while (randomNode != null && !randomNode.anyRemainingSTPActions() && rnd.NextDouble() >= stpBias)
                             {
@@ -633,7 +629,7 @@ namespace GeometryFriendsAgents
                                 randomNode = diamond.getRandomClosestState();
                             }
                         }
-                        
+
                     }
 
                     if (randomNode != null)
@@ -646,7 +642,7 @@ namespace GeometryFriendsAgents
             randomNode = getBGTNode(tree, true);
             if (stateSelection == RRTTypes.STP)
             {
-                if(charType == 0)
+                if (charType == 0)
                 {
                     while (!randomNode.anyRemainingSTPActions() && rnd.NextDouble() >= stpBias)
                     {
@@ -660,7 +656,7 @@ namespace GeometryFriendsAgents
                         randomNode = randomNode = getBGTNode(tree, true);
                     }
                 }
-                
+
             }
             return randomNode = getBGTNode(tree, true);
         }
@@ -775,10 +771,10 @@ namespace GeometryFriendsAgents
             if (ratio > mu)
             {
                 var node = tree.getRandomNonLeafNode();
-                if(node == null)
+                if (node == null)
                 {
                     node = tree.getRandomLeafNode();
-                    if(node == null)
+                    if (node == null)
                     {
                         return getNearestNode(tree, true);
                     }
@@ -789,10 +785,10 @@ namespace GeometryFriendsAgents
             else
             {
                 var node = tree.getRandomLeafNode();
-                if(node == null)
+                if (node == null)
                 {
                     node = tree.getRandomNonLeafNode();
-                    if(node == null)
+                    if (node == null)
                     {
                         return getNearestNode(tree, true);
                     }
@@ -937,7 +933,7 @@ namespace GeometryFriendsAgents
                     }
                     return randomAction(node);
                 }
-                
+
             }
         }
 
@@ -993,7 +989,7 @@ namespace GeometryFriendsAgents
         private Tree repopulateMatrix(Tree t)
         {
             //new matrix
-            positions = new bool[area.Right / matrixSize, area.Bottom / matrixSize, totalCollectibles + 1];
+            positions = new bool[(int)(area.Right / matrixSize), (int)(area.Bottom / matrixSize), totalCollectibles + 1];
 
             List<Moves> newMoves;
 
@@ -1193,7 +1189,7 @@ namespace GeometryFriendsAgents
             PathPlan p = new PathPlan(cutplan, t.getRoot().getState().getNumberUncaughtCollectibles(), utils);
 
             Node currentNode = t.getGoal();
-            
+
             State currentState;
             Point point;
 
@@ -1233,7 +1229,7 @@ namespace GeometryFriendsAgents
             return p;
         }
 
-        public bool checkState(Point point, float X, float Y, float velX, float velY, List<CollectibleRepresentation> uncaughtColl)
+        public bool checkState(Point point, float X, float Y, float velX, float velY, List<DiamondInfo> uncaughtColl)
         {
             //calculate the margins of error
             float marginPosX = Math.Abs(velX) / marginDenominator + marginMinX;
@@ -1261,7 +1257,7 @@ namespace GeometryFriendsAgents
             return false;
         }
 
-        public bool checkState(State planState, float X, float Y, float velX, float velY, List<CollectibleRepresentation> caughtColl)
+        public bool checkState(State planState, float X, float Y, float velX, float velY, List<DiamondInfo> caughtColl)
         {
             float stateX = planState.getPosX();
             float stateY = planState.getPosY();
@@ -1284,7 +1280,7 @@ namespace GeometryFriendsAgents
                 caughtColl.Count == stateColl.Count)
             {
                 //Case they match, check if the states have the same caught collectibles
-                foreach (CollectibleRepresentation coll in caughtColl)
+                foreach (DiamondInfo coll in caughtColl)
                 {
                     //Case there is on missing, then it is not the same state
                     if (!stateColl.Exists(sc => sc.Equals(coll)))
@@ -1299,7 +1295,7 @@ namespace GeometryFriendsAgents
         }
 
         //temporary - to use with a plan taken from a file - ignores collectibles
-        public bool checkStateTemp(State planState, float X, float Y, float velX, float velY, List<CollectibleRepresentation> caughtColl)
+        public bool checkStateTemp(State planState, float X, float Y, float velX, float velY, List<DiamondInfo> caughtColl)
         {
             float stateX = planState.getPosX();
             float stateY = planState.getPosY();
@@ -1463,10 +1459,6 @@ namespace GeometryFriendsAgents
                         indexes[i] = 0;
                         break;
                     }
-                    //} else
-                    //{
-                    //    indexes[i] = 1;
-                    //}
                 }
             }
 
@@ -1495,7 +1487,7 @@ namespace GeometryFriendsAgents
             int bestHighest = getHighestNumber(bestCaughtDiamonds);
 
             //if none of the plans catches the highest, see the others
-            if(currentHighest == 0 && bestHighest == 0)
+            if (currentHighest == 0 && bestHighest == 0)
             {
                 currentHighest = getHighestDiamondNumber(diamonds);
                 bestHighest = getHighestDiamondNumber(bestCaughtDiamonds);
@@ -1505,7 +1497,7 @@ namespace GeometryFriendsAgents
                     return false;
                 }
                 //if the index of the current is lower, then the diamond is higher
-                if(currentHighest < bestHighest)
+                if (currentHighest < bestHighest)
                 {
                     return true;
                 }
@@ -1521,9 +1513,9 @@ namespace GeometryFriendsAgents
 
         private int getHighestDiamondNumber(int[] diamonds)
         {
-            for(int i = 0; i < diamonds.Length; i++)
+            for (int i = 0; i < diamonds.Length; i++)
             {
-                if(diamonds[i] == 1)
+                if (diamonds[i] == 1)
                 {
                     return i;
                 }
@@ -1660,37 +1652,38 @@ namespace GeometryFriendsAgents
             return (float)Math.Pow(dist, 2);
         }
 
-        
-            //List<ObstacleRepresentation> platformsBelow = new List<ObstacleRepresentation>();
+        private Platform platformBelow(float x, float y)
+        {
+            List<ObstacleRepresentation> platformsBelow = new List<ObstacleRepresentation>();
 
-            //foreach (ObstacleRepresentation platform in platforms)
-            //{
-            //    if (x >= (platform.X - platform.Width / 2) &&
-            //       x <= (platform.X + platform.Width / 2) &&
-            //       y <= platform.Y)
-            //    {
-            //        //make sure the highest platform is chosen if there are more than 1 platform below the agent
-            //        if (platformsBelow.Count == 1 && platformsBelow[0].Y > platform.Y)
-            //        {
-            //            platformsBelow.RemoveAt(0);
-            //        }
-            //        if (platformsBelow.Count == 0)
-            //        {
-            //            platformsBelow.Add(platform);
-            //        }
+            foreach (ObstacleRepresentation platform in platforms)
+            {
+                if (x >= (platform.X - platform.Width / 2) &&
+                   x <= (platform.X + platform.Width / 2) &&
+                   y <= platform.Y)
+                {
+                    //make sure the highest platform is chosen if there are more than 1 platform below the agent
+                    if (platformsBelow.Count == 1 && platformsBelow[0].Y > platform.Y)
+                    {
+                        platformsBelow.RemoveAt(0);
+                    }
+                    if (platformsBelow.Count == 0)
+                    {
+                        platformsBelow.Add(platform);
+                    }
 
-            //    }
-            //}
-            //if (platformsBelow.Count == 1)
-            //{
-            //    return new Platform(platformsBelow[0].X, platformsBelow[0].Y, platformsBelow[0].Width, platformsBelow[0].Height);
-            //}
-            //if (platformsBelow.Count == 0)
-            //{
-            //    return new Platform(0, area.Bottom, 0, 0);
-            //}
-            //return null;
-
+                }
+            }
+            if (platformsBelow.Count == 1)
+            {
+                return new Platform(platformsBelow[0].X, platformsBelow[0].Y, platformsBelow[0].Width, platformsBelow[0].Height);
+            }
+            if (platformsBelow.Count == 0)
+            {
+                return new Platform(0, area.Bottom, 0, 0);
+            }
+            return null;
+        }
 
         public void setRadius(float rad)
         {
@@ -1990,14 +1983,5 @@ namespace GeometryFriendsAgents
             semiplanTest = p;
         }
 
-        public int getExploredNodesOnce()
-        {
-            return exploredNodesOnce;
-        }
-
-        public int getExploredNodesTotal()
-        {
-            return exploredNodesTotal;
-        }
     }
 }

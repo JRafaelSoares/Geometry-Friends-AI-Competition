@@ -388,12 +388,30 @@ namespace GeometryFriendsAgents
                 //if the plan is new build a new tree
                 if (newPlan)
                 {
+                    List<DiamondInfo> remainingDiamonds = new List<DiamondInfo>();
+                    List<DiamondInfo> caughtDiamonds = new List<DiamondInfo>();
+                    foreach (DiamondInfo diamond in Diamonds)
+                    {
+                        if (!diamond.wasCaught())
+                        {
+                            remainingDiamonds.Add(diamond);
+                        }
+                        else
+                        {
+                            caughtDiamonds.Add(diamond);
+                        }
+                    }
+
+                    //Simulator
+                    Simulator sim = new CircleSimulator(Platforms);
+                    sim.setSimulator(circleInfo.X, circleInfo.Y, circleInfo.VelocityX, circleInfo.VelocityY, Diamonds);
+
                     //update the diamond list
                     RRT.setDiamonds(Diamonds);
                     //create initial state
-                    State initialState = new State(circleInfo.X, circleInfo.Y, circleInfo.VelocityX, circleInfo.VelocityY, circleInfo.Radius, circleInfo.Radius, caughtCollectibles, uncaughtCollectibles);
+                    State initialState = new State(circleInfo.X, circleInfo.Y, circleInfo.VelocityX, circleInfo.VelocityY, circleInfo.Radius, circleInfo.Radius, caughtDiamonds, remainingDiamonds);
                     //run algorithm
-                    T = RRT.buildNewRRT(initialState, predictor, iterationsS);
+                    T = RRT.buildNewRRT(initialState, sim, iterationsS);
                 }
                 else //continue the previous tree
                 {
@@ -499,12 +517,30 @@ namespace GeometryFriendsAgents
             //if no platform in common was found, then try to find a way to a platform in the plan and replan if this fails
             else if (pathPlan.getPathPoints().Count != 0)
             {
-                State initialState = new State(circleInfo.X, circleInfo.Y, circleInfo.VelocityX, circleInfo.VelocityY, circleInfo.Radius, circleInfo.Radius, caughtCollectibles, uncaughtCollectibles);
+                List<DiamondInfo> remainingDiamonds = new List<DiamondInfo>();
+                List<DiamondInfo> caughtDiamonds = new List<DiamondInfo>();
+                foreach (DiamondInfo diamond in Diamonds)
+                {
+                    if (!diamond.wasCaught())
+                    {
+                        remainingDiamonds.Add(diamond);
+                    }
+                    else
+                    {
+                        caughtDiamonds.Add(diamond);
+                    }
+                }
+
+                //Simulator
+                Simulator sim = new CircleSimulator(Platforms);
+                sim.setSimulator(circleInfo.X, circleInfo.Y, circleInfo.VelocityX, circleInfo.VelocityY, Diamonds);
+
+                State initialState = new State(circleInfo.X, circleInfo.Y, circleInfo.VelocityX, circleInfo.VelocityY, circleInfo.Radius, circleInfo.Radius, caughtDiamonds, remainingDiamonds);
                 float[] returnPos = new float[2];
                 returnPos[0] = pathPlan.getPathPoints()[0].getPosX();
                 returnPos[1] = pathPlan.getPathPoints()[0].getPosY();
                 RRT.setReturnPos(returnPos);
-                Tree t = RRT.buildNewMPRRT(initialState, predictor, GoalType.Return, iterationsS);
+                Tree t = RRT.buildNewMPRRT(initialState, sim, GoalType.Return, iterationsS);
 
                 if (t.getGoal() != null)
                 {

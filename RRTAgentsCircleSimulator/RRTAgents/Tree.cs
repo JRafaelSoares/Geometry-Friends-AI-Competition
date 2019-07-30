@@ -29,9 +29,9 @@ namespace GeometryFriendsAgents
         private Random rnd;
 
         //constructor
-        public Tree(State initialState, Simulator sim, List<Moves> moves, bool BGT)
+        public Tree(State initialState, Simulator predictor, List<Moves> moves, bool BGT)
         {
-            root = new Node(null, initialState, 0, sim, moves);
+            root = new Node(null, initialState, 0, predictor, moves);
             nodes = new List<Node>();
             open = new List<Node>();
             closed = new List<Node>();

@@ -10,10 +10,11 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using System.Threading;
 
 namespace GeometryFriendsAgents
 {
-    public class RectangleSingleplayer
+    public class CircleSingleplayer
     {
         //auxiliary variables for agent action
         private Moves currentAction;
@@ -51,36 +52,28 @@ namespace GeometryFriendsAgents
 
         //RRT tree
         private RRTUtils RRT;
-        private RRTUtilsMP RRTMP;
         private Tree T;
-        private Tree TReturn;
-        private TreeMP TMP;
-        private int iterationsS = 150;
-        private int iterationsFirst = 1;
-        private int iterationsReturn = 1;
-        private int iterationsHighest = 1;
-        private int iterationsMP = 50;
+        private int iterationsS = 15000;
+        private int iterationsSControl = 1;
+
         //plan
         private int remainingActions;
         //if a new plan is needed
         private bool planRRT = true;
         private bool newPlan = true;
         //simulator
-        Simulator sim;
         //time of simulation
         private float actionTime = 2.1f;
         private float actionTimeMargin = 0.5f;
+        private float jumpTimeMargin = 1.0f;
         private float simTime = 2.0f;
         private float simTimeFinish = 0.1f;
         //control
-        private RectangleController controller;
-        private RectangleControllerMP controllerMP;
+        private CircleController controller;
         private PathPlan pathPlan;
         private PathPlan originalPlan;
-        private PathPlanMP pathPlanMP;
-        private PathPlanMP originalPlanMP;
         private float pointTimeMargin = 10;
-        private float pointTimeMarginMP = 15; //more time to let the human player get there
+        private bool justJumped = false;
         private Moves lastMove = Moves.NO_ACTION;
         private bool controlling = false;
         private Stopwatch timestep;
@@ -91,12 +84,11 @@ namespace GeometryFriendsAgents
         private float previousAcceleration = 0;
         //rectangle info - area
         private float rectangleArea;
-        //rectangle info
-        private float previousRectanglePosX;
-        private float previousRectanglePosY;
-        private float maxHeight = 192.3077f;
-        private float minHeight = 51.30769f;
-        private int type = 1;  //0 -> circle  1 -> rectangle
+        //circle info
+        private float previousCirclePosX;
+        private float previousCirclePosY;
+        private int type = 0;  //0 -> circle  1 -> rectangle
+        private bool jumpPerformed = false;
         //level info
         private bool hasStarted = false;
         private bool firstAction = true;
@@ -107,25 +99,21 @@ namespace GeometryFriendsAgents
         private List<Platform> Platforms;
         private Platform ground;
         private int[,] levelLayout;
-        private int gameMode; //0 -> singleplayer  1 -> multiplayer
         private GoalType goalMode;
 
         //correction
         private bool correctRRT = false;
         private float correctVelYMargin = 20.0f;
-        private float correctVelXMargin = 1.0f;
+        private float correctVelXMargin = 5.0f;
+        private int VLODmaxPoints = 1;
         private PathPlan previousPlan;
-        private PathPlanMP previousPlanMP;
 
         //Area of the game screen
         private Rectangle area;
 
-        //game ended
-        private bool gameOver = false;
-
         //debug
-        private float rectangleMaxHeight;
-        private float rectangleInitialY;
+        private float circleMaxHeight;
+        private float circleInitialY;
         private bool initialY = true;
 
         //for tests
@@ -134,7 +122,7 @@ namespace GeometryFriendsAgents
         private bool testing;
         private bool timer;
 
-        public RectangleSingleplayer(bool cp, bool test, bool timr)
+        public CircleSingleplayer(bool cp, bool test, bool timr)
         {
             //setup for action updates
             currentAction = Moves.NO_ACTION;
@@ -142,10 +130,9 @@ namespace GeometryFriendsAgents
 
             //prepare the possible moves  
             possibleMoves = new List<Moves>();
-            possibleMoves.Add(Moves.MOVE_LEFT);
-            possibleMoves.Add(Moves.MOVE_RIGHT);
-            possibleMoves.Add(Moves.MORPH_UP);
-            possibleMoves.Add(Moves.MORPH_DOWN);
+            possibleMoves.Add(Moves.ROLL_LEFT);
+            possibleMoves.Add(Moves.ROLL_RIGHT);
+            possibleMoves.Add(Moves.JUMP);
 
             //history keeping
             uncaughtCollectibles = new List<CollectibleRepresentation>();
@@ -167,16 +154,16 @@ namespace GeometryFriendsAgents
         /********************************************************************************************/
         /********************************************************************************************/
 
-        //implements abstract rectangle interface: used to setup the initial information so that the agent has basic knowledge about the level
+        //implements abstract circle interface: used to setup the initial information so that the agent has basic knowledge about the level
         public void Setup(CountInformation nI, RectangleRepresentation rI, CircleRepresentation cI, ObstacleRepresentation[] oI, ObstacleRepresentation[] rPI, ObstacleRepresentation[] cPI, CollectibleRepresentation[] colI, Rectangle area, double timeLimit)
         {
-            ground = new Platform(0, area.Bottom, 0, 0, PlatformType.Black);
+            ground = new Platform(0, area.Bottom, 0, 0);
             utils = new Utils(ground, circleInfo.Radius, area);
             numbersInfo = nI;
             nCollectiblesLeft = nI.CollectiblesCount;
             rectangleInfo = rI;
             circleInfo = cI;
-            obstaclesInfo = utils.joinObstacles(oI, rPI);
+            obstaclesInfo = utils.joinObstacles(oI, cPI);
             rectanglePlatformsInfo = rPI;
             circlePlatformsInfo = cPI;
             collectiblesInfo = colI;
@@ -184,52 +171,65 @@ namespace GeometryFriendsAgents
             this.area = area;
             gSpeed = 1.0f;
             goalMode = GoalType.All;
-
+            
             //setup level layout
             levelLayout = utils.getLevelLayout(obstaclesInfo, area);
 
             //calculates de area of the rectangle since only the info of the height is available
             rectangleArea = utils.setRectangleArea(rectangleInfo.Height);
 
-            //gets the initial position of the Rectangle to test is the game has started or is still at the menu
-            previousRectanglePosX = rectangleInfo.X;
-            previousRectanglePosY = rectangleInfo.Y;
+            //gets the initial position of the circle to test is the game has started or is still at the menu
+            previousCirclePosX = circleInfo.X;
+            previousCirclePosY = circleInfo.Y;
 
-            Platforms = utils.setupPlatforms(obstaclesInfo, rPI, cPI);
+            Platforms = utils.setupPlatforms(obstaclesInfo);
             Diamonds = utils.setupDiamonds(collectiblesInfo, levelLayout);
 
             /*************TESTS*************/
             //inform a level has started
-            utils.writeStart(1);
 
-            //search - state - original; action - original; no partial plans
-            RRT = new RRTUtils(actionTime, simTime, simTimeFinish, getPossibleMoves(), type, area, collectiblesInfo.Length, RRTTypes.Original, RRTTypes.Original, obstaclesInfo, gSpeed, Diamonds, Platforms, utils, false, false);
-            //search - state - original; action - STP; biasSTP - 0.25/0.5/0.75; no partial plans
+            utils.writeStart(0);
+
+            //state - ORIGINAL; action - ORIGINAL; no partial plans
+            //RRT = new RRTUtils(actionTime, simTime, simTimeFinish, getPossibleMoves(), type, area, collectiblesInfo.Length, RRTTypes.Original, RRTTypes.Original, obstaclesInfo, gSpeed, Diamonds, Platforms, utils, false, false);
+            //state - BIAS; action - ORIGINAL; no partial plans
+            //RRT = new RRTUtils(actionTime, simTime, simTimeFinish, getPossibleMoves(), type, area, collectiblesInfo.Length, RRTTypes.Bias, RRTTypes.Original, obstaclesInfo, gSpeed, Diamonds, Platforms, utils, false, false);
+            //state - ZOOM; action - ORIGINAL; no partial plans
+            //RRT = new RRTUtils(actionTime, simTime, simTimeFinish, getPossibleMoves(), type, area, collectiblesInfo.Length, RRTTypes.AreaBias, RRTTypes.Original, obstaclesInfo, gSpeed, Diamonds, Platforms, utils, false, false);
+            //state - BGT; action - ORIGINAL; no partial plans
+            //RRT = new RRTUtils(actionTime, simTime, simTimeFinish, getPossibleMoves(), type, area, collectiblesInfo.Length, RRTTypes.BGT, RRTTypes.Original, obstaclesInfo, gSpeed, Diamonds, Platforms, utils, false, false);
+            //state - ORIGINAL; action - STP; no partial plans
             //RRT = new RRTUtils(actionTime, simTime, simTimeFinish, getPossibleMoves(), type, area, collectiblesInfo.Length, RRTTypes.Original, RRTTypes.STP, obstaclesInfo, gSpeed, Diamonds, Platforms, utils, false, false);
-            //search - state - bias - 0.25/0.50/0.75; action - STP; biasSTP;  no partial plans
+            //state - BGT-Bias; action - ORIGINAL; no partial plans
+            //RRT = new RRTUtils(actionTime, simTime, simTimeFinish, getPossibleMoves(), type, area, collectiblesInfo.Length, RRTTypes.BGTBias, RRTTypes.Original, obstaclesInfo, gSpeed, Diamonds, Platforms, utils, false, false);
+            //state - BGT-Bias; action - STP; no partial plans
+           // RRT = new RRTUtils(actionTime, simTime, simTimeFinish, getPossibleMoves(), type, area, collectiblesInfo.Length, RRTTypes.BGTBias, RRTTypes.STP, obstaclesInfo, gSpeed, Diamonds, Platforms, utils, false, false);
+
+            RRT = new RRTUtils(actionTime, simTime, simTimeFinish, getPossibleMoves(), type, area, collectiblesInfo.Length, RRTTypes.BGTBias, RRTTypes.STP, obstaclesInfo, gSpeed, Diamonds, Platforms, utils, false, true);
+
+            //state - original; action - STP; biasSTP - 0.25/0.5/0.75; no partial plans
+            //RRT = new RRTUtils(actionTime, simTime, simTimeFinish, getPossibleMoves(), type, area, collectiblesInfo.Length, RRTTypes.Original, RRTTypes.STP, obstaclesInfo, gSpeed, Diamonds, Platforms, utils, false, false);
+            //state - bias - 0.25/0.50/0.75; action - STP; biasSTP - ??; no partial plans
             //RRT = new RRTUtils(actionTime, simTime, simTimeFinish, getPossibleMoves(), type, area, collectiblesInfo.Length, RRTTypes.Bias, RRTTypes.STP, obstaclesInfo, gSpeed, Diamonds, Platforms, utils, false, false);
             //search - state - bgt - 10/50/10; action - STP; biasSTP; no partial plans
             //RRT = new RRTUtils(actionTime, simTime, simTimeFinish, getPossibleMoves(), type, area, collectiblesInfo.Length, RRTTypes.BGT, RRTTypes.STP, obstaclesInfo, gSpeed, Diamonds, Platforms, utils, false, false);
-            //search - state - bgt zoom - 50; action - STP; biasSTP; no partial plans
+            //search - state - bgt zoom; action - STP; biasSTP; no partial plans
             //RRT = new RRTUtils(actionTime, simTime, simTimeFinish, getPossibleMoves(), type, area, collectiblesInfo.Length, RRTTypes.BGTAreaBias, RRTTypes.STP, obstaclesInfo, gSpeed, Diamonds, Platforms, utils, false, false);
-            //search - state - bgt bias - 50; action - STP; biasSTP; no partial plans
+            //search - state - bgt bias; action - STP; biasSTP; no partial plans
             //RRT = new RRTUtils(actionTime, simTime, simTimeFinish, getPossibleMoves(), type, area, collectiblesInfo.Length, RRTTypes.BGTBias, RRTTypes.STP, obstaclesInfo, gSpeed, Diamonds, Platforms, utils, false, false);
             //search - state - zoom; action - STP; biasSTP; no partial plans
             //RRT = new RRTUtils(actionTime, simTime, simTimeFinish, getPossibleMoves(), type, area, collectiblesInfo.Length, RRTTypes.AreaBias, RRTTypes.STP, obstaclesInfo, gSpeed, Diamonds, Platforms, utils, false, false);
 
             /*************FINAL*************/
-            RRT = new RRTUtils(actionTime, simTime, simTimeFinish, getPossibleMoves(), type, area, collectiblesInfo.Length, RRTTypes.BGT, RRTTypes.STP, obstaclesInfo, gSpeed, Diamonds, Platforms, utils, true, true);
+            // RRT = new RRTUtils(actionTime, simTime, simTimeFinish, getPossibleMoves(), type, area, collectiblesInfo.Length, RRTTypes.BGTBias, RRTTypes.STP, obstaclesInfo, gSpeed, Diamonds, Platforms, utils, true, true);
 
-            //RRT = new RRTUtils(actionTime, simTime, simTimeFinish, getPossibleMoves(), type, area, collectiblesInfo.Length, RRTTypes.BGT, RRTTypes.Original, obstaclesInfo, gSpeed, Diamonds, Platforms, utils, false, false);
-
-            RRT.setRadius(rectangleInfo.Height / 2);
+            RRT.setRadius(circleInfo.Radius);
             pathPlan = new PathPlan(cutplan, colI.GetLength(0), utils);
-            controller = new RectangleController(gSpeed, utils);
+            controller = new CircleController(gSpeed, utils);
 
-           
         }
 
-        //implements abstract rectangle interface: registers updates from the agent's sensors that it is up to date with the latest environment information
+        //implements abstract circle interface: registers updates from the agent's sensors that it is up to date with the latest environment information
         /*WARNING: this method is called independently from the agent update - Update(TimeSpan elapsedGameTime) - so care should be taken when using complex 
          * structures that are modified in both (e.g. see operation on the "remaining" collection)      
          */
@@ -253,7 +253,7 @@ namespace GeometryFriendsAgents
             predictor = updatedSimulator;
         }
 
-        //implements abstract rectangle interface: GeometryFriends agents manager gets the current action intended to be actuated in the enviroment for this agent
+        //implements abstract circle interface: GeometryFriends agents manager gets the current action intended to be actuated in the enviroment for this agent
         public Moves GetAction()
         {
             return currentAction;
@@ -267,7 +267,7 @@ namespace GeometryFriendsAgents
         /********************************************************************************************/
         /********************************************************************************************/
 
-        //implements abstract rectangle interface: updates the agent state logic and predictions
+        //implements abstract circle interface: updates the agent state logic and predictions
         public void Update(TimeSpan elapsedGameTime)
         {
             //check if the game as started so the plan can be executed
@@ -283,8 +283,6 @@ namespace GeometryFriendsAgents
                     SinglePUpdate(elapsedGameTime);
                 }
             }
-
-
             //check if any collectible was caught
             lock (remaining)
             {
@@ -318,7 +316,7 @@ namespace GeometryFriendsAgents
             //tests - write time to file when game over
             if (uncaughtCollectibles.Count == 0 && testing)
             {
-                utils.writeTimeToFile(2, 1, searchTime, gSpeed);
+                utils.writeTimeToFile(2, 0, searchTime, gSpeed);
             }
         }
 
@@ -334,7 +332,7 @@ namespace GeometryFriendsAgents
             {
                 if (cutplan)
                 {
-                    debugInfo = RRT.getDebugInfo(T, pathPlan.cleanPlanRectangle(obstaclesInfo, Diamonds, area, rectangleInfo.Height / 2, true)).ToArray();
+                    debugInfo = RRT.getDebugInfo(T, pathPlan.cleanPlan(obstaclesInfo, Diamonds, area, circleInfo.Radius, true, true)).ToArray();
                 }
                 else
                 {
@@ -350,7 +348,7 @@ namespace GeometryFriendsAgents
             }
 
             //Control - if there is a plan then execute it
-            if (pathPlan.getPathPoints() != null && pathPlan.getPathPoints().Count != 0 && hasStarted && !gameOver)
+            if (pathPlan.getPathPoints() != null && pathPlan.getPathPoints().Count != 0 && hasStarted)
             {
                 controlling = true;
                 planExecution();
@@ -370,25 +368,17 @@ namespace GeometryFriendsAgents
             {
                 replan(true);
             }
+            else if (pathPlan.getPathPoints().Count == 0 && !controlling && !planRRT)
+            {
+                planRRT = true;
+                newPlan = true;
+            }
         }
 
         //implements abstract circle interface: gets the debug information that is to be visually represented by the agents manager
         public DebugInformation[] GetDebugInformation()
         {
             return debugInfo;
-        }
-
-        private List<Moves> getPossibleMoves()
-        {
-            List<Moves> moves = new List<Moves>();
-
-            moves = new List<Moves>();
-            moves.Add(Moves.MOVE_LEFT);
-            moves.Add(Moves.MOVE_RIGHT);
-            moves.Add(Moves.MORPH_UP);
-            moves.Add(Moves.MORPH_DOWN);
-
-            return moves;
         }
 
         /********************************************************************************************/
@@ -403,8 +393,9 @@ namespace GeometryFriendsAgents
         {
             //The agent must be still so it starts at the same position as the one in the first point of the plan
             //This is to guarantee that the agent stops before start planning, and keeps still
-            if (rectangleInfo.VelocityY < correctVelYMargin && rectangleInfo.VelocityY > -correctVelYMargin &&
-                rectangleInfo.VelocityX < correctVelXMargin && rectangleInfo.VelocityX > -correctVelXMargin)
+            if (circleInfo.VelocityY < correctVelYMargin && circleInfo.VelocityY > -correctVelYMargin &&
+                circleInfo.VelocityX < correctVelXMargin && circleInfo.VelocityX > -correctVelXMargin &&
+                utils.onPlatform(circleInfo.X, circleInfo.Y + circleInfo.Radius, 25, 10) != null)
             {
                 //make sure there is nothing moving the agent when planning
                 currentAction = Moves.NO_ACTION;
@@ -414,7 +405,7 @@ namespace GeometryFriendsAgents
                 {
                     List<DiamondInfo> remainingDiamonds = new List<DiamondInfo>();
                     List<DiamondInfo> caughtDiamonds = new List<DiamondInfo>();
-                    foreach (DiamondInfo diamond in Diamonds)
+                    foreach(DiamondInfo diamond in Diamonds)
                     {
                         if (!diamond.wasCaught())
                         {
@@ -425,13 +416,12 @@ namespace GeometryFriendsAgents
                             caughtDiamonds.Add(diamond);
                         }
                     }
-
-                    //Initialize simulator
-                    sim.setSimulator(rectangleInfo.X, rectangleInfo.Y, rectangleInfo.VelocityX, rectangleInfo.VelocityY, Diamonds);
-
+                    Simulator sim = new CircleSimulator(Platforms);
+                    sim.setSimulator(circleInfo.X, circleInfo.Y, circleInfo.VelocityX, circleInfo.VelocityY, remainingDiamonds);
                     //update the diamond list
                     RRT.setDiamonds(Diamonds);
-                    State initialState = new State(rectangleInfo.X, rectangleInfo.Y, rectangleInfo.VelocityX, rectangleInfo.VelocityY, rectangleInfo.Height / 2, 0, caughtDiamonds, remainingDiamonds);
+                    //create initial state
+                    State initialState = new State(circleInfo.X, circleInfo.Y, circleInfo.VelocityX, circleInfo.VelocityY, circleInfo.Radius, circleInfo.Radius, caughtDiamonds, remainingDiamonds);
                     //run algorithm
                     T = RRT.buildNewRRT(initialState, sim, iterationsS);
                 }
@@ -452,22 +442,25 @@ namespace GeometryFriendsAgents
                 {
                     if (!written)
                     {
-                        int exploredNodesOnce = RRT.getExploredNodesOnce();
-                        int exploredNodesTotal = RRT.getExploredNodesTotal();
-                        int totalNodes = T.getNodes().Count;
-                        utils.writeTimeToFile(1, 1, searchTime, exploredNodesOnce, exploredNodesTotal, totalNodes, gSpeed);
+                        utils.writeTimeToFile(1, 0, searchTime, gSpeed);
                         written = true;
                     }
 
                     pathPlan = RRT.getPlan(T);
 
                     firstAction = true;
+                    lastMove = Moves.NO_ACTION;
+
 
                     //do not plan on the next iteration
                     planRRT = false;
                     getDebugInfo = true;
 
                     //save a copy of the original plan
+                    if (cutplan)
+                    {
+                        pathPlan.cleanPlan(obstaclesInfo, Diamonds, area, circleInfo.Radius, true, true);
+                    }
                     originalPlan = pathPlan.clone();
                     pathPlan.saveOriginal();
                 }
@@ -491,30 +484,30 @@ namespace GeometryFriendsAgents
             //TODO - update debug drawing
             currentAction = Moves.NO_ACTION;
             lastMove = Moves.NO_ACTION;
-            controller.morphReached = false;
-            controller.slideReached = false;
+            controller.jumpReached = false;
+            controller.rollReached = false;
 
             //see if there is a point in the original plan that is the same as the one the agent is on and that has the same number or less of diamonds caught
             bool pointFound = false;
 
-            Platform currentPlatform = utils.onPlatform(rectangleInfo.X, rectangleInfo.Y + rectangleInfo.Height / 2, 25, 10);
+            Platform currentPlatform = utils.onPlatform(circleInfo.X, circleInfo.Y + circleInfo.Radius, 25, 10);
             List<Point> pathPoints = pathPlan.getOriginalPoints();
 
             int i;
-            for (i = 0; i < pathPoints.Count; i++)
+            //start from the end
+            for (i = pathPoints.Count - 1; i >= 0; i--)
             {
                 if (pathPoints[i].getUncaughtColl().Count >= uncaughtCollectibles.Count)
                 {
-                    Platform pointPlatform = utils.onPlatform(pathPoints[i].getPosX(), pathPoints[i].getPosY() + rectangleInfo.Height / 2, 25, 10);
+                    Platform pointPlatform = utils.onPlatform(pathPoints[i].getPosX(), pathPoints[i].getPosY() + circleInfo.Radius, 25, 10);
 
-                    if (utils.samePlatform(currentPlatform, pointPlatform) && !utils.obstacleBetween(rectangleInfo.X, pathPoints[i].getPosX(), currentPlatform))
+                    if (utils.samePlatform(currentPlatform, pointPlatform) && !utils.obstacleBetween(circleInfo.X, pathPoints[i].getPosX(), currentPlatform))
                     {
                         pointFound = true;
                         break;
                     }
                 }
             }
-
             if (pointFound)
             {
                 //create a new plan from the point we got previously
@@ -528,18 +521,51 @@ namespace GeometryFriendsAgents
                 }
                 pathPlan.setOriginalPoints(pathPoints);
                 firstAction = true;
+                return;
             }
-            //if no platform in common was found, then replan
-            else
+            //if no platform in common was found, then try to find a way to a platform in the plan and replan if this fails
+            else if (pathPlan.getPathPoints().Count != 0)
             {
-                replan(false);
+                List<DiamondInfo> remainingDiamonds = new List<DiamondInfo>();
+                List<DiamondInfo> caughtDiamonds = new List<DiamondInfo>();
+                foreach (DiamondInfo diamond in Diamonds)
+                {
+                    if (!diamond.wasCaught())
+                    {
+                        remainingDiamonds.Add(diamond);
+                    }
+                    else
+                    {
+                        caughtDiamonds.Add(diamond);
+                    }
+                }
+                Simulator sim = new CircleSimulator(Platforms);
+                sim.setSimulator(circleInfo.X, circleInfo.Y, circleInfo.VelocityX, circleInfo.VelocityY, remainingDiamonds);
+                State initialState = new State(circleInfo.X, circleInfo.Y, circleInfo.VelocityX, circleInfo.VelocityY, circleInfo.Radius, circleInfo.Radius, caughtDiamonds, remainingDiamonds);
+                float[] returnPos = new float[2];
+                returnPos[0] = pathPlan.getPathPoints()[0].getPosX();
+                returnPos[1] = pathPlan.getPathPoints()[0].getPosY();
+                RRT.setReturnPos(returnPos);
+                Tree t = RRT.buildNewMPRRT(initialState, sim, GoalType.Return, iterationsS);
+
+                if (t.getGoal() != null)
+                {
+                    PathPlan shortPlan = RRT.getPlan(t);
+                    pathPlan = pathPlan.joinPlans(shortPlan, pathPlan);
+                    pathPlan.cleanPlan(obstaclesInfo, Diamonds, area, circleInfo.Radius, true, true);
+                    getDebugInfo = true;
+                    return;
+                }
+                else
+                {
+                    replan(false);
+                }
             }
-            
+            replan(false);
         }
 
         private void replan(bool correct)
         {
-            //TODO - make a new version for this
             correct = false;
             //if correct is true, it means the agent should try to first recover the previous plan
             //but it should also be careful not to repeat the same failures and should understand when it completed its plan
@@ -552,13 +578,12 @@ namespace GeometryFriendsAgents
                 currentAction = Moves.NO_ACTION;
                 planRRT = true;
                 newPlan = true;
-                controller.slideReached = false;
-                controller.morphReached = false;
+                controller.jumpReached = false;
+                controller.rollReached = false;
                 previousPlan = pathPlan;
                 pathPlan = new PathPlan(cutplan, remaining.Count, utils);
             }
         }
-
 
         private bool checkPlanCompletion()
         {
@@ -597,9 +622,8 @@ namespace GeometryFriendsAgents
             /***********************************************/
             /*            check if control failed          */
             /***********************************************/
-
             //correct the plan or replan if it takes too long to get to the next point 
-            if (timer && (gameTime.ElapsedMilliseconds * 0.001f * gSpeed > pointTimeMargin * gSpeed))
+            if ((gameTime.ElapsedMilliseconds * 0.001f * gSpeed > pointTimeMargin * gSpeed))
             {
                 //if the state isn't the same but it has already passed more time than it should to take the action, apply plan recovery
                 replan(true);
@@ -623,22 +647,34 @@ namespace GeometryFriendsAgents
             {
                 getAction();
             }
+
         }
 
         //get the next action according to the plan and the agent state
         private void getAction()
         {
-            acceleration = getAcceleration();
-            var timeStep = timestep.ElapsedMilliseconds * 0.001f;
-            if (timeStep < 0.001f)
+            Point nextPoint;
+            if (pathPlan.getPathPoints().Count > 1)
             {
-                timeStep = 0.001f;
+                nextPoint = pathPlan.getPathPoints()[1];
             }
-            currentAction = controller.computeAction(pathPlan.getPathPoints()[0], rectangleInfo.VelocityX, rectangleInfo.VelocityY, rectangleInfo.X, rectangleInfo.Y, timeStep, acceleration);
+            else
+            {
+                nextPoint = null;
+            }
+            currentAction = controller.computeAction(pathPlan.getPathPoints()[0], nextPoint, circleInfo.VelocityX, circleInfo.X, circleInfo.Y, timestep.ElapsedMilliseconds * 0.001f, acceleration);
             timestep.Restart();
+            if (currentAction == Moves.JUMP)
+            {
+                jumpPerformed = true;
+                if (firstAction2)
+                {
+                    Thread.Sleep(100);
+                }
+            }
 
             //change to next point when a point is reached or when a jump was performed
-            if (!correctRRT && (controller.slideReached || controller.morphReached))
+            if (!correctRRT && controller.rollReached)
             {
                 lastMove = pathPlan.getPathPoints()[0].getAction();
 
@@ -656,8 +692,16 @@ namespace GeometryFriendsAgents
                     lastAction = true;
                 }
 
-                controller.slideReached = false;
-                controller.morphReached = false;
+                if (controller.jumpReached)
+                {
+                    justJumped = true;
+                }
+                else if (justJumped)
+                {
+                    justJumped = false;
+                }
+                controller.jumpReached = false;
+                controller.rollReached = false;
                 remainingActions--;
                 gameTime.Restart();
                 timestep.Restart();
@@ -670,10 +714,18 @@ namespace GeometryFriendsAgents
             }
         }
 
-        
         private void keepStill()
         {
-            currentAction = Moves.NO_ACTION;
+            //if it is moving right, move left
+            if (circleInfo.VelocityX > correctVelXMargin)
+            {
+                currentAction = Moves.ROLL_LEFT;
+            }
+            //if it is moving left, move right
+            else if (circleInfo.VelocityX < -correctVelXMargin)
+            {
+                currentAction = Moves.ROLL_RIGHT;
+            }
         }
 
         /*******************************************************/
@@ -681,11 +733,11 @@ namespace GeometryFriendsAgents
         /*******************************************************/
         private float getAcceleration()
         {
-            velVar = rectangleInfo.VelocityX - previousVelX;
+            velVar = circleInfo.VelocityX - previousVelX;
             var timeStep = timestep.ElapsedMilliseconds * 0.001f;
-            if (timeStep < 0.1f)
+            if (timeStep == 0)
             {
-                timeStep = 0.001f;
+                timeStep = 0.1f;
             }
             var tempA = velVar / timeStep;
 
@@ -694,26 +746,74 @@ namespace GeometryFriendsAgents
 
         private bool checkActionFailure()
         {
-            Platform currentPlatform = utils.onPlatformRectangle(rectangleInfo.X, rectangleInfo.Y + rectangleInfo.Height / 2, rectangleInfo.Y + utils.getRectangleWidth(rectangleInfo.Height) / 2);
-            Platform nextPlatform = utils.onPlatformRectangle(pathPlan.getPathPoints()[0].getPosX(), pathPlan.getPathPoints()[0].getPosY() + rectangleInfo.Height / 2, pathPlan.getPathPoints()[0].getPosY() + utils.getRectangleWidth(pathPlan.getPathPoints()[0].getHeight()) / 2);
-
-            //check if agent is below the platform it should be - won't work 100% of the times
-            if (currentPlatform != null && nextPlatform != null && currentPlatform.getY() > nextPlatform.getY() &&
-                Math.Abs(rectangleInfo.Y - (nextPlatform.getY() - nextPlatform.getHeight() / 2)) > maxHeight)
+            Platform currentPlatform = utils.onPlatform(circleInfo.X, circleInfo.Y + circleInfo.Radius, 50, 10);
+            Platform nextPlatform = utils.onPlatform(pathPlan.getPathPoints()[0].getPosX(), pathPlan.getPathPoints()[0].getPosY() + circleInfo.Radius, 50, 10);
+            //check for jump failure
+            if (jumpPerformed)
+            {
+                jumpPerformed = false;
+            }
+            else if (checkJumpFailure(currentPlatform, nextPlatform))
             {
                 return true;
             }
-
-            //check if the platform of the agent is on right above the next point in the plan
-            float pointX = pathPlan.getPathPoints()[0].getPosX();
-
-            if (currentPlatform != null && nextPlatform != null && currentPlatform.getY() < nextPlatform.getY() &&
-                pointX > currentPlatform.getX() - currentPlatform.getWidth() / 2 &&
-                pointX < currentPlatform.getX() + currentPlatform.getWidth() / 2)
+            //check if agent is below the platform it should be
+            int currentPoint = pathPlan.getCurrentPoint();
+            if(currentPoint != 0)
             {
-                return true;
+                Point previousPoint = pathPlan.getOriginalPoints()[currentPoint - 1];
+                Point nextPoint = pathPlan.getPathPoints()[0];
+                if (circleInfo.VelocityY < 20 && previousPoint.getAction() != Moves.JUMP && currentPlatform != null && nextPlatform != null && currentPlatform.getY() > nextPlatform.getY())
+                {
+                    return true;
+                }
+
+                //check if agent is too low to reach a point when the action is not jump
+                if (circleInfo.VelocityY < 10 && /*previousPoint.getAction() != Moves.JUMP &&*/ currentPlatform != null && circleInfo.Y - nextPoint.getPosY() > 25)
+                {
+                    return true;
+                }
             }
 
+            if (pathPlan.getPathPoints().Count != 0)
+            {
+                //check if the platform of the agent is right above the next point in the plan
+                float pointX = pathPlan.getPathPoints()[0].getPosX();
+
+                if (currentPlatform != null && nextPlatform != null && currentPlatform.getY() < nextPlatform.getY() &&
+                    pointX > currentPlatform.getX() - currentPlatform.getWidth() / 2 &&
+                    pointX < currentPlatform.getX() + currentPlatform.getWidth() / 2)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+        private bool checkJumpFailure(Platform currentPlatform, Platform nextPlatform)
+        {
+            if (lastMove == Moves.JUMP && !controller.jumping)
+            {
+                while (nextPlatform == null && pathPlan.getPathPoints().Count > 1)
+                {
+                    pathPlan.nextPoint();
+                    if (pathPlan.getPathPoints().Count == 0)
+                    {
+                        break;
+                    }
+                    nextPlatform = utils.onPlatform(pathPlan.getPathPoints()[0].getPosX(), pathPlan.getPathPoints()[0].getPosY() + circleInfo.Radius, 25, 10);
+                }
+                if (pathPlan.getPathPoints().Count == 0)
+                {
+                    lastAction = true;
+                }
+                //if the agents falls on a different platform or one same one but with an obstacle between then the jump failed
+                if (currentPlatform != null && nextPlatform != null && !utils.samePlatform(currentPlatform, nextPlatform) ||//(currentPlatform.getX() != nextPlatform.getX() || currentPlatform.getY() != nextPlatform.getY()) ||
+                    utils.samePlatform(currentPlatform, nextPlatform) && utils.obstacleBetween(circleInfo.X, pathPlan.getPathPoints()[0].getPosX(), currentPlatform))
+                {
+                    return true;
+                }
+            }
             return false;
         }
         
@@ -721,25 +821,104 @@ namespace GeometryFriendsAgents
         {
             //TODO - verificar se completou ou não o plano que era suposto
             //if the state isn't the same but it has already passed more time than it should to take the action, apply plan recovery
-            if ((gameTime.ElapsedMilliseconds * 0.001f * gSpeed > (simTime + actionTimeMargin) * gSpeed) && !correctRRT)
+            if ((currentAction == Moves.JUMP && gameTime.ElapsedMilliseconds * 0.001f * gSpeed > (simTime + jumpTimeMargin) * gSpeed) ||
+                        (currentAction != Moves.JUMP && gameTime.ElapsedMilliseconds * 0.001f * gSpeed > (simTime + actionTimeMargin) * gSpeed) && !correctRRT)
             {
                 lastAction = false;
 
                 currentAction = Moves.NO_ACTION;
                 replan(true);
             }
+            else if (currentAction == Moves.JUMP)
+            {
+                currentAction = Moves.NO_ACTION;
+            }
         }
 
-        
         private void checkIfGameStarted()
         {
             //checks if the game has started 
             if (!hasStarted)
             {
-                hasStarted = true;
-                searchTime = new Stopwatch();
-                searchTime.Start();
+                if (circleInfo.X <= previousCirclePosX + 1 && circleInfo.X >= previousCirclePosX - 1 && circleInfo.Y <= previousCirclePosY + 1 && circleInfo.Y >= previousCirclePosY - 1)
+                {
+                    hasStarted = false;
+                }
+                else
+                {
+                    hasStarted = true;
+                    searchTime = new Stopwatch();
+                    searchTime.Start();
+                }
             }
         }
+
+        /********************************************************************************************/
+        /********************************************************************************************/
+        /***                                                                                      ***/
+        /***                                       MOVES                                          ***/
+        /***                                                                                      ***/
+        /********************************************************************************************/
+        /********************************************************************************************/
+        private List<Moves> getPossibleMoves()
+        {
+            List<Moves> moves = new List<Moves>();
+
+            moves = new List<Moves>();
+            moves.Add(Moves.ROLL_LEFT);
+            moves.Add(Moves.ROLL_RIGHT);
+            moves.Add(Moves.JUMP);
+
+            return moves;
+        }
+
+        /********************************************************************************************/
+        /********************************************************************************************/
+        /***                                                                                      ***/
+        /***                                      DEBUG                                           ***/
+        /***                                                                                      ***/
+        /********************************************************************************************/
+        /********************************************************************************************/
+
+        //typically used console debugging used in previous implementations of GeometryFriends
+        protected void DebugSensorsInfo()
+        {
+            Log.LogInformation("Circle Agent - " + numbersInfo.ToString());
+
+            Log.LogInformation("Circle Agent - " + rectangleInfo.ToString());
+
+            Log.LogInformation("Circle Agent - " + circleInfo.ToString());
+
+            foreach (ObstacleRepresentation i in obstaclesInfo)
+            {
+                Log.LogInformation("Circle Agent - " + i.ToString("Obstacle"));
+            }
+
+            foreach (ObstacleRepresentation i in rectanglePlatformsInfo)
+            {
+                Log.LogInformation("Circle Agent - " + i.ToString("Rectangle Platform"));
+            }
+
+            foreach (ObstacleRepresentation i in circlePlatformsInfo)
+            {
+                Log.LogInformation("Circle Agent - " + i.ToString("Circle Platform"));
+            }
+
+            foreach (CollectibleRepresentation i in collectiblesInfo)
+            {
+                Log.LogInformation("Circle Agent - " + i.ToString());
+            }
+        }
+
+        /********************************************************************************************/
+        /********************************************************************************************/
+        /***                                                                                      ***/
+        /***                                     OTHER                                            ***/
+        /***                                                                                      ***/
+        /********************************************************************************************/
+        /********************************************************************************************/
+
+       
     }
 }
+

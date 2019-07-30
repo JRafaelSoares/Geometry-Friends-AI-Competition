@@ -8,33 +8,33 @@ using GeometryFriends.AI.ActionSimulation;
 namespace GeometryFriendsAgents
 {
     //The tree used for the RRT algorithm
-    public class Tree
+    public class TreeMP
     {
         //All the nodes in the tree and its root
-        private List<Node> nodes;
-        private List<Node> open;
-        private List<Node> closed;
+        private List<NodeMP> nodes;
+        private List<NodeMP> open;
+        private List<NodeMP> closed;
         //for bgt
         private bool bgt;
         private float depthAverage;
         private float branchingAverage;
         private int depthSum;
         private int branchingSum;
-        private List<Node> nonLeafNodes;
-        private List<Node> leafNodes;
-        private Node root;
-        private Node goal;
+        private List<NodeMP> nonLeafNodes;
+        private List<NodeMP> leafNodes;
+        private NodeMP root;
+        private NodeMP goal;
         private int visitedNodes;
         //other
         private Random rnd;
 
         //constructor
-        public Tree(State initialState, Simulator sim, List<Moves> moves, bool BGT)
+        public TreeMP(StateMP initialState, ActionSimulator predictor, List<Moves[]> moves, bool BGT)
         {
-            root = new Node(null, initialState, 0, sim, moves);
-            nodes = new List<Node>();
-            open = new List<Node>();
-            closed = new List<Node>();
+            root = new NodeMP(null, initialState, null, predictor, moves);
+            nodes = new List<NodeMP>();
+            open = new List<NodeMP>();
+            closed = new List<NodeMP>();
             visitedNodes = 0;
             bgt = BGT;
 
@@ -42,8 +42,8 @@ namespace GeometryFriendsAgents
             {
                 depthAverage = 0;
                 branchingAverage = 0;
-                nonLeafNodes = new List<Node>();
-                leafNodes = new List<Node>();
+                nonLeafNodes = new List<NodeMP>();
+                leafNodes = new List<NodeMP>();
             }
 
             addNode(root);
@@ -51,7 +51,7 @@ namespace GeometryFriendsAgents
         }
 
         //add node to the tree and to open list
-        public void addNode(Node node)
+        public void addNode(NodeMP node)
         {
             nodes.Add(node);
             open.Add(node);
@@ -64,42 +64,61 @@ namespace GeometryFriendsAgents
                 branchingAverage = branchingSum / nodes.Count;
                 depthSum++;
                 depthAverage = depthSum / leafNodes.Count;
-                
+
                 //the parent of the new node is not a leaf anymore
-                if(node.getParent() != null && node.getParent().isLeaf())
+                if (node.getParent() != null && node.getParent().isLeaf())
                 {
                     removeFromLeaf(node.getParent());
                 }
             }
         }
 
-        public void removeFromLeaf(Node node)
+        //add node and its children to the tree and to open list
+        public void addNodes(NodeMP node)
+        {
+            if(node.getChildren().Count == 0)
+            {
+                addNode(node);
+            }
+            foreach(NodeMP child in node.getChildren())
+            {
+                addNodes(child);
+            }
+            
+        }
+
+        public void removeFromLeaf(NodeMP node)
         {
             leafNodes.Remove(node);
-            if (!nonLeafNodes.Contains(node))
+            if (node.getRemainingMoves().Count != 0)
             {
                 nonLeafNodes.Add(node);
+                node.nonLeaft();
             }
-            node.nonLeaf();
+            else
+            {
+                //test
+                int remaining = 0;
+            }
         }
 
         //set the goal
-        public void setGoal(Node g)
+        public void setGoal(NodeMP g)
         {
             goal = g;
         }
 
         //choose a random node from the open list and return it
-        public Node getRandomNode()
+        public NodeMP getRandomNode()
         {
             int randNode = rnd.Next(open.Count);
             //when getting a node, it counts for the visited nodes
             visitedNodes++;
- 
+
             return open[randNode];
         }
 
-        public Node getRandomNonLeafNode()
+        public NodeMP getRandomNonLeafNode()
         {
             if (nonLeafNodes.Count != 0)
             {
@@ -108,38 +127,45 @@ namespace GeometryFriendsAgents
             }
             else
             {
-                return null;
+                return getRandomLeafNode();
             }
+
         }
 
-        public Node getRandomLeafNode()
+        public NodeMP getRandomLeafNode()
         {
-            if(leafNodes.Count != 0){
+            if (leafNodes.Count != 0)
+            {
                 int randNode = rnd.Next(leafNodes.Count);
                 return leafNodes[randNode];
             }
             else
             {
-                return null;
+                return getRandomNonLeafNode();
             }
         }
 
-        public Node getRoot()
+        public NodeMP getRoot()
         {
             return root;
         }
 
-        public Node getGoal()
+        public void setRoot(NodeMP node)
+        {
+            root = node;
+        }
+
+        public NodeMP getGoal()
         {
             return goal;
         }
 
-        public List<Node> getOpenNodes()
+        public List<NodeMP> getOpenNodes()
         {
             return open;
         }
 
-        public List<Node> getNodes()
+        public List<NodeMP> getNodes()
         {
             return nodes;
         }
@@ -160,7 +186,7 @@ namespace GeometryFriendsAgents
         }
 
         //closes a node that has no more actions to test
-        public void closeNode(Node node)
+        public void closeNode(NodeMP node)
         {
             closed.Add(node);
             open.Remove(node);
@@ -178,11 +204,26 @@ namespace GeometryFriendsAgents
 
         public void resetTree()
         {
-            foreach(Node node in nodes)
+            foreach (NodeMP node in nodes)
             {
                 open.Add(node);
             }
-            closed = new List<Node>();
+            closed = new List<NodeMP>();
+        }
+
+        public void removeNode(NodeMP node)
+        {
+            nodes.Remove(node);
+            open.Remove(node);
+            closed.Remove(node);
+        }
+
+        public void removeNodes(List<NodeMP> nodes)
+        {
+            foreach (NodeMP node in nodes)
+            {
+                removeNode(node);
+            }
         }
     }
 }

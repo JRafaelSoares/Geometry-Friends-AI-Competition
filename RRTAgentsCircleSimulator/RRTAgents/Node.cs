@@ -26,15 +26,14 @@ namespace GeometryFriendsAgents
         private List<DebugInformation> debugInfo;
         //bgt
         private bool leaf;
-        private bool explored = false;
 
-        public Node(Node p, State s, Moves action, Simulator sim, List<Moves> moves)
+        public Node(Node p, State s, Moves action, Simulator pred, List<Moves> moves)
         {
             parent = p;
             state = s;
             treeDepth = 0;
             previousAction = action;
-            predictor = sim;
+            predictor = pred;
             children = new List<Node>();
             remainingMoves = moves;
             remainingSTPActions = true;
@@ -182,16 +181,6 @@ namespace GeometryFriendsAgents
             {
                 t.closeNode(this);
             }
-        }
-
-        public void nodeExplored()
-        {
-            explored = true;
-        }
-
-        public bool wasExplored()
-        {
-            return explored;
         }
     }
 }

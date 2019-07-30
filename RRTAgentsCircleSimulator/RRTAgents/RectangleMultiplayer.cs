@@ -66,8 +66,7 @@ namespace GeometryFriendsAgents
         private bool planRRT = true;
         private bool newPlan = true;
         //simulator
-        Simulator sim;
-
+        private Simulator sim;
         //time of simulation
         private float actionTime = 2.1f;
         private float actionTimeMargin = 0.5f;
@@ -105,11 +104,11 @@ namespace GeometryFriendsAgents
         private bool firstAction3;
         private bool lastAction = false;
         private List<DiamondInfo> Diamonds;
+        private List<DiamondInfo> remainingDiamonds = new List<DiamondInfo>();
+        private List<DiamondInfo> caughtDiamonds = new List<DiamondInfo>();
         private List<Platform> Platforms;
         private Platform ground;
         private int[,] levelLayout;
-        private float diamondRadius = 30;
-        private float circleMaxJump = 400;
         private int gameMode; //0 -> singleplayer  1 -> multiplayer
         private GoalType goalMode;
 
@@ -122,9 +121,9 @@ namespace GeometryFriendsAgents
 
         //Area of the game screen
         private Rectangle area;
-
+        
         //debug
-        private float rectangleMaxHeight = 193;
+        private float rectangleMaxHeight;
         private float rectangleInitialY;
         private bool initialY = true;
 
@@ -170,7 +169,7 @@ namespace GeometryFriendsAgents
         //implements abstract rectangle interface: used to setup the initial information so that the agent has basic knowledge about the level
         public void Setup(CountInformation nI, RectangleRepresentation rI, CircleRepresentation cI, ObstacleRepresentation[] oI, ObstacleRepresentation[] rPI, ObstacleRepresentation[] cPI, CollectibleRepresentation[] colI, Rectangle area, double timeLimit)
         {
-            ground = new Platform(0, area.Bottom, 0, 0, PlatformType.Black);
+            ground = new Platform(0, area.Bottom, 0, 0);
             utils = new Utils(ground, circleInfo.Radius, area);
             numbersInfo = nI;
             nCollectiblesLeft = nI.CollectiblesCount;
@@ -195,22 +194,19 @@ namespace GeometryFriendsAgents
             previousRectanglePosX = rectangleInfo.X;
             previousRectanglePosY = rectangleInfo.Y;
 
-            Platforms = utils.setupPlatforms(obstaclesInfo, cPI, rPI);
+            Platforms = utils.setupPlatforms(obstaclesInfo);
             Diamonds = utils.setupDiamonds(collectiblesInfo, levelLayout);
 
             /*************FINAL*************/
-            RRT = new RRTUtils(actionTime, simTime, simTimeFinish, getPossibleMoves(), type, area, collectiblesInfo.Length, RRTTypes.BGT, RRTTypes.STP, obstaclesInfo, gSpeed, Diamonds, Platforms, utils, true, true);
-            RRTMP = new RRTUtilsMP(actionTime, simTime, simTimeFinish, getPossibleMovesMP(), type, area, collectiblesInfo.Length, RRTTypes.BGT, RRTTypes.STP, obstaclesInfo, gSpeed, Diamonds, Platforms, utils, true, true);
+            RRT = new RRTUtils(actionTime, simTime, simTimeFinish, getPossibleMoves(), type, area, collectiblesInfo.Length, RRTTypes.Bias, RRTTypes.STP, obstaclesInfo, gSpeed, Diamonds, Platforms, utils, true, true);
+            RRTMP = new RRTUtilsMP(actionTime, simTime, simTimeFinish, getPossibleMovesMP(), type, area, collectiblesInfo.Length, RRTTypes.Bias, RRTTypes.STP, obstaclesInfo, gSpeed, Diamonds, Platforms, utils, true, true);
             RRTMP.setRadius(circleInfo.Radius);
             pathPlanMP = new PathPlanMP(cutplan, colI.GetLength(0), null, utils);
-            controllerMP = new RectangleControllerMP(gSpeed, utils);
+            controllerMP = new RectangleControllerMP(gSpeed);
 
             RRT.setRadius(rectangleInfo.Height / 2);
             pathPlan = new PathPlan(cutplan, colI.GetLength(0), utils);
             controller = new RectangleController(gSpeed, utils);
-
-            timestep = new Stopwatch();
-            timestep.Start();
 
         }
 
@@ -309,49 +305,6 @@ namespace GeometryFriendsAgents
 
         public void MultiPUpdate(TimeSpan elapsedGameTime)
         {
-            Platform agentPlatform = utils.onPlatform(rectangleInfo.X, rectangleInfo.Y + rectangleInfo.Height / 2);
-            Platform partnerPlatform = utils.onPlatform(circleInfo.X, circleInfo.Y + circleInfo.Radius);
-            //check for possible control without planning
-            //if a diamond is on the same platform has the agents, none of them can catch it alone but can catch it together
-            foreach (DiamondInfo diamond in Diamonds)
-            {
-                Platform dPlatform = diamond.getPlatform();
-                if (!diamond.wasCaught() && diamond.getY() + diamondRadius > dPlatform.getY() - dPlatform.getHeight() / 2 - rectangleMaxHeight - circleMaxJump &&
-                    diamond.getY() < dPlatform.getY() - dPlatform.getHeight() / 2 - circleMaxJump)
-                {
-                    currentAction = Moves.NO_ACTION;
-
-                    //check if agents are on that platform
-                    if ((agentPlatform != null && utils.samePlatform(dPlatform, agentPlatform) &&
-                        partnerPlatform != null && utils.samePlatform(dPlatform, partnerPlatform)) ||
-                        (partnerPlatform == null && agentPlatform != null && utils.samePlatform(dPlatform, agentPlatform)))
-                    {
-                        currentAction = controllerMP.catchFromRectangle(rectangleInfo.X, rectangleInfo.Y, rectangleInfo.VelocityX, rectangleInfo.VelocityY, rectangleInfo.Height, utils.getRectangleWidth(rectangleInfo.Height), circleInfo.X, circleInfo.Y, circleInfo.VelocityX, diamond.getX(), diamond.getY(), getAcceleration());
-                        return;
-                    }
-                }
-            }
-
-            //if the highest uncaught diamond is on a yellow platform and needs the rectangle to be used as a paltform to be caught 
-            DiamondInfo highestDiamond = null;
-            foreach (DiamondInfo diamond in Diamonds)
-            {
-                if (!diamond.wasCaught())
-                {
-                    highestDiamond = diamond;
-                    break;
-                }
-            }
-
-            //check if the diamond is on a yellow platform and rectangle is on that platform - only if the rectangle cant catch it by itself
-            if (highestDiamond != null && highestDiamond.getY() + diamondRadius < agentPlatform.getY() - agentPlatform.getHeight() / 2 - rectangleMaxHeight && highestDiamond.getPlatform().getType() == PlatformType.Yellow && agentPlatform != null &&
-               (partnerPlatform != null || utils.onRectangle(circleInfo.X, circleInfo.Y + circleInfo.Radius, rectangleInfo.X, rectangleInfo.Y, rectangleInfo.Height, utils.getRectangleWidth(rectangleInfo.Height), 25)) &&
-               utils.samePlatform(agentPlatform, highestDiamond.getPlatform()))
-            {
-                currentAction = controllerMP.catchFromRectangleOnYellowPlatform(rectangleInfo.X, rectangleInfo.Y, rectangleInfo.VelocityX, rectangleInfo.VelocityY, rectangleInfo.Height, utils.getRectangleWidth(rectangleInfo.Height), circleInfo.X, circleInfo.Y, circleInfo.VelocityX, highestDiamond, partnerPlatform, getAcceleration());
-                return;
-            }
-
             //Plan
             if (planRRT && predictor != null && predictor.CharactersReady())
             {
@@ -531,22 +484,8 @@ namespace GeometryFriendsAgents
                 //if the plan is new build a new tree
                 if (newPlan)
                 {
-                    List<DiamondInfo> remainingDiamonds = new List<DiamondInfo>();
-                    List<DiamondInfo> caughtDiamonds = new List<DiamondInfo>();
-                    foreach (DiamondInfo diamond in Diamonds)
-                    {
-                        if (!diamond.wasCaught())
-                        {
-                            remainingDiamonds.Add(diamond);
-                        }
-                        else
-                        {
-                            caughtDiamonds.Add(diamond);
-                        }
-                    }
-
-                    //TODO - Add rectangle simulator
-                    sim.setSimulator(rectangleInfo.X, rectangleInfo.Y, rectangleInfo.VelocityX, rectangleInfo.VelocityY, Diamonds);
+                    updateDiamonds();
+                    sim.setSimulator(rectangleInfo.X, rectangleInfo.Y, rectangleInfo.VelocityX, rectangleInfo.VelocityY, remainingDiamonds);
 
                     //FIRST STEP
                     //always try to catch a diamond by itself first - to be changed
@@ -572,20 +511,7 @@ namespace GeometryFriendsAgents
                 //if a diamond was found when searching for a single diamond
                 if (T.getGoal() != null && goalMode == GoalType.FirstPossible)
                 {
-                    List<DiamondInfo> remainingDiamonds = new List<DiamondInfo>();
-                    List<DiamondInfo> caughtDiamonds = new List<DiamondInfo>();
-                    foreach (DiamondInfo diamond in Diamonds)
-                    {
-                        if (!diamond.wasCaught())
-                        {
-                            remainingDiamonds.Add(diamond);
-                        }
-                        else
-                        {
-                            caughtDiamonds.Add(diamond);
-                        }
-                    }
-
+                    updateDiamonds();
                     //check if it is possible to return
                     State goalState = T.getGoal().getState();
                     goalMode = GoalType.Return;
@@ -661,23 +587,8 @@ namespace GeometryFriendsAgents
                 //SECOND STEP
                 if (goalMode == GoalType.FirstPossible || goalMode == GoalType.Return)
                 {
-                    List<DiamondInfo> remainingDiamonds = new List<DiamondInfo>();
-                    List<DiamondInfo> caughtDiamonds = new List<DiamondInfo>();
-                    foreach (DiamondInfo diamond in Diamonds)
-                    {
-                        if (!diamond.wasCaught())
-                        {
-                            remainingDiamonds.Add(diamond);
-                        }
-                        else
-                        {
-                            caughtDiamonds.Add(diamond);
-                        }
-                    }
-
-                    //Initialize simulator
-                    sim.setSimulator(rectangleInfo.X, rectangleInfo.Y, rectangleInfo.VelocityX, rectangleInfo.VelocityY, Diamonds);
-
+                    updateDiamonds();
+                    sim.setSimulator(rectangleInfo.X, rectangleInfo.Y, rectangleInfo.VelocityX, rectangleInfo.VelocityY, remainingDiamonds);
                     //try to get the highest diamond in the higest platform in single player mode
                     goalMode = GoalType.HighestSingle;
                     //reset ignored diamonds
@@ -1170,7 +1081,7 @@ namespace GeometryFriendsAgents
 
         private bool checkActionFailureMP()
         {
-            if(pathPlanMP.getPathPoints().Count == 0)
+            if(pathPlan.getPathPoints().Count == 0)
             {
                 return true;
             }
@@ -1185,7 +1096,7 @@ namespace GeometryFriendsAgents
             }
 
             //check if the platform of the agent is on right above the next point in the plan
-            float pointX = pathPlanMP.getPathPoints()[0].getPosX();
+            float pointX = pathPlan.getPathPoints()[0].getPosX();
 
             if (currentPlatform != null && nextPlatform != null && currentPlatform.getY() < nextPlatform.getY() &&
                 pointX > currentPlatform.getX() - currentPlatform.getWidth() / 2 &&
@@ -1235,5 +1146,21 @@ namespace GeometryFriendsAgents
             }
         }
 
+        private void updateDiamonds()
+        {
+            remainingDiamonds = new List<DiamondInfo>();
+            caughtDiamonds = new List<DiamondInfo>();
+            foreach (DiamondInfo diamond in Diamonds)
+            {
+                if (!diamond.wasCaught())
+                {
+                    remainingDiamonds.Add(diamond);
+                }
+                else
+                {
+                    caughtDiamonds.Add(diamond);
+                }
+            }
+        }
     }
 }

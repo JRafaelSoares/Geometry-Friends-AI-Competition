@@ -15,10 +15,9 @@ namespace GeometryFriendsAgents
         private float right;
         private float top;
         private float bottom;
-        private PlatformType type;
         private List<int> diamondsOn;
 
-        public Platform(float x, float y, float w, float h, PlatformType t)
+        public Platform(float x, float y, float w, float h)
         {
             posX = x;
             posY = y;
@@ -28,7 +27,6 @@ namespace GeometryFriendsAgents
             right = x + w / 2;
             top = y - h / 2;
             bottom = y + h / 2;
-            type = t;
             diamondsOn = new List<int>();
         }
 
@@ -80,11 +78,6 @@ namespace GeometryFriendsAgents
         public void addDiamondOn(int diamond)
         {
             diamondsOn.Add(diamond);
-        }
-
-        public PlatformType getType()
-        {
-            return type;
         }
     }
 }

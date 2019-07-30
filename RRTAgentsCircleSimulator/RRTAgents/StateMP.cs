@@ -6,18 +6,22 @@ using GeometryFriends.AI.Perceptions.Information;
 
 namespace GeometryFriendsAgents
 {
-    public class State
+    public class StateMP
     {
         private float positionX;
         private float positionY;
         private float velocityX;
         private float velocityY;
+        private float positionXPartner;
+        private float positionYPartner;
+        private float velocityXPartner;
+        private float velocityYPartner;
         private float height;
         private float circleVelocityRadius;
-        private List<DiamondInfo> caughtCollectibles;
-        private List<DiamondInfo> uncaughtCollectibles;
+        private List<CollectibleRepresentation> caughtCollectibles;
+        private List<CollectibleRepresentation> uncaughtCollectibles;
 
-        public State(float cPosX, float cPosY, float cVelX, float cVelY, float cH, float cVelRad, List<DiamondInfo> cC, List<DiamondInfo> uC)
+        public StateMP(float cPosX, float cPosY, float cVelX, float cVelY, float cH, float cVelRad, float pPosX, float pPosY, float pVelX, float pVelY, List<CollectibleRepresentation> cC, List<CollectibleRepresentation> uC)
         {
             positionX = cPosX;
             positionY = cPosY;
@@ -25,6 +29,10 @@ namespace GeometryFriendsAgents
             velocityY = cVelY;
             height = cH;
             circleVelocityRadius = cVelRad;
+            positionXPartner = pPosX;
+            positionYPartner = pPosY;
+            velocityXPartner = pVelX;
+            velocityYPartner = pVelY;
             caughtCollectibles = cC;
             uncaughtCollectibles = uC;
         }
@@ -54,6 +62,26 @@ namespace GeometryFriendsAgents
             return height;
         }
 
+        public float getPartnerX()
+        {
+            return positionXPartner;
+        }
+
+        public float getPartnerY()
+        {
+            return positionYPartner;
+        }
+
+        public float getPartnerVelX()
+        {
+            return velocityXPartner;
+        }
+
+        public float getPartnerVelY()
+        {
+            return velocityYPartner;
+        }
+
         public int getNumberCaughtCollectibles()
         {
             return caughtCollectibles.Count;
@@ -64,20 +92,20 @@ namespace GeometryFriendsAgents
             return uncaughtCollectibles.Count;
         }
 
-        public List<DiamondInfo> getCaughtCollectibles()
+        public List<CollectibleRepresentation> getCaughtCollectibles()
         {
             return caughtCollectibles;
         }
 
-        public List<DiamondInfo> getUncaughtCollectibles()
+        public List<CollectibleRepresentation> getUncaughtCollectibles()
         {
             return uncaughtCollectibles;
         }
 
-        public void addCaughtCollectibles(List<DiamondInfo> collectibles)
+        public void addCaughtCollectibles(List<CollectibleRepresentation> collectibles)
         {
             //actualizes all the collectibles that were caught without duplicating
-            foreach(DiamondInfo collectible in collectibles)
+            foreach(CollectibleRepresentation collectible in collectibles)
             {
                 if (!caughtCollectibles.Contains(collectible))
                 {

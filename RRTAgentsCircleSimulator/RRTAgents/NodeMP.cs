@@ -8,34 +8,33 @@ using GeometryFriends.AI.Debug;
 
 namespace GeometryFriendsAgents
 {
-    public class Node
+    public class NodeMP
     {
-        private Node parent;
-        private List<Node> children;
-        private State state;
+        private NodeMP parent;
+        private List<NodeMP> children;
+        private StateMP state;
         //indicate how many nodes it takes to reach this one
         private int treeDepth;
         //the action the parent made to get here
-        private Moves previousAction;
+        private Moves[] previousActions;
         //actions that can still be tested
-        private List<Moves> remainingMoves;
+        private List<Moves[]> remainingMoves;
         private bool remainingSTPActions;
         //simulator
-        Simulator predictor;
+        ActionSimulator predictor;
         //debug info
         private List<DebugInformation> debugInfo;
         //bgt
         private bool leaf;
-        private bool explored = false;
 
-        public Node(Node p, State s, Moves action, Simulator sim, List<Moves> moves)
+        public NodeMP(NodeMP p, StateMP s, Moves[] actions, ActionSimulator pred, List<Moves[]> moves)
         {
             parent = p;
             state = s;
             treeDepth = 0;
-            previousAction = action;
-            predictor = sim;
-            children = new List<Node>();
+            previousActions = actions;
+            predictor = pred;
+            children = new List<NodeMP>();
             remainingMoves = moves;
             remainingSTPActions = true;
             debugInfo = new List<DebugInformation>();
@@ -59,27 +58,27 @@ namespace GeometryFriendsAgents
             debugInfo.AddRange(dbList);
         }
 
-        public Node getParent()
+        public NodeMP getParent()
         {
             return parent;
         }
 
-        public List<Node> getChildren()
+        public List<NodeMP> getChildren()
         {
             return children;
         }
 
-        public State getState()
+        public StateMP getState()
         {
             return state;
         }
 
-        public Moves getAction()
+        public Moves[] getActions()
         {
-            return previousAction;
+            return previousActions;
         }
 
-        public Simulator getPredictor()
+        public ActionSimulator getPredictor()
         {
             return predictor;
         }
@@ -89,7 +88,7 @@ namespace GeometryFriendsAgents
             return debugInfo;
         }
 
-        public void addChild(Node child)
+        public void addChild(NodeMP child)
         {
             children.Add(child);
         }
@@ -104,37 +103,50 @@ namespace GeometryFriendsAgents
             return treeDepth;
         }
 
-        public Moves getMoveAndRemove(int randAction)
+        public Moves[] getMoveAndRemove(int randAction)
         {
-            Moves randomAction = remainingMoves[randAction];
+            if(remainingMoves.Count == 0)
+            {
+                return new Moves[] { Moves.NO_ACTION, Moves.NO_ACTION };
+            }
+            Moves[] randomAction = remainingMoves[randAction];
             remainingMoves.Remove(randomAction);
             return randomAction;
         }
 
-        public Moves getMove(int randAction)
+        public Moves[] getMove(int randAction)
         {
             if (remainingMoves.Count == 0)
             {
-                return Moves.NO_ACTION;
+                return new Moves[] { Moves.NO_ACTION, Moves.NO_ACTION };
             }
-            return remainingMoves[randAction];
+            Moves[] randomAction = remainingMoves[randAction];
+            return randomAction;
         }
 
-        public void removeMove(Moves move)
-        {
-            remainingMoves.Remove(move);
-        }
-
-        public List<Moves> getRemainingMoves()
+        public List<Moves[]> getRemainingMoves()
         {
             return remainingMoves;
         }
 
         //connect this node to the given one by maintaining the parent but changing the children
-        public void connectNodes(Node node)
+        public void connectNodes(NodeMP node)
         {
             this.children = node.getChildren();
             this.remainingMoves = node.getRemainingMoves();
+        }
+
+        public void removeMove(Moves[] moves)
+        {
+            //remainingMoves.Remove(remainingMoves.SingleOrDefault(m => (m[0] == moves[0] && m[1] == moves[1])));
+            foreach (Moves[] move in remainingMoves)
+            {
+                if (move[0] == moves[0] && move[1] == moves[1])
+                {
+                    remainingMoves.Remove(move);
+                    return;
+                }
+            }
         }
 
         public void noRemainingSTPActions()
@@ -162,21 +174,17 @@ namespace GeometryFriendsAgents
             return leaf;
         }
 
-        public void nonLeaf()
+        public void nonLeaft()
         {
             leaf = false;
         }
 
-        public void resetNode(List<Moves> moves, Tree t, bool bgt)
+        public void resetNode(List<Moves[]> moves, TreeMP t)
         {
             remainingMoves = moves;
-            foreach(Node child in children)
+            foreach(NodeMP child in children)
             {
-                if(bgt && child.isLeaf())
-                {
-                    t.removeFromLeaf(child);
-                }
-                remainingMoves.Remove(child.getAction());
+                remainingMoves.Remove(child.getActions());
             }
             if(remainingMoves.Count == 0)
             {
@@ -184,14 +192,45 @@ namespace GeometryFriendsAgents
             }
         }
 
-        public void nodeExplored()
+        public void removeChild(NodeMP node)
         {
-            explored = true;
+            children.Remove(node);
         }
 
-        public bool wasExplored()
+        public void removeChildren()
         {
-            return explored;
+            children.Clear();
+        }
+
+        public void setAction(Moves[] a)
+        {
+            previousActions = a;
+        }
+
+        public void setTreeDepht(int td)
+        {
+            treeDepth = td;
+        }
+
+        public void setRABool(bool rA)
+        {
+            remainingSTPActions = rA;
+        }
+
+        public NodeMP clone()
+        {
+            NodeMP newNode = new NodeMP(this.parent, this.state, this.previousActions, this.predictor, this.remainingMoves);
+            foreach(NodeMP child in this.children)
+            {
+                newNode.addChild(child);
+            }
+            newNode.setTreeDepht(this.getTreeDepth());
+            newNode.setRABool(this.remainingSTPActions);
+            if(newNode.getChildren().Count != 0)
+            {
+                newNode.nonLeaft();
+            }
+            return newNode;
         }
     }
 }

@@ -404,7 +404,7 @@ namespace GeometryFriendsAgents
 
                     //Simulator
                     Simulator sim = new CircleSimulator(Platforms);
-                    sim.setSimulator(circleInfo.X, circleInfo.Y, circleInfo.VelocityX, circleInfo.VelocityY, Diamonds);
+                    sim.setSimulator(circleInfo.X, circleInfo.Y, circleInfo.VelocityX, circleInfo.VelocityY, remainingDiamonds);
 
                     //update the diamond list
                     RRT.setDiamonds(Diamonds);
@@ -533,7 +533,10 @@ namespace GeometryFriendsAgents
 
                 //Simulator
                 Simulator sim = new CircleSimulator(Platforms);
-                sim.setSimulator(circleInfo.X, circleInfo.Y, circleInfo.VelocityX, circleInfo.VelocityY, Diamonds);
+                sim.setSimulator(circleInfo.X, circleInfo.Y, circleInfo.VelocityX, circleInfo.VelocityY, remainingDiamonds);
+
+                //TEST
+                RRT.setDiamonds(remainingDiamonds);
 
                 State initialState = new State(circleInfo.X, circleInfo.Y, circleInfo.VelocityX, circleInfo.VelocityY, circleInfo.Radius, circleInfo.Radius, caughtDiamonds, remainingDiamonds);
                 float[] returnPos = new float[2];
@@ -546,7 +549,7 @@ namespace GeometryFriendsAgents
                 {
                     PathPlan shortPlan = RRT.getPlan(t);
                     pathPlan = pathPlan.joinPlans(shortPlan, pathPlan);
-                    pathPlan.cleanPlan(obstaclesInfo, Diamonds, area, circleInfo.Radius, true, true);
+                    pathPlan.cleanPlan(obstaclesInfo, remainingDiamonds, area, circleInfo.Radius, true, true);
                     getDebugInfo = true;
                     return;
                 }
@@ -562,12 +565,16 @@ namespace GeometryFriendsAgents
         {
             //if correct is true, it means the agent should try to first recover the previous plan
             //but it should also be careful not to repeat the same failures and should understand when it completed its plan
+            
+            //Since search is so fast, removed recovering due to faulty plans (e.g bad physics simulation on a platform
+            /*
             if (correct && !pathPlan.checkIfConstantFail() && !checkPlanCompletion())
             {
                 recoverPlan();
             }
             else
             {
+            */
                 currentAction = Moves.NO_ACTION;
                 planRRT = true;
                 newPlan = true;
@@ -575,7 +582,7 @@ namespace GeometryFriendsAgents
                 controller.rollReached = false;
                 previousPlan = pathPlan;
                 pathPlan = new PathPlan(cutplan, remaining.Count, utils);
-            }
+            //}
         }
 
         private bool checkPlanCompletion()

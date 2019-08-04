@@ -50,7 +50,7 @@ namespace GeometryFriendsAgents
         private int nCollectiblesLeft;
 
         //RRT tree
-        private RRTUtils RRT;
+        private RRTUtilsGS RRT;
         private Tree T;
         private Tree TReturn;
         private TreeMP TMP;
@@ -65,7 +65,6 @@ namespace GeometryFriendsAgents
         private bool planRRT = true;
         private bool newPlan = true;
         //simulator
-        Simulator sim;
         //time of simulation
         private float actionTime = 2.1f;
         private float actionTimeMargin = 0.5f;
@@ -204,7 +203,7 @@ namespace GeometryFriendsAgents
             utils.writeStart(1);
 
             //search - state - original; action - original; no partial plans
-            RRT = new RRTUtils(actionTime, simTime, simTimeFinish, getPossibleMoves(), type, area, collectiblesInfo.Length, RRTTypes.Original, RRTTypes.Original, obstaclesInfo, gSpeed, Diamonds, Platforms, utils, false, false);
+            //RRT = new RRTUtilsGS(actionTime, simTime, simTimeFinish, getPossibleMoves(), type, area, collectiblesInfo.Length, RRTTypes.Original, RRTTypes.Original, obstaclesInfo, gSpeed, Diamonds, Platforms, utils, false, false);
             //search - state - original; action - STP; biasSTP - 0.25/0.5/0.75; no partial plans
             //RRT = new RRTUtils(actionTime, simTime, simTimeFinish, getPossibleMoves(), type, area, collectiblesInfo.Length, RRTTypes.Original, RRTTypes.STP, obstaclesInfo, gSpeed, Diamonds, Platforms, utils, false, false);
             //search - state - bias - 0.25/0.50/0.75; action - STP; biasSTP;  no partial plans
@@ -219,7 +218,7 @@ namespace GeometryFriendsAgents
             //RRT = new RRTUtils(actionTime, simTime, simTimeFinish, getPossibleMoves(), type, area, collectiblesInfo.Length, RRTTypes.AreaBias, RRTTypes.STP, obstaclesInfo, gSpeed, Diamonds, Platforms, utils, false, false);
 
             /*************FINAL*************/
-            RRT = new RRTUtils(actionTime, simTime, simTimeFinish, getPossibleMoves(), type, area, collectiblesInfo.Length, RRTTypes.BGT, RRTTypes.STP, obstaclesInfo, gSpeed, Diamonds, Platforms, utils, true, true);
+            RRT = new RRTUtilsGS(actionTime, simTime, simTimeFinish, getPossibleMoves(), type, area, collectiblesInfo.Length, RRTTypes.BGT, RRTTypes.STP, obstaclesInfo, gSpeed, Diamonds, Platforms, utils, true, true);
 
             //RRT = new RRTUtils(actionTime, simTime, simTimeFinish, getPossibleMoves(), type, area, collectiblesInfo.Length, RRTTypes.BGT, RRTTypes.Original, obstaclesInfo, gSpeed, Diamonds, Platforms, utils, false, false);
 
@@ -419,7 +418,7 @@ namespace GeometryFriendsAgents
                     RRT.setDiamonds(Diamonds);
                     State initialState = new State(rectangleInfo.X, rectangleInfo.Y, rectangleInfo.VelocityX, rectangleInfo.VelocityY, rectangleInfo.Height / 2, 0, caughtCollectibles, uncaughtCollectibles);
                     //run algorithm
-                    T = RRT.buildNewRRT(initialState, sim, iterationsS);
+                    T = RRT.buildNewRRT(initialState, predictor, iterationsS);
                 }
                 else //continue the previous tree
                 {

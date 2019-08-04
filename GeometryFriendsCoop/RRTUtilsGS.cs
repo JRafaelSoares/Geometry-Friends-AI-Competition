@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Drawing;
+using GeometryFriends;
 
 //RRTUtil for Game Simulator (GS)
 namespace GeometryFriendsAgents

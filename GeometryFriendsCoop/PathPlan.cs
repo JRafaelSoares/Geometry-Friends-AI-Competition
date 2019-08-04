@@ -266,25 +266,50 @@ namespace GeometryFriendsAgents
                     for (int j = pathPoints.Count - 1; j > i; j--)
                     {
                         //if the agent has caught the same number of diamonds
-                        //if the agent is at the same Y level                        
-                        if (pathPoints[j].getUncaughtDiamonds().Count == pathPoints[i].getUncaughtDiamonds().Count &&
-                            Math.Abs(pathPoints[j].getPosY() - pathPoints[i].getPosY()) < cleanRectangleYMargin)
+                        //if the agent is at the same Y level   
+                        //For Simulation/Circle version
+                        if(pathPoints[j].getUncaughtDiamonds() != null)
                         {
-                            //if the platform is the same and there is no other blocking the way nor it is a  morph
-                            Platform platformJ = utils.onPlatform(pathPoints[j].getPosX(), pathPoints[j].getPosY(), margin, platformYMargin);
-                            Platform platformI = utils.onPlatform(pathPoints[i].getPosX(), pathPoints[i].getPosY(), margin, platformYMargin);
-                            if (platformJ != null && platformI != null &&
-                                platformJ.getX() == platformI.getX() && platformJ.getY() == platformI.getY() &&
-                                !utils.blockingPlatform(pathPoints[i].getPosX(), pathPoints[i].getPosY(), pathPoints[j].getPosX(), pathPoints[j].getPosY(), circleRadius) &&
-                                pathPoints[j].getAction() != Moves.MORPH_UP && pathPoints[j].getAction() != Moves.MORPH_DOWN)
+                            if (pathPoints[j].getUncaughtDiamonds().Count == pathPoints[i].getUncaughtDiamonds().Count &&
+                            Math.Abs(pathPoints[j].getPosY() - pathPoints[i].getPosY()) < cleanRectangleYMargin)
                             {
-                                pathPoints.RemoveRange(i, Math.Abs(j - i));
-                                cleanPlanRectangle(platforms, diamonds, area, circleRadius, false);
-                                stopFor = true;
-                                break;
+                                //if the platform is the same and there is no other blocking the way nor it is a  morph
+                                Platform platformJ = utils.onPlatform(pathPoints[j].getPosX(), pathPoints[j].getPosY(), margin, platformYMargin);
+                                Platform platformI = utils.onPlatform(pathPoints[i].getPosX(), pathPoints[i].getPosY(), margin, platformYMargin);
+                                if (platformJ != null && platformI != null &&
+                                    platformJ.getX() == platformI.getX() && platformJ.getY() == platformI.getY() &&
+                                    !utils.blockingPlatform(pathPoints[i].getPosX(), pathPoints[i].getPosY(), pathPoints[j].getPosX(), pathPoints[j].getPosY(), circleRadius) &&
+                                    pathPoints[j].getAction() != Moves.MORPH_UP && pathPoints[j].getAction() != Moves.MORPH_DOWN)
+                                {
+                                    pathPoints.RemoveRange(i, Math.Abs(j - i));
+                                    cleanPlanRectangle(platforms, diamonds, area, circleRadius, false);
+                                    stopFor = true;
+                                    break;
+                                }
                             }
-
                         }
+                        //For Game Simulator
+                        else
+                        {
+                            if (pathPoints[j].getUncaughtColl().Count == pathPoints[i].getUncaughtColl().Count &&
+                            Math.Abs(pathPoints[j].getPosY() - pathPoints[i].getPosY()) < cleanRectangleYMargin)
+                            {
+                                //if the platform is the same and there is no other blocking the way nor it is a  morph
+                                Platform platformJ = utils.onPlatform(pathPoints[j].getPosX(), pathPoints[j].getPosY(), margin, platformYMargin);
+                                Platform platformI = utils.onPlatform(pathPoints[i].getPosX(), pathPoints[i].getPosY(), margin, platformYMargin);
+                                if (platformJ != null && platformI != null &&
+                                    platformJ.getX() == platformI.getX() && platformJ.getY() == platformI.getY() &&
+                                    !utils.blockingPlatform(pathPoints[i].getPosX(), pathPoints[i].getPosY(), pathPoints[j].getPosX(), pathPoints[j].getPosY(), circleRadius) &&
+                                    pathPoints[j].getAction() != Moves.MORPH_UP && pathPoints[j].getAction() != Moves.MORPH_DOWN)
+                                {
+                                    pathPoints.RemoveRange(i, Math.Abs(j - i));
+                                    cleanPlanRectangle(platforms, diamonds, area, circleRadius, false);
+                                    stopFor = true;
+                                    break;
+                                }
+                            }
+                        }
+                        
                     }
                     if (stopFor)
                     {

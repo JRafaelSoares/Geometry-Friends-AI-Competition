@@ -621,14 +621,14 @@ namespace GeometryFriendsAgents
                     else
                     {//get diamond caught and make the next search ignore it
                         Node auxNode = T.getGoal();
-                        int prevDiamonds = auxNode.getState().getUncaughtCollectibles().Count;
+                        int prevDiamonds = auxNode.getState().getNumberUncaughtDiamonds();
                         while (auxNode.getParent() != null)
                         {
-                            int currentDiamonds = auxNode.getParent().getState().getUncaughtCollectibles().Count;
+                            int currentDiamonds = auxNode.getParent().getState().getNumberUncaughtDiamonds();
                             if (currentDiamonds > prevDiamonds)
                             {
-                                List<DiamondInfo> prevDiamondsList = auxNode.getState().getUncaughtCollectibles();
-                                List<DiamondInfo> currentDiamondsList = auxNode.getParent().getState().getUncaughtCollectibles();
+                                List<DiamondInfo> prevDiamondsList = auxNode.getState().getUncaughtDiamonds();
+                                List<DiamondInfo> currentDiamondsList = auxNode.getParent().getState().getUncaughtDiamonds();
 
                                 foreach (DiamondInfo d1 in prevDiamondsList)
                                 {

@@ -623,8 +623,8 @@ namespace GeometryFriendsAgents
                             int currentDiamonds = auxNode.getParent().getState().getUncaughtCollectibles().Count;
                             if (currentDiamonds > prevDiamonds)
                             {
-                                List<DiamondInfo> prevDiamondsList = auxNode.getState().getUncaughtCollectibles();
-                                List<DiamondInfo> currentDiamondsList = auxNode.getParent().getState().getUncaughtCollectibles();
+                                List<DiamondInfo> prevDiamondsList = auxNode.getState().getUncaughtDiamonds();
+                                List<DiamondInfo> currentDiamondsList = auxNode.getParent().getState().getUncaughtDiamonds();
 
                                 foreach (DiamondInfo d1 in prevDiamondsList)
                                 {

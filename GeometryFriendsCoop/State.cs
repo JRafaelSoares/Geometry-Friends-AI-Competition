@@ -14,10 +14,30 @@ namespace GeometryFriendsAgents
         private float velocityY;
         private float height;
         private float circleVelocityRadius;
-        private List<DiamondInfo> caughtCollectibles;
-        private List<DiamondInfo> uncaughtCollectibles;
 
+        //For game simulator
+        private List<CollectibleRepresentation> caughtCollectibles;
+        private List<CollectibleRepresentation> uncaughtCollectibles;
+
+        //For Circle Simulator
+        private List<DiamondInfo> caughtDiamonds;
+        private List<DiamondInfo> uncaughtDiamonds;
+
+        //Circle Simulator States
         public State(float cPosX, float cPosY, float cVelX, float cVelY, float cH, float cVelRad, List<DiamondInfo> cC, List<DiamondInfo> uC)
+        {
+            positionX = cPosX;
+            positionY = cPosY;
+            velocityX = cVelX;
+            velocityY = cVelY;
+            height = cH;
+            circleVelocityRadius = cVelRad;
+            caughtDiamonds = cC;
+            uncaughtDiamonds = uC;
+        }
+
+        //Game Simulator states
+        public State(float cPosX, float cPosY, float cVelX, float cVelY, float cH, float cVelRad, List<CollectibleRepresentation> cC, List<CollectibleRepresentation> uC)
         {
             positionX = cPosX;
             positionY = cPosY;
@@ -54,6 +74,10 @@ namespace GeometryFriendsAgents
             return height;
         }
 
+        /*********************************************************/
+        /**************** Game Simulator Methods *****************/
+        /*********************************************************/
+
         public int getNumberCaughtCollectibles()
         {
             return caughtCollectibles.Count;
@@ -64,20 +88,20 @@ namespace GeometryFriendsAgents
             return uncaughtCollectibles.Count;
         }
 
-        public List<DiamondInfo> getCaughtCollectibles()
+        public List<CollectibleRepresentation> getCaughtCollectibles()
         {
             return caughtCollectibles;
         }
 
-        public List<DiamondInfo> getUncaughtCollectibles()
+        public List<CollectibleRepresentation> getUncaughtCollectibles()
         {
             return uncaughtCollectibles;
         }
 
-        public void addCaughtCollectibles(List<DiamondInfo> collectibles)
+        public void addCaughtCollectibles(List<CollectibleRepresentation> collectibles)
         {
             //actualizes all the collectibles that were caught without duplicating
-            foreach(DiamondInfo collectible in collectibles)
+            foreach (CollectibleRepresentation collectible in collectibles)
             {
                 if (!caughtCollectibles.Contains(collectible))
                 {
@@ -85,5 +109,44 @@ namespace GeometryFriendsAgents
                 }
             }
         }
+
+        /***********************************************************/
+        /**************** General Simulator Methods ****************/
+        /***********************************************************/
+
+        public int getNumberCaughtDiamonds()
+        {
+            return caughtDiamonds.Count;
+        }
+
+        public int getNumberUncaughtDiamonds()
+        {
+            return uncaughtDiamonds.Count;
+        }
+        
+
+        public List<DiamondInfo> getCaughtDiamonds()
+        {
+            return caughtDiamonds;
+        }
+
+        public List<DiamondInfo> getUncaughtDiamonds()
+        {
+            return uncaughtDiamonds;
+        }
+
+        public void addCaughtDiamonds(List<DiamondInfo> diamonds)
+        {
+            //actualizes all the collectibles that were caught without duplicating
+            foreach(DiamondInfo collectible in diamonds)
+            {
+                if (!caughtDiamonds.Contains(collectible))
+                {
+                    caughtDiamonds.Add(collectible);
+                }
+            }
+        }
+
+       
     }
 }

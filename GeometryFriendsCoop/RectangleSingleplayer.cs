@@ -104,6 +104,8 @@ namespace GeometryFriendsAgents
         private bool firstAction3;
         private bool lastAction = false;
         private List<DiamondInfo> Diamonds;
+        private List<DiamondInfo> remainingDiamonds = new List<DiamondInfo>();
+        private List<DiamondInfo> caughtDiamonds = new List<DiamondInfo>();
         private List<Platform> Platforms;
         private Platform ground;
         private int[,] levelLayout;
@@ -412,26 +414,11 @@ namespace GeometryFriendsAgents
                 //if the plan is new build a new tree
                 if (newPlan)
                 {
-                    List<DiamondInfo> remainingDiamonds = new List<DiamondInfo>();
-                    List<DiamondInfo> caughtDiamonds = new List<DiamondInfo>();
-                    foreach (DiamondInfo diamond in Diamonds)
-                    {
-                        if (!diamond.wasCaught())
-                        {
-                            remainingDiamonds.Add(diamond);
-                        }
-                        else
-                        {
-                            caughtDiamonds.Add(diamond);
-                        }
-                    }
 
-                    //Initialize simulator
-                    sim.setSimulator(rectangleInfo.X, rectangleInfo.Y, rectangleInfo.VelocityX, rectangleInfo.VelocityY, Diamonds);
 
                     //update the diamond list
                     RRT.setDiamonds(Diamonds);
-                    State initialState = new State(rectangleInfo.X, rectangleInfo.Y, rectangleInfo.VelocityX, rectangleInfo.VelocityY, rectangleInfo.Height / 2, 0, caughtDiamonds, remainingDiamonds);
+                    State initialState = new State(rectangleInfo.X, rectangleInfo.Y, rectangleInfo.VelocityX, rectangleInfo.VelocityY, rectangleInfo.Height / 2, 0, caughtCollectibles, uncaughtCollectibles);
                     //run algorithm
                     T = RRT.buildNewRRT(initialState, sim, iterationsS);
                 }
@@ -739,6 +726,23 @@ namespace GeometryFriendsAgents
                 hasStarted = true;
                 searchTime = new Stopwatch();
                 searchTime.Start();
+            }
+        }
+
+        private void updateDiamonds()
+        {
+            remainingDiamonds = new List<DiamondInfo>();
+            caughtDiamonds = new List<DiamondInfo>();
+            foreach (DiamondInfo diamond in Diamonds)
+            {
+                if (!diamond.wasCaught())
+                {
+                    remainingDiamonds.Add(diamond);
+                }
+                else
+                {
+                    caughtDiamonds.Add(diamond);
+                }
             }
         }
     }

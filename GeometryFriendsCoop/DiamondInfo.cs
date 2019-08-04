@@ -543,7 +543,7 @@ namespace GeometryFriendsAgents
         {
             //check if diamond has already been caught
             bool uncaught = false;
-            foreach (DiamondInfo diamond in node.getState().getUncaughtCollectibles())
+            foreach (DiamondInfo diamond in node.getState().getUncaughtDiamonds())
             {
                 if (Math.Round(diamond.getX()) == Math.Round(this.posX) && Math.Round(diamond.getY()) == Math.Round(this.posY))
                 {

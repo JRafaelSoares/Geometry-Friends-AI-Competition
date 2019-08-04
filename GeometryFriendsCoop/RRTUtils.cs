@@ -99,7 +99,7 @@ namespace GeometryFriendsAgents
         private Platform initialPlatform;
         private List<DiamondInfo> diamondsInfo;
         private List<Platform> platformsInfo;
-        private Simulator simulator;
+        private Simulator circleSimulator;
         private Rectangle area;
         private Utils utils;
 
@@ -154,7 +154,7 @@ namespace GeometryFriendsAgents
         public Tree buildNewRRT(State initialState, Simulator sim, int it)
         {
             goal = false;
-            simulator = sim;
+            circleSimulator = sim;
             time.Restart();
 
             initialPosX = initialState.getPosX();
@@ -169,7 +169,7 @@ namespace GeometryFriendsAgents
                 diamond.resetStates();
             }
 
-            return buildRRT(initialState, simulator);
+            return buildRRT(initialState, circleSimulator);
         }
 
         public Tree buildNewMPRRT(State initialState, Simulator sim, GoalType gType, int it)
@@ -188,7 +188,7 @@ namespace GeometryFriendsAgents
             goal = false;
             positions = new bool[area.Right / matrixSize, area.Bottom / matrixSize, totalCollectibles + 1];
             Tree currentTree = new Tree(initialState, sim, copyMoves(), bgt);
-            simulator = sim;
+            circleSimulator = sim;
             return RRT(currentTree);
         }
         
@@ -357,7 +357,7 @@ namespace GeometryFriendsAgents
                     List<Point> points = previousPoints.getPathPoints();
                     for (int i = 0; i < points.Count; i++)
                     {
-                        if (newState.getUncaughtCollectibles().Count == points[i].getUncaughtColl().Count)
+                        if (newState.getNumberUncaughtDiamonds() == points[i].getUncaughtColl().Count)
                         {
                             bool samePlatformState = true;
                             //check is the platform is the same
@@ -368,7 +368,7 @@ namespace GeometryFriendsAgents
                             //check if the diamonds match
                             if (samePlatformState)
                             {
-                                foreach (DiamondInfo diamond in newState.getUncaughtCollectibles())
+                                foreach (DiamondInfo diamond in newState.getUncaughtDiamonds())
                                 {
                                     if (!points[i].getUncaughtColl().Contains(diamond))
                                     {
@@ -393,7 +393,7 @@ namespace GeometryFriendsAgents
 
             }
             //if all collectibles where caught
-            if (newState.getNumberUncaughtCollectibles() == 0)
+            if (newState.getNumberUncaughtDiamonds() == 0)
             {
                 //inform the Tree it has reached a goal state
                 tree.setGoal(newNode);
@@ -402,7 +402,7 @@ namespace GeometryFriendsAgents
                 //make sure that if a new plan was found when searching for a recovery one, that the new plan is followed
                 correction = false;
             }
-            else if (semiplanTest && newState.getNumberUncaughtCollectibles() < node.getState().getNumberUncaughtCollectibles())
+            else if (semiplanTest && newState.getNumberUncaughtDiamonds() < node.getState().getNumberUncaughtDiamonds())
             {
                 checkSemiPlan(tree, newNode);
             }
@@ -467,11 +467,11 @@ namespace GeometryFriendsAgents
             State newState;
             if (charType == 0)
             {
-                newState = new State(((CircleSimulator)stateSim).getCirclePositionX(), ((CircleSimulator)stateSim).getCirclePositionY(), ((CircleSimulator)stateSim).getCircleVelocityX(), ((CircleSimulator)stateSim).getCircleVelocityY(), radius, ((CircleSimulator)stateSim).getCircleVelocityRadius(), selectedState.getCaughtCollectibles(), stateSim.getUncaughtDiamonds());
+                newState = new State(((CircleSimulator)stateSim).getCirclePositionX(), ((CircleSimulator)stateSim).getCirclePositionY(), ((CircleSimulator)stateSim).getCircleVelocityX(), ((CircleSimulator)stateSim).getCircleVelocityY(), radius, ((CircleSimulator)stateSim).getCircleVelocityRadius(), selectedState.getCaughtDiamonds(), stateSim.getUncaughtDiamonds());
             }
             else
             {
-                newState = new State(stateSim.getRectanglePositionX(), stateSim.getRectanglePositionY(), stateSim.getRectangleVelocityX(), stateSim.getRectangleVelocityY(), stateSim.getRectangleHeight() / 2, 0, selectedState.getCaughtCollectibles(), stateSim.getUncaughtDiamonds());
+                newState = new State(stateSim.getRectanglePositionX(), stateSim.getRectanglePositionY(), stateSim.getRectangleVelocityX(), stateSim.getRectangleVelocityY(), stateSim.getRectangleHeight() / 2, 0, selectedState.getCaughtDiamonds(), stateSim.getUncaughtDiamonds());
             }
 
             return newState;
@@ -572,10 +572,10 @@ namespace GeometryFriendsAgents
             {
                 currentState = node.getState();
                 //if this state has a smaller difference of diamonds than the previously selected one - this one is nearer
-                if (Math.Abs(stateCol - currentState.getUncaughtCollectibles().Count) < nearestColl)
+                if (Math.Abs(stateCol - currentState.getNumberUncaughtDiamonds()) < nearestColl)
                 {
                     nearestNode = node;
-                    nearestColl = stateCol - currentState.getUncaughtCollectibles().Count;
+                    nearestColl = stateCol - currentState.getNumberUncaughtDiamonds();
                     nearestPos = getDistance(stateX, stateY, currentState.getPosX(), currentState.getPosY());
                     if (nearestPos == 0)
                     {
@@ -583,7 +583,7 @@ namespace GeometryFriendsAgents
                     }
                 }
                 //if the number of diamonds is the same - get the closest one in position
-                else if (Math.Abs(stateCol - currentState.getUncaughtCollectibles().Count) == nearestColl)
+                else if (Math.Abs(stateCol - currentState.getNumberUncaughtDiamonds()) == nearestColl)
                 {
                     double dist = 0;
                     //check if there is a platform between the agent and the selected position
@@ -597,7 +597,7 @@ namespace GeometryFriendsAgents
                     if (dist < nearestPos)
                     {
                         nearestNode = node;
-                        nearestColl = stateCol - currentState.getUncaughtCollectibles().Count;
+                        nearestColl = stateCol - currentState.getNumberUncaughtDiamonds();
                         nearestPos = (float)dist;
                     }
                 }
@@ -678,9 +678,9 @@ namespace GeometryFriendsAgents
                 //a goal state needs to have 0 uncaught collectibles
                 stateCol = 0;
                 //get a position of a random diamond 
-                int random = (int)Math.Floor((rnd.NextDouble() * 10) % tree.getRoot().getState().getUncaughtCollectibles().Count);
-                stateX = tree.getRoot().getState().getUncaughtCollectibles()[random].getX();
-                stateY = tree.getRoot().getState().getUncaughtCollectibles()[random].getY();
+                int random = (int)Math.Floor((rnd.NextDouble() * 10) % tree.getRoot().getState().getUncaughtDiamonds().Count);
+                stateX = tree.getRoot().getState().getUncaughtDiamonds()[random].getX();
+                stateY = tree.getRoot().getState().getUncaughtDiamonds()[random].getY();
 
                 randomDiamond = random;
             }
@@ -703,15 +703,15 @@ namespace GeometryFriendsAgents
             {
                 currentState = node.getState();
                 //when it is biased to a goal state but the agent already caught the selected diamond then it is not a close state
-                if (biased && checkDiamond(tree.getRoot().getState().getUncaughtCollectibles()[randomDiamond], currentState.getUncaughtCollectibles()))
+                if (biased && checkDiamond(tree.getRoot().getState().getUncaughtDiamonds()[randomDiamond], currentState.getUncaughtDiamonds()))
                 {
                     continue;
                 }
                 //if this state has a smaller difference of diamonds than the previously selected one - this one is nearer
-                else if (Math.Abs(stateCol - currentState.getUncaughtCollectibles().Count) < nearestColl)
+                else if (Math.Abs(stateCol - currentState.getNumberUncaughtDiamonds()) < nearestColl)
                 {
                     nearestNode = node;
-                    nearestColl = stateCol - currentState.getUncaughtCollectibles().Count;
+                    nearestColl = stateCol - currentState.getNumberUncaughtDiamonds();
                     nearestPos = getDistance(stateX, stateY, currentState.getPosX(), currentState.getPosY());
                     if (nearestPos == 0)
                     {
@@ -719,7 +719,7 @@ namespace GeometryFriendsAgents
                     }
                 }
                 //if the number of diamonds is the same - get the closest one in position
-                else if (Math.Abs(stateCol - currentState.getUncaughtCollectibles().Count) == nearestColl)
+                else if (Math.Abs(stateCol - currentState.getNumberUncaughtDiamonds()) == nearestColl)
                 {
                     double dist = 0;
                     //check if there is a platform between the agent and the selected position
@@ -733,7 +733,7 @@ namespace GeometryFriendsAgents
                     if (dist < nearestPos)
                     {
                         nearestNode = node;
-                        nearestColl = stateCol - currentState.getUncaughtCollectibles().Count;
+                        nearestColl = stateCol - currentState.getNumberUncaughtDiamonds();
                         nearestPos = (float)dist;
                     }
                 }
@@ -833,12 +833,12 @@ namespace GeometryFriendsAgents
             }
 
             //check if there is already a state at that position
-            if (positions[posX, posY, state.getNumberUncaughtCollectibles()])
+            if (positions[posX, posY, state.getNumberUncaughtDiamonds()])
             {
                 return true;
             }
             //if it is not a repeated state, then update the matrix
-            positions[posX, posY, state.getNumberUncaughtCollectibles()] = true;
+            positions[posX, posY, state.getNumberUncaughtDiamonds()] = true;
 
             return false;
         }
@@ -855,7 +855,7 @@ namespace GeometryFriendsAgents
             DiamondInfo highestDiamond = null;
             foreach (DiamondInfo dInfo in diamondsInfo)
             {
-                foreach (DiamondInfo diamond in node.getState().getUncaughtCollectibles())
+                foreach (DiamondInfo diamond in node.getState().getUncaughtDiamonds())
                 {
                     if (Math.Round(dInfo.getX()) == Math.Round(diamond.getX()) &&
                         Math.Round(dInfo.getY()) == Math.Round(diamond.getY()))
@@ -893,7 +893,7 @@ namespace GeometryFriendsAgents
             }
 
             //get the list of caught and uncaught collectibles
-            int[] cCol = getCaughtDiamondsIndexes(node.getState().getUncaughtCollectibles());
+            int[] cCol = getCaughtDiamondsIndexes(node.getState().getUncaughtDiamonds());
             foreach (DiamondInfo diamond in diamondsInfo)
             {
                 //the first uncaught collectible is the highest
@@ -1105,13 +1105,13 @@ namespace GeometryFriendsAgents
             float state1Y = state1.getPosY();
             float stateVel1X = state1.getVelX();
             float stateVel1Y = state1.getVelY();
-            List<DiamondInfo> state1Coll = state1.getCaughtCollectibles();
+            List<DiamondInfo> state1Coll = state1.getCaughtDiamonds();
 
             float state2X = state2.getPosX();
             float state2Y = state2.getPosY();
             float stateVel2X = state2.getVelX();
             float stateVel2Y = state2.getVelY();
-            List<DiamondInfo> state2Coll = state2.getCaughtCollectibles();
+            List<DiamondInfo> state2Coll = state2.getCaughtDiamonds();
 
             if (state1X >= state2X - correctionPosMargin && state1X <= state2X + correctionPosMargin &&
                 state1Y >= state2Y - correctionPosMargin && state1Y <= state2Y + correctionPosMargin &&
@@ -1190,7 +1190,7 @@ namespace GeometryFriendsAgents
         }
         public PathPlan getPlan(Tree t)
         {
-            PathPlan p = new PathPlan(cutplan, t.getRoot().getState().getNumberUncaughtCollectibles(), utils);
+            PathPlan p = new PathPlan(cutplan, t.getRoot().getState().getNumberUncaughtDiamonds(), utils);
 
             Node currentNode = t.getGoal();
             
@@ -1206,16 +1206,16 @@ namespace GeometryFriendsAgents
                     //the jump action needs the point it has to make the jump and not where to reach
                     if (currentNode.getAction() == Moves.JUMP)
                     {
-                        point = new Point(currentNode.getParent().getState().getPosX(), currentNode.getParent().getState().getPosY(), currentNode.getParent().getState().getVelX(), currentState.getHeight(), currentNode.getAction(), currentState.getUncaughtCollectibles());
+                        point = new Point(currentNode.getParent().getState().getPosX(), currentNode.getParent().getState().getPosY(), currentNode.getParent().getState().getVelX(), currentState.getHeight(), currentNode.getAction(), currentState.getUncaughtDiamonds());
                     }
                     else
                     {
-                        point = new Point(currentState.getPosX(), currentState.getPosY(), currentState.getVelX(), currentState.getHeight(), currentNode.getAction(), currentState.getUncaughtCollectibles());
+                        point = new Point(currentState.getPosX(), currentState.getPosY(), currentState.getVelX(), currentState.getHeight(), currentNode.getAction(), currentState.getUncaughtDiamonds());
                     }
                 }
                 else
                 {
-                    point = new Point(currentState.getPosX(), currentState.getPosY(), currentState.getVelX(), currentState.getHeight(), currentNode.getAction(), currentState.getUncaughtCollectibles());
+                    point = new Point(currentState.getPosX(), currentState.getPosY(), currentState.getVelX(), currentState.getHeight(), currentNode.getAction(), currentState.getUncaughtDiamonds());
                 }
 
                 //it adds the points in the reverse order
@@ -1267,7 +1267,7 @@ namespace GeometryFriendsAgents
             float stateY = planState.getPosY();
             float stateVelX = planState.getVelX();
             float stateVelY = planState.getVelY();
-            List<DiamondInfo> stateColl = planState.getCaughtCollectibles();
+            List<DiamondInfo> stateColl = planState.getCaughtDiamonds();
 
             //TODO
             //calculate the margins of error
@@ -1305,7 +1305,7 @@ namespace GeometryFriendsAgents
             float stateY = planState.getPosY();
             float stateVelX = planState.getVelX();
             float stateVelY = planState.getVelY();
-            List<DiamondInfo> stateColl = planState.getCaughtCollectibles();
+            List<DiamondInfo> stateColl = planState.getCaughtDiamonds();
 
             //TODO
             //calculate the margins of error
@@ -1344,7 +1344,7 @@ namespace GeometryFriendsAgents
 
             //prepare simulator
             List<DiamondInfo> simCaughtCollectibles = new List<DiamondInfo>();
-            Simulator toSim = simulator;
+            Simulator toSim = circleSimulator;
 
             //add all actions of the plan to simulate
             foreach (Moves action in actionList)
@@ -1367,7 +1367,7 @@ namespace GeometryFriendsAgents
         private void checkSemiPlan(Tree tree, Node newNode)
         {
             //if the agent is in the same platform as a diamond, this might be the safest semi-plan so far
-            if (onSamePlatform(0, initialPlatform, newNode.getState().getUncaughtCollectibles(), true))
+            if (onSamePlatform(0, initialPlatform, newNode.getState().getUncaughtDiamonds(), true))
             {
                 //if this semiplan is shorter than the previous one
                 if (samePlatformPlan && newNode.getTreeDepth() < bestSemiPlanNode.getTreeDepth())
@@ -1384,13 +1384,13 @@ namespace GeometryFriendsAgents
             }
 
             //if there is no best semi-plan and the current state has less uncaught collectibles than the initial state, then this is the best semi-plan so far
-            if (bestSemiPlanNode == null && newNode.getState().getNumberUncaughtCollectibles() < tree.getRoot().getState().getNumberUncaughtCollectibles())
+            if (bestSemiPlanNode == null && newNode.getState().getNumberUncaughtDiamonds() < tree.getRoot().getState().getNumberUncaughtDiamonds())
             {
                 bestSemiPlanNode = newNode;
                 return;
             }
             // if this plans catches more of the highest diamonds
-            else if (bestSemiPlanNode != null && higherPlatforms(getCaughtDiamondsIndexes(newNode.getState().getUncaughtCollectibles())))
+            else if (bestSemiPlanNode != null && higherPlatforms(getCaughtDiamondsIndexes(newNode.getState().getUncaughtDiamonds())))
             {
                 //get only the highest
 
@@ -1412,22 +1412,22 @@ namespace GeometryFriendsAgents
             //get the order of the caught diamonds
             //get the path
             List<Node> currentPlan = getPathPlan(currentNode);
-            int lastDiamondCount = currentPlan[0].getState().getNumberUncaughtCollectibles();
+            int lastDiamondCount = currentPlan[0].getState().getNumberUncaughtDiamonds();
             int totalDiamonds = lastDiamondCount;
             newIndex = currentPlan.Count;
 
             for (int i = 0; i < currentPlan.Count; i++)
             {
-                caughtDiamonds = getCaughtDiamondsIndexes(currentPlan[i].getState().getUncaughtCollectibles());
-                if (caughtDiamonds[0] == 0 && currentPlan[i].getState().getNumberUncaughtCollectibles() < lastDiamondCount)
+                caughtDiamonds = getCaughtDiamondsIndexes(currentPlan[i].getState().getUncaughtDiamonds());
+                if (caughtDiamonds[0] == 0 && currentPlan[i].getState().getNumberUncaughtDiamonds() < lastDiamondCount)
                 {
-                    lastDiamondCount = currentPlan[i].getState().getNumberUncaughtCollectibles();
+                    lastDiamondCount = currentPlan[i].getState().getNumberUncaughtDiamonds();
                     lowerDiamonds++;
                     continue;
                 }
-                else if (currentPlan[i].getState().getNumberUncaughtCollectibles() < lastDiamondCount)
+                else if (currentPlan[i].getState().getNumberUncaughtDiamonds() < lastDiamondCount)
                 {
-                    int highest = getHighestNumber(getCaughtDiamondsIndexes(currentPlan[i].getState().getUncaughtCollectibles()));
+                    int highest = getHighestNumber(getCaughtDiamondsIndexes(currentPlan[i].getState().getUncaughtDiamonds()));
                     //check if the number os highest caught collectible is right
                     if (totalDiamonds - (highest + lowerDiamonds) != lastDiamondCount - 1)
                     {
@@ -1489,7 +1489,7 @@ namespace GeometryFriendsAgents
                 return true;
             }
 
-            int[] bestCaughtDiamonds = getCaughtDiamondsIndexes(bestSemiPlanNode.getState().getUncaughtCollectibles());
+            int[] bestCaughtDiamonds = getCaughtDiamondsIndexes(bestSemiPlanNode.getState().getUncaughtDiamonds());
 
             int currentHighest = getHighestNumber(diamonds);
             int bestHighest = getHighestNumber(bestCaughtDiamonds);
@@ -1557,7 +1557,7 @@ namespace GeometryFriendsAgents
                 return true;
             }
 
-            int[] bestCaughtDiamonds = getCaughtDiamondsIndexes(bestSemiPlanNode.getState().getUncaughtCollectibles());
+            int[] bestCaughtDiamonds = getCaughtDiamondsIndexes(bestSemiPlanNode.getState().getUncaughtDiamonds());
 
             for (int i = 0; i < diamondsInfo.Count; i++)
             {
@@ -1751,7 +1751,7 @@ namespace GeometryFriendsAgents
             if (goalType == GoalType.All)
             {
                 //if all collectibles where caught
-                if (newState.getNumberUncaughtCollectibles() == 0)
+                if (newState.getNumberUncaughtDiamonds() == 0)
                 {
                     goal = true;
                     newPlan = true;
@@ -1763,7 +1763,7 @@ namespace GeometryFriendsAgents
             else if (goalType == GoalType.FirstPossible)
             {
                 //check if a diamond was caught
-                if (newState.getUncaughtCollectibles().Count < totalCollectibles && notIgnored(node))
+                if (newState.getNumberUncaughtDiamonds() < totalCollectibles && notIgnored(node))
                 {
                     return true;
                 }
@@ -1832,7 +1832,7 @@ namespace GeometryFriendsAgents
                 throw new Exception("there must always be a diamond");
             }
             //check if the caught diamond in the node is that one
-            List<DiamondInfo> uCol = node.getState().getUncaughtCollectibles();
+            List<DiamondInfo> uCol = node.getState().getUncaughtDiamonds();
             foreach (DiamondInfo diamond in uCol)
             {
                 //if the highest is on the list of uncaught
@@ -1849,7 +1849,7 @@ namespace GeometryFriendsAgents
         public bool notIgnored(Node node)
         {
             //should only get one index
-            int[] caught = getCaughtDiamondsIndexes(node.getState().getUncaughtCollectibles());
+            int[] caught = getCaughtDiamondsIndexes(node.getState().getUncaughtDiamonds());
 
             for (int i = 0; i < caught.Length; i++)
             {
@@ -1907,7 +1907,7 @@ namespace GeometryFriendsAgents
                 planText[i + 2] = planNodes[i / 6].getState().getPosY().ToString();
                 planText[i + 3] = planNodes[i / 6].getState().getVelX().ToString();
                 planText[i + 4] = planNodes[i / 6].getState().getVelY().ToString();
-                planText[i + 5] = planNodes[i / 6].getState().getNumberUncaughtCollectibles().ToString();
+                planText[i + 5] = planNodes[i / 6].getState().getNumberUncaughtDiamonds().ToString();
             }
             System.IO.File.WriteAllLines(@".\SimulatedPlan.txt", planText);
         }
@@ -1950,7 +1950,15 @@ namespace GeometryFriendsAgents
                 //add to plan
                 plan.Add(action);
 
-                state = new State(posX, posY, velX, velY, 0, 0, null, null);
+                //Due to overloading, we must check which tip of check constructor we want.  
+                state = new State(posX, posY, velX, velY, 0, 0, (List<CollectibleRepresentation>)null, (List<CollectibleRepresentation>)null);
+
+                if (circleSimulator != null)
+                {
+                    state = new State(posX, posY, velX, velY, 0, 0, (List<DiamondInfo>)null, (List<DiamondInfo>)null);
+
+                }
+                
                 node = new Node(null, state, action, null, null);
             }
             file.Close();

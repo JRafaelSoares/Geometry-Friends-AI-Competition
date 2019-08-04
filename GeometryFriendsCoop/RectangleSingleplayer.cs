@@ -51,7 +51,6 @@ namespace GeometryFriendsAgents
 
         //RRT tree
         private RRTUtils RRT;
-        private RRTUtilsMP RRTMP;
         private Tree T;
         private Tree TReturn;
         private TreeMP TMP;

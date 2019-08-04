@@ -187,7 +187,7 @@ namespace GeometryFriendsAgents
             //initialize tree
             goal = false;
             positions = new bool[area.Right / matrixSize, area.Bottom / matrixSize, totalCollectibles + 1];
-            Tree currentTree = new Tree(initialState, sim, copyMoves(), bgt);
+            Tree currentTree = new TreeSimulator(initialState, sim, copyMoves(), bgt);
             circleSimulator = sim;
             return RRT(currentTree);
         }

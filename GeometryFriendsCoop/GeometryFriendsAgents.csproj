@@ -83,6 +83,7 @@
     <Compile Include="StateMP.cs" />
     <Compile Include="Tree.cs" />
     <Compile Include="TreeMP.cs" />
+    <Compile Include="TreeSimulator.cs" />
     <Compile Include="Utils.cs" />
   </ItemGroup>
   <ItemGroup />

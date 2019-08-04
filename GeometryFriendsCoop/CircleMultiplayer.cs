@@ -601,7 +601,8 @@ namespace GeometryFriendsAgents
                     returnPos[0] = T.getRoot().getState().getPosX();
                     returnPos[1] = T.getRoot().getState().getPosY();
                     tempRRT.setReturnPos(returnPos);
-                    TReturn = tempRRT.buildNewMPRRT(finalState, T.getGoal().getPredictor(), goalMode, iterationsReturn);
+                    NodeSimulator simul = (NodeSimulator) T.getGoal();
+                    TReturn = tempRRT.buildNewMPRRT(finalState, simul.getSimulator(), goalMode, iterationsReturn);
 
                     //if a return path was found
                     if (TReturn.getGoal() != null)

@@ -259,6 +259,7 @@ namespace GeometryFriendsAgents
             return currentTree;
         }
 
+        //Make class with this node.
         private void extend(Tree tree, Node node)
         {
             Moves newAction;
@@ -306,7 +307,12 @@ namespace GeometryFriendsAgents
             }
 
             State selectedState = node.getState();
-            Simulator selectedSim = node.getPredictor().clone();
+
+            //It will always be a NodeSimulator
+            //Must make it general for later
+            NodeSimulator simulatorNode = (NodeSimulator)node;
+
+            Simulator selectedSim = simulatorNode.getSimulator().clone();
 
             //simulate action applied to the selected state
             State newState = applyPrediction(selectedState, node, newAction, selectedSim);
@@ -336,7 +342,7 @@ namespace GeometryFriendsAgents
             }
 
             //add node to the tree
-            Node newNode = new Node(node, newState, newAction, selectedSim, newMoves);
+            Node newNode = new NodeSimulator(node, newState, newAction, selectedSim, newMoves);
             node.addChild(newNode);
             tree.addNode(newNode);
 
@@ -1912,6 +1918,7 @@ namespace GeometryFriendsAgents
             System.IO.File.WriteAllLines(@".\SimulatedPlan.txt", planText);
         }
 
+        //Make general later
         public void readPlanFromFile()
         {
             String line;
@@ -1959,7 +1966,7 @@ namespace GeometryFriendsAgents
 
                 }
                 
-                node = new Node(null, state, action, null, null);
+                node = new NodeSimulator(null, state, action, null, null);
             }
             file.Close();
         }

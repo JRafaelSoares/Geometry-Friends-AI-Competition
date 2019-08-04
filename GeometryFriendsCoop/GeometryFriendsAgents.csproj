@@ -60,6 +60,7 @@
     <Compile Include="GoalType.cs" />
     <Compile Include="Node.cs" />
     <Compile Include="NodeMP.cs" />
+    <Compile Include="NodeSimulator.cs" />
     <Compile Include="PathPlan.cs" />
     <Compile Include="PathPlanMP.cs" />
     <Compile Include="Platform.cs" />

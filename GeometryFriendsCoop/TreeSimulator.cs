@@ -1,9 +1,5 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
 using GeometryFriends.AI;
-using GeometryFriends.AI.ActionSimulation;
 
 namespace GeometryFriendsAgents
 {
@@ -15,7 +11,7 @@ namespace GeometryFriendsAgents
         public TreeSimulator(State initialState, Simulator sim, List<Moves> moves, bool BGT) : base(initialState, moves, BGT)
         {
 
-            setRoot(new Node(null, initialState, 0, sim, moves));
+            setRoot(new NodeSimulator(null, initialState, 0, sim, moves));
             addNode(getRoot());
         }
 

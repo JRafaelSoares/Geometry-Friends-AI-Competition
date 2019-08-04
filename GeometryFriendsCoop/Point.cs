@@ -15,10 +15,24 @@ namespace GeometryFriendsAgents
         private float velX;
         private float height;
         private Moves action;
-        private List<DiamondInfo> uncaughtCollectibles;
-        private int timesPassed;
+        private List<DiamondInfo> uncaughtDiamonds;
+        private List<CollectibleRepresentation> uncaughtCollectibles;
 
+        private int timesPassed;
+        //For general Simulator
         public Point(float pX, float pY, float vX, float h, Moves a, List<DiamondInfo> uC)
+        {
+            posX = pX;
+            posY = pY;
+            velX = vX;
+            height = h;
+            action = a;
+            uncaughtDiamonds = uC;
+            timesPassed = 0;
+        }
+
+        //For Game Simulator
+        public Point(float pX, float pY, float vX, float h, Moves a, List<CollectibleRepresentation> uC)
         {
             posX = pX;
             posY = pY;
@@ -60,11 +74,15 @@ namespace GeometryFriendsAgents
             return action;
         }
 
-        public List<DiamondInfo> getUncaughtColl()
+        public List<DiamondInfo> getUncaughtDiamonds()
+        {
+            return uncaughtDiamonds;
+        }
+
+        public List<CollectibleRepresentation> getUncaughtColl()
         {
             return uncaughtCollectibles;
         }
-
         public void passedThrough()
         {
             timesPassed++;

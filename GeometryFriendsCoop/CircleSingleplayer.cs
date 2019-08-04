@@ -488,7 +488,7 @@ namespace GeometryFriendsAgents
             //start from the end
             for (i = pathPoints.Count - 1; i >= 0; i--)
             {
-                if (pathPoints[i].getUncaughtColl().Count >= uncaughtCollectibles.Count)
+                if (pathPoints[i].getUncaughtDiamonds().Count >= uncaughtCollectibles.Count)
                 {
                     Platform pointPlatform = utils.onPlatform(pathPoints[i].getPosX(), pathPoints[i].getPosY() + circleInfo.Radius, 25, 10);
 
@@ -630,7 +630,7 @@ namespace GeometryFriendsAgents
             }
             //if the agent catches a diamond when it was not supposed to
             //might not be necessary when the checkactionfailure is implemented
-            else if (uncaughtCollectibles.Count < pathPlan.getPathPoints()[0].getUncaughtColl().Count && pathPlan.getPathPoints().Count > 1 && pathPlan.getPathPoints()[1].getUncaughtColl().Count != uncaughtCollectibles.Count)
+            else if (uncaughtCollectibles.Count < pathPlan.getPathPoints()[0].getUncaughtDiamonds().Count && pathPlan.getPathPoints().Count > 1 && pathPlan.getPathPoints()[1].getUncaughtDiamonds().Count != uncaughtCollectibles.Count)
             {
                 //replan for the previous plan is now invalid
                 replan(false);

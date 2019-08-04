@@ -179,7 +179,7 @@ namespace GeometryFriendsAgents
                             auxPlatform = utils.onPlatform(pathPoints[i].getPosX(), pathPoints[i].getPosY(), 25, platformYMargin);
                         }
                         //if it lands without catching a diamond, then these points are useless
-                        if(totalCollectibles == pathPoints[i].getUncaughtColl().Count)
+                        if(totalCollectibles == pathPoints[i].getUncaughtDiamonds().Count)
                         {
                             pathPoints.RemoveRange(0, i);
                             removedFirstJump = true;
@@ -198,7 +198,7 @@ namespace GeometryFriendsAgents
                     {
                         //if the agent has caught the same number of diamonds
                         //if the agent is at the same Y level                        
-                        if(pathPoints[j].getUncaughtColl().Count == pathPoints[i].getUncaughtColl().Count &&
+                        if(pathPoints[j].getUncaughtDiamonds().Count == pathPoints[i].getUncaughtDiamonds().Count &&
                             Math.Abs(pathPoints[j].getPosY() - pathPoints[i].getPosY()) < cleanRollMargin)
                         {
                             //if the platform is the same and there is no other blocking the way nor it is a jump
@@ -267,7 +267,7 @@ namespace GeometryFriendsAgents
                     {
                         //if the agent has caught the same number of diamonds
                         //if the agent is at the same Y level                        
-                        if (pathPoints[j].getUncaughtColl().Count == pathPoints[i].getUncaughtColl().Count &&
+                        if (pathPoints[j].getUncaughtDiamonds().Count == pathPoints[i].getUncaughtDiamonds().Count &&
                             Math.Abs(pathPoints[j].getPosY() - pathPoints[i].getPosY()) < cleanRectangleYMargin)
                         {
                             //if the platform is the same and there is no other blocking the way nor it is a  morph

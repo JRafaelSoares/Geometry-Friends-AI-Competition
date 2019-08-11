@@ -412,8 +412,6 @@ namespace GeometryFriendsAgents
                 //if the plan is new build a new tree
                 if (newPlan)
                 {
-
-
                     //update the diamond list
                     RRT.setDiamonds(Diamonds);
                     State initialState = new State(rectangleInfo.X, rectangleInfo.Y, rectangleInfo.VelocityX, rectangleInfo.VelocityY, rectangleInfo.Height / 2, 0, caughtCollectibles, uncaughtCollectibles);

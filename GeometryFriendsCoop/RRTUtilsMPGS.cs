@@ -9,7 +9,7 @@ using System.Drawing;
 
 namespace GeometryFriendsAgents
 {
-    public class RRTUtils
+    public class RRTUtilsMPGS
     {
         /******test variables******/
         private bool semiplanTest;
@@ -17,24 +17,20 @@ namespace GeometryFriendsAgents
         private bool bgt;
         private int mu = 300;
         private float bias = 0.25f; //TODO test
-        private float stpBias = 0.25f;
-        private float stpBiasRectangle = 0.25f;
-        private int exploredNodesOnce = 0;
-        private int exploredNodesTotal = 0;
         /******Algorithm variables******/
         private float actionTime = 1.0f;
         private float simTime;
         private float simTimeFinish;
-        private float radius;
+        private float radius = 40;
         private float jumpBias = 0.3f; //TODO test
         private float samePlatformTime = 1.0f;
         private float samePlatformTimeInc = 1.0f;
-        private float maxTime = 15.0f;
+        private float maxTime = 20.0f;
         private float smallPlatformTime = 0.1f;
         private float mediumPlatformTime = 1.0f;
         private float largePlatformTime = 2.0f;
         private float defaultActionTime;
-        private List<Moves> possibleMoves;
+        private List<Moves[]> possibleMoves;
         private int smallPlatformWidth = 100;
         private int largePlatformWidth = 400;
         private int iterations;
@@ -44,7 +40,7 @@ namespace GeometryFriendsAgents
         private int matrixDec;
         private int initialMatrixSize = 20;
         private int initialMatrixDec = 5;
-        private bool[,,] positions;
+        private NodeMP[,,,,] positions;
         private bool goal = false;
         private bool semiPlan = false;
         private bool samePlatformPlan = false;
@@ -62,10 +58,11 @@ namespace GeometryFriendsAgents
         private float skillXmargin = 70;
         private float skillVelMargin = 10;
         private float skillJumpBias = 0.5f;
+        private float stpBias = 0.3f;
 
         /******Plan variables******/
-        private List<Moves> plan = new List<Moves>();
-        private List<Node> planNodes = new List<Node>();
+        private List<Moves[]> plan = new List<Moves[]>();
+        private List<NodeMP> planNodes = new List<NodeMP>();
         private float marginMinX = 1.0f;
         private float marginMinY = 1.0f;
         private float marginMinVX = 20.0f;
@@ -75,14 +72,17 @@ namespace GeometryFriendsAgents
         /******correct plan variables******/
         private bool correction = false;
         private bool newPlan = false;
+        private bool samePlatform;
+        private bool replan = false;
         private float correctionPosMargin = 5.0f;
         private float correctionVelMargin = 20.0f;
-        private Node connectNode;
-        private Node bestSemiPlanNode;
-        private bool samePlatform;
-        private PathPlan previousPoints;
-        private Point connectionPoint;
+        private NodeMP connectNode;
+        private NodeMP bestSemiPlanNode;
+        private PathPlanMP previousPoints;
+        private PointMP connectionPoint;
         private List<Platform> previousPlatforms;
+        private List<NodeMP> previousTreeNodes;
+        private NodeMP[,,,,] previousPositions;
 
         /******debug variables******/
         private List<DebugInformation> debugInfo;
@@ -92,9 +92,11 @@ namespace GeometryFriendsAgents
         private int charType; //0 -> circle; 1 -> rectangle
         private int totalCollectibles;
         private float circleMaxJump = 400;
+        private float rectangleMaxHeight = 193;
         private float gSpeed = 1;
         private float initialPosX;
         private float initialPosY;
+        private float diamondRadius = 30;
         private bool multiplayer = false;
         private Platform initialPlatform;
         private List<DiamondInfo> diamondsInfo;
@@ -104,10 +106,10 @@ namespace GeometryFriendsAgents
         private Utils utils;
 
         /******circle and rectangle STP******/
-        private CircleSTP circleSTP;
-        private RectangleSTP rectangleSTP;
+        private CircleSTPMP circleSTP;
+        private RectangleSTPMP rectangleSTP;
 
-        public RRTUtils(float aTime, float sTime, float sTimeFinish, List<Moves> pMoves, int cType, Rectangle levelArea, int totalColl, RRTTypes sSelect, RRTTypes aSelect, ObstacleRepresentation[] plt, float gameSpeed, List<DiamondInfo> dmds, List<Platform> plfms, Utils utls, bool sp, bool c)
+        public RRTUtilsMPGS(float aTime, float sTime, float sTimeFinish, List<Moves[]> pMoves, int cType, Rectangle levelArea, int totalColl, RRTTypes sSelect, RRTTypes aSelect, ObstacleRepresentation[] plt, float gameSpeed, List<DiamondInfo> dmds, List<Platform> plfms, Utils utls, bool sp, bool c)
         {
             actionTime = aTime;
             defaultActionTime = aTime;
@@ -129,8 +131,8 @@ namespace GeometryFriendsAgents
             debugInfo = new List<DebugInformation>();
             samePlatform = false;
             utils = utls;
-            circleSTP = new CircleSTP(utils, rnd, platforms, area);
-            rectangleSTP = new RectangleSTP(utils, rnd, platforms, area);
+            circleSTP = new CircleSTPMP(utils, rnd, platforms, area, radius);
+            rectangleSTP = new RectangleSTPMP(utils, rnd, platforms, area, radius);
             ignoreDiamonds = new List<DiamondInfo>();
 
             //for tests
@@ -151,7 +153,7 @@ namespace GeometryFriendsAgents
         /*******************************************************/
 
         //Builds a new tree from scratch
-        public Tree buildNewRRT(State initialState, ActionSimulator predictor, int it)
+        public TreeMP buildNewRRT(StateMP initialState, ActionSimulator predictor, int it)
         {
             goal = false;
             simulator = predictor;
@@ -172,7 +174,7 @@ namespace GeometryFriendsAgents
             return buildRRT(initialState, simulator);
         }
 
-        public Tree buildNewMPRRT(State initialState, ActionSimulator predictor, GoalType gType, int it)
+        public TreeMP buildNewMPRRT(StateMP initialState, ActionSimulator predictor, GoalType gType, int it)
         {
             //TODO / CAUTION - when using coop tree, do not call buildnewrrt
             goalType = gType;
@@ -182,72 +184,67 @@ namespace GeometryFriendsAgents
         }
 
         //RRT algorithm
-        public Tree buildRRT(State initialState, ActionSimulator predictor)
+        public TreeMP buildRRT(StateMP initialState, ActionSimulator predictor)
         {
             //initialize tree
             goal = false;
-            positions = new bool[area.Right / matrixSize, area.Bottom / matrixSize, totalCollectibles + 1];
-            Tree currentTree = new Tree(initialState, predictor, copyMoves(), bgt);
+            positions = new NodeMP[area.Right / matrixSize, area.Bottom / matrixSize, area.Right / matrixSize, area.Bottom / matrixSize, totalCollectibles + 1];
+            TreeMP currentTree = new TreeMPGS(initialState, predictor, copyMoves(), bgt);
             simulator = predictor;
             return RRT(currentTree);
         }
-        
-        public Tree RRT(Tree currentTree)
+
+        public TreeMP RRT(TreeMP currentTree)
         {
-            Node randNode;
+            NodeMP randNode;
             //tree with a maximum number (iterations) of branches 
             for (int i = 1; i <= iterations; i++)
             {
                 //if it has already passed too much time and there is a state with caught diamonds, then start the plan from there
                 if (semiplanTest && samePlatformTime < maxTime)
-            {
-                if ((time.ElapsedMilliseconds * 0.001f * gSpeed > samePlatformTime && bestSemiPlanNode != null && samePlatformPlan && !correction))
+                {
+                    if ((time.ElapsedMilliseconds * 0.001f * gSpeed > samePlatformTime && bestSemiPlanNode != null && samePlatformPlan && !correction))
+                    {
+                        currentTree.setGoal(bestSemiPlanNode);
+                        bestSemiPlanNode = null;
+                        samePlatformPlan = false;
+                        return currentTree;
+                    }
+                }
+                if (semiplanTest && time.ElapsedMilliseconds * 0.001f * gSpeed > maxTime && bestSemiPlanNode != null && !correction)
                 {
                     currentTree.setGoal(bestSemiPlanNode);
                     bestSemiPlanNode = null;
-                    samePlatformPlan = false;
                     return currentTree;
                 }
-            }
-            if (semiplanTest && time.ElapsedMilliseconds * 0.001f * gSpeed > maxTime && bestSemiPlanNode != null && !correction)
-            {
-                currentTree.setGoal(bestSemiPlanNode);
-                bestSemiPlanNode = null;
-                return currentTree;
-            }
 
-            //if there are no more open nodes, start new tree with new position matrix
-            while (currentTree.getOpenNodes().Count == 0)
-            {
-                if (matrixSize > 15)
+                //if there are no more open nodes, start new tree with new position matrix
+                while (currentTree.getOpenNodes().Count == 0)
                 {
-                    matrixSize -= 3;
-                }
-                else if (matrixSize > 10)
-                {
-                    matrixSize -= 2;
-                }
-                else if (matrixSize <= 10)
-                {
-                    matrixSize--;
-                }
-                if (matrixSize < 1)
-                {
-                    matrixSize = 1;
-                }
-                currentTree = repopulateMatrix(currentTree);
 
-                goal = false;
-            }
-            
+                    if (matrixSize > 15)
+                    {
+                        matrixSize -= 3;
+                    }
+                    else if (matrixSize > 10)
+                    {
+                        matrixSize -= 2;
+                    }
+                    else if (matrixSize <= 10)
+                    {
+                        matrixSize--;
+                    }
+                    if (matrixSize < 1)
+                    {
+                        matrixSize = 1;
+                    }
+                    currentTree = repopulateMatrix(currentTree);
+
+                    goal = false;
+                }
+
                 //select a random node according to selection type
                 randNode = getNextNode(currentTree);
-                if(!randNode.wasExplored())
-                {
-                    randNode.nodeExplored();
-                    exploredNodesOnce++;
-                }
-                exploredNodesTotal++;
                 extend(currentTree, randNode);
                 if (goal)
                 {
@@ -259,9 +256,9 @@ namespace GeometryFriendsAgents
             return currentTree;
         }
 
-        private void extend(Tree tree, Node node)
+        private void extend(TreeMP tree, NodeMP node)
         {
-            Moves newAction;
+            Moves[] newAction;
             //selecting a random action
             switch (actionSelection)
             {
@@ -283,20 +280,12 @@ namespace GeometryFriendsAgents
                     break;
             }
 
+            node.removeMove(newAction);
+
             //If the STP returned no action then all the actions of the skill where exhausted and the bias indicated to ignore this state
-            if (actionSelection == RRTTypes.STP && newAction == Moves.NO_ACTION)
+            if (actionSelection == RRTTypes.STP && newAction[0] == Moves.NO_ACTION && newAction[1] == Moves.NO_ACTION)
             {
                 return;
-            }
-
-            //if the action is not no_action, remove the move from the node
-            if(newAction != Moves.NO_ACTION)
-            {
-                if (bgt)
-                {
-                    tree.removeFromLeaf(node);
-                }
-                node.removeMove(newAction);
             }
 
             //if this is the last action to test on this node then close it
@@ -305,11 +294,11 @@ namespace GeometryFriendsAgents
                 tree.closeNode(node);
             }
 
-            State selectedState = node.getState();
-            ActionSimulator selectedSim = node.getPredictor().CreateUpdatedSimulator();
+            StateMP selectedState = node.getState();
+            ActionSimulator selectedSim = ((NodeMPGS)node).getSimulator().CreateUpdatedSimulator();
 
             //simulate action applied to the selected state
-            State newState = applyPrediction(selectedState, node, newAction, selectedSim);
+            StateMP newState = applyPrediction(selectedState, node, newAction, selectedSim);
 
             //check if the state already exists - if it does, do not put it in the tree
             if (repeatedState(newState))
@@ -317,7 +306,36 @@ namespace GeometryFriendsAgents
                 return;
             }
 
-            List<Moves> newMoves;
+            //if replanning, check if there is a node in the bin of old nodes
+            if(replan) 
+            {
+                NodeMP oldNode;
+                NodeMP auxNode = findNode(newState.getPosX(), newState.getPosY(), newState.getPartnerX(), newState.getPartnerY(), newState.getUncaughtCollectibles().Count, true);
+                if(auxNode != null)
+                {
+                    oldNode = ((NodeMPGS)auxNode).clone();
+                    if (bgt)
+                    {
+                        //TODO - CAREFUL WITH THE NODES IN THE AREA LISTS
+                    }
+                    //make sure the old node has the current pair of actions instead of the old
+                    oldNode.setAction(newAction);
+                    node.addChild(oldNode);
+                    tree.addNodesIterative(oldNode, true);
+                    addNodesPositions(oldNode);
+                    repopulateMatrix(tree);
+
+                    //see if the node is close to any diamond
+                    foreach (DiamondInfo diamond in diamondsInfo)
+                    {
+                        diamond.insertClosestNodesMP(oldNode);
+                    }
+
+                    return;
+                }
+            }
+
+            List<Moves[]> newMoves;
             //check if circle agent is on a platform or middle jump/fall
             if (charType == 0)
             {
@@ -336,14 +354,15 @@ namespace GeometryFriendsAgents
             }
 
             //add node to the tree
-            Node newNode = new Node(node, newState, newAction, selectedSim, newMoves);
+            NodeMP newNode = new NodeMPGS(node, newState, newAction, selectedSim, newMoves);
             node.addChild(newNode);
             tree.addNode(newNode);
+            addNodePositions(newNode);
 
             //see if the node is close to any diamond
             foreach (DiamondInfo diamond in diamondsInfo)
             {
-                diamond.insertClosestNode(newNode);
+                diamond.insertClosestNodeMP(newNode);
             }
 
             //check if the new state is a goal
@@ -354,7 +373,7 @@ namespace GeometryFriendsAgents
                 Platform currentPlatform = utils.onPlatform(newState.getPosX(), newState.getPosY(), 50, 10);
                 if (currentPlatform != null)
                 {
-                    List<Point> points = previousPoints.getPathPoints();
+                    List<PointMP> points = previousPoints.getPathPoints();
                     for (int i = 0; i < points.Count; i++)
                     {
                         if (newState.getUncaughtCollectibles().Count == points[i].getUncaughtColl().Count)
@@ -411,7 +430,6 @@ namespace GeometryFriendsAgents
             newNode.addDebugInfo(debugInfo);
         }
 
-        //checks if the agent is ont the same platform as a diamond
         private bool onSamePlatform(float x, Platform platform, List<CollectibleRepresentation> uCol, bool reverse)
         {
             if (platform == null)
@@ -437,7 +455,7 @@ namespace GeometryFriendsAgents
             return false;
         }
 
-        private State applyPrediction(State selectedState, Node node, Moves newAction, ActionSimulator stateSim)
+        private StateMP applyPrediction(StateMP selectedState, NodeMP node, Moves[] newAction, ActionSimulator stateSim)
         {
             //get the size of the platform the agent is on to calculate the duration of the simulation
             Platform plat = utils.onPlatform(selectedState.getPosX(), selectedState.getPosY(), 50, 10);
@@ -460,27 +478,28 @@ namespace GeometryFriendsAgents
             List<CollectibleRepresentation> simCaughtCollectibles = new List<CollectibleRepresentation>();
             //add action to simulator with the associated time to be simulated
             stateSim.DebugInfo = true;
-            //if it is jump to avoid multiple jumps in one simulation
-            if (newAction == Moves.JUMP)
-            {
-                stateSim.AddInstruction(newAction, 0.05f);
-            }
-            else
-            {
-                stateSim.AddInstruction(newAction, actionTime);
-            }
+            //stateSim.AddInstruction(newAction[0], actionTime, 0);
+            //stateSim.AddInstruction(newAction[1], actionTime, 0);
             stateSim.SimulatorCollectedEvent += delegate (Object o, CollectibleRepresentation col) { simCaughtCollectibles.Add(col); };
 
-            
-            stateSim.Update(.05f);
 
-            if(newAction != Moves.JUMP)
+            for (float i = 0; i <= actionTime; i += .05f)
             {
-                for (float i = 0; i < actionTime; i += .05f)
-                {
-                    stateSim.Update(.05f);
-                }
+                stateSim.AddInstruction(newAction[1], 0.05f);
+                stateSim.AddInstruction(newAction[0], 0.05f);
+
+
+                stateSim.Update(.05f);
             }
+
+
+
+            //stateSim.Update(.05f);
+
+            //for (float i = 0; i < actionTime; i += .05f)
+            //{
+            //    stateSim.Update(.05f);
+            //}
 
             //prepare all the debug information to be passed to the agents manager
             debugInfo = new List<DebugInformation>();
@@ -489,21 +508,21 @@ namespace GeometryFriendsAgents
             debugInfo.AddRange(stateSim.SimulationHistoryDebugInformation);
 
             //create the resulting state
-            State newState;
+            StateMP newState;
             if (charType == 0)
             {
-                newState = new State(stateSim.CirclePositionX, stateSim.CirclePositionY, stateSim.CircleVelocityX, stateSim.CircleVelocityY, radius, stateSim.CircleVelocityRadius, selectedState.getCaughtCollectibles(), stateSim.CollectiblesUncaught);
+                newState = new StateMP(stateSim.CirclePositionX, stateSim.CirclePositionY, stateSim.CircleVelocityX, stateSim.CircleVelocityY, stateSim.RectangleHeight / 2, stateSim.CircleVelocityRadius, stateSim.RectanglePositionX, stateSim.RectanglePositionY, stateSim.RectangleVelocityX, stateSim.RectangleVelocityY, selectedState.getCaughtCollectibles(), stateSim.CollectiblesUncaught);
             }
             else
             {
-                newState = new State(stateSim.RectanglePositionX, stateSim.RectanglePositionY, stateSim.RectangleVelocityX, stateSim.RectangleVelocityY, stateSim.RectangleHeight / 2, 0, selectedState.getCaughtCollectibles(), stateSim.CollectiblesUncaught);
+                newState = new StateMP(stateSim.RectanglePositionX, stateSim.RectanglePositionY, stateSim.RectangleVelocityX, stateSim.RectangleVelocityY, stateSim.RectangleHeight / 2, stateSim.CircleVelocityRadius, stateSim.CirclePositionX, stateSim.CirclePositionY, stateSim.CircleVelocityX, stateSim.CircleVelocityY, selectedState.getCaughtCollectibles(), stateSim.CollectiblesUncaught);
             }
 
             return newState;
         }
 
         //get a node according to the selection type
-        private Node getNextNode(Tree tree)
+        private NodeMP getNextNode(TreeMP tree)
         {
             switch (stateSelection)
             {
@@ -524,174 +543,73 @@ namespace GeometryFriendsAgents
             }
         }
 
-        private bool inArea(List<Area> areas, float x, float y)
-        {
-            foreach(Area area in areas)
-            {
-                if(x <= area.rX() && x >= area.lX() && y <= area.bY() && y >= area.tY())
-                {
-                    return true;
-                }
-            }
-            return false;
-        }
-
         //get a random node from tree biased to a diamond area
-        private Node getAreaBiasNode(Tree tree)
+        private NodeMP getAreaBiasNode(TreeMP tree)
         {
-            if(bias > rnd.NextDouble())
-            {
-                return getNearestNode(tree, false);
-            }
-            //get a random "state"
-            int stateCol = rnd.Next(totalCollectibles);
-            float maxLeft = 2000; //outside game area
-            float maxRight = -1; //outside game area
-            float maxTop = 2000;
-            float maxBottom = -1;
-
-            DiamondInfo diamond = diamondsInfo[rnd.Next(diamondsInfo.Count)];
-            foreach (Area area in diamond.getSamllAreasList())
-            {
-                if(area.lX() < maxLeft)
-                {
-                    maxLeft = area.lX();
-                }
-                if(area.rX() > maxRight)
-                {
-                    maxRight = area.rX();
-                }
-                if(area.tY() < maxTop)
-                {
-                    maxTop = area.tY();
-                }
-                if(area.bY() > maxBottom)
-                {
-                    maxBottom = area.bY();
-                }
-            }
-
-            var random = rnd.NextDouble();
-            float stateX = (float)random * (maxRight - maxLeft) + maxLeft;
-            random = rnd.NextDouble();
-            float stateY = (float)random * (maxBottom - maxTop) + maxTop;
-
-
-            List<Area> areas = diamond.getSamllAreasList();
-
-            while(!inArea(areas, stateX, stateY))
-            {
-                random = rnd.NextDouble();
-                stateX = (float)random * (maxRight - maxLeft) + maxLeft;
-                random = rnd.NextDouble();
-                stateY = (float)random * (maxBottom - maxTop) + maxTop;
-            }
-
-            //by default the nearest node is the first of the open nodes
-            Node nearestNode = tree.getOpenNodes()[0];
-            int nearestColl = totalCollectibles + 1;
-            float nearestPos = (float)Math.Pow(area.Right * area.Bottom, 2);
-            State currentState;
-            //search for the nearest node in the open nodes of the tree
-            foreach (Node node in tree.getOpenNodes())
-            {
-                currentState = node.getState();
-                //if this state has a smaller difference of diamonds than the previously selected one - this one is nearer
-                if (Math.Abs(stateCol - currentState.getUncaughtCollectibles().Count) < nearestColl)
-                {
-                    nearestNode = node;
-                    nearestColl = stateCol - currentState.getUncaughtCollectibles().Count;
-                    nearestPos = getDistance(stateX, stateY, currentState.getPosX(), currentState.getPosY());
-                    if (nearestPos == 0)
-                    {
-                        nearestPos = (float)utils.eucDist(stateX, currentState.getPosX(), stateY, currentState.getPosY());
-                    }
-                }
-                //if the number of diamonds is the same - get the closest one in position
-                else if (Math.Abs(stateCol - currentState.getUncaughtCollectibles().Count) == nearestColl)
-                {
-                    double dist = 0;
-                    //check if there is a platform between the agent and the selected position
-                    dist = getDistance(stateX, stateY, currentState.getPosX(), currentState.getPosY());
-                    //if not, get the euclidean distance
-                    if (dist == 0)
-                    {
-                        dist = utils.eucDist(stateX, currentState.getPosX(), stateY, currentState.getPosY());
-                    }
-
-                    if (dist < nearestPos)
-                    {
-                        nearestNode = node;
-                        nearestColl = stateCol - currentState.getUncaughtCollectibles().Count;
-                        nearestPos = (float)dist;
-                    }
-                }
-            }
-            tree.addVisitedNode();
-            return nearestNode;
-        }
-
-        //get a random node from tree biased to a diamond
-        private Node getBGTAreaBiasNode(Tree tree)
-        {
-            Node randomNode;
+            NodeMP randomNode;
 
             if (rnd.NextDouble() <= bias)
             {
-                foreach (DiamondInfo diamond in diamondsInfo)
+                //get a random diamond to bias to
+                DiamondInfo randomDiamond = diamondsInfo[rnd.Next(diamondsInfo.Count)];
+
+                randomNode = randomDiamond.getRandomClosestStateMP();
+
+                if (stateSelection == RRTTypes.STP)
                 {
-                    randomNode = diamond.getRandomClosestState();
-
-                    if (stateSelection == RRTTypes.STP)
+                    while (randomNode != null && !randomNode.anyRemainingSTPActions() && rnd.NextDouble() >= stpBias)
                     {
-                        if(charType == 0)
-                        {
-                            while (randomNode != null && !randomNode.anyRemainingSTPActions() && rnd.NextDouble() >= stpBias)
-                            {
-                                randomNode = diamond.getRandomClosestState();
-                            }
-                        }
-                        else
-                        {
-                            while (randomNode != null && !randomNode.anyRemainingSTPActions() && rnd.NextDouble() >= stpBiasRectangle)
-                            {
-                                randomNode = diamond.getRandomClosestState();
-                            }
-                        }
-                        
+                        randomNode = randomDiamond.getRandomClosestStateMP();
                     }
+                }
 
-                    if (randomNode != null)
+                if (randomNode != null)
+                {
+                    return randomNode;
+                }
+            }
+            return getNearestNode(tree, false);
+        }
+
+        //get a random node from tree biased to a diamond
+        private NodeMP getBGTAreaBiasNode(TreeMP tree)
+        {
+            NodeMP randomNode;
+
+            if (rnd.NextDouble() <= bias)
+            {
+                //get a random diamond to bias to
+                DiamondInfo randomDiamond = diamondsInfo[rnd.Next(diamondsInfo.Count)];
+
+                randomNode = randomDiamond.getRandomClosestStateMP();
+
+                if (stateSelection == RRTTypes.STP)
+                {
+                    while (randomNode != null && !randomNode.anyRemainingSTPActions() && rnd.NextDouble() >= stpBias)
                     {
-                        return randomNode;
+                        randomNode = randomDiamond.getRandomClosestStateMP();
                     }
+                }
+
+                if (randomNode != null)
+                {
+                    return randomNode;
                 }
             }
 
-            randomNode = getBGTNode(tree, true);
+            randomNode = getRandomNode(tree, false);
             if (stateSelection == RRTTypes.STP)
             {
-                if(charType == 0)
+                while (!randomNode.anyRemainingSTPActions() && rnd.NextDouble() >= stpBias)
                 {
-                    while (!randomNode.anyRemainingSTPActions() && rnd.NextDouble() >= stpBias)
-                    {
-                        randomNode = randomNode = getBGTNode(tree, true);
-                    }
+                    randomNode = getRandomNode(tree, false);
                 }
-                else
-                {
-                    while (!randomNode.anyRemainingSTPActions() && rnd.NextDouble() >= stpBiasRectangle)
-                    {
-                        randomNode = randomNode = getBGTNode(tree, true);
-                    }
-                }
-                
             }
-            return randomNode = getBGTNode(tree, true);
+            return randomNode;
         }
 
         //get nearest node to a random state 
-        private Node getNearestNode(Tree tree, bool biased)
+        private NodeMP getNearestNode(TreeMP tree, bool biased)
         {
             //get a random "state"
             int stateCol;
@@ -719,12 +637,13 @@ namespace GeometryFriendsAgents
             }
 
             //by default the nearest node is the first of the open nodes
-            Node nearestNode = tree.getOpenNodes()[0];
+            NodeMP nearestNode = tree.getOpenNodes()[0];
             int nearestColl = totalCollectibles + 1;
             float nearestPos = (float)Math.Pow(area.Right * area.Bottom, 2);
-            State currentState;
+            bool possibleHeight = false;
+            StateMP currentState;
             //search for the nearest node in the open nodes of the tree
-            foreach (Node node in tree.getOpenNodes())
+            foreach (NodeMP node in tree.getOpenNodes())
             {
                 currentState = node.getState();
                 //when it is biased to a goal state but the agent already caught the selected diamond then it is not a close state
@@ -732,34 +651,122 @@ namespace GeometryFriendsAgents
                 {
                     continue;
                 }
-                //if this state has a smaller difference of diamonds than the previously selected one - this one is nearer
+                //difference in diamonds is less than the previous selected state
                 else if (Math.Abs(stateCol - currentState.getUncaughtCollectibles().Count) < nearestColl)
                 {
                     nearestNode = node;
-                    nearestColl = stateCol - currentState.getUncaughtCollectibles().Count;
-                    nearestPos = getDistance(stateX, stateY, currentState.getPosX(), currentState.getPosY());
-                    if (nearestPos == 0)
+                    nearestColl = Math.Abs(stateCol - currentState.getUncaughtCollectibles().Count);
+                    bool circleDistance = atHeight(stateX, stateY, currentState.getPosX(), currentState.getPosY(), 0);
+                    bool rectangleDistance = atHeight(stateX, stateY, currentState.getPartnerX(), currentState.getPartnerY(), 1);
+
+                    if (circleDistance && !rectangleDistance)
                     {
-                        nearestPos = (float)utils.eucDist(stateX, currentState.getPosX(), stateY, currentState.getPosY());
+                        nearestPos = getDistance(stateX, stateY, currentState.getPosX(), currentState.getPosY());
+                        if (nearestPos == 0)
+                        {
+                            nearestPos = (float)utils.eucDist(stateX, currentState.getPosX(), stateY, currentState.getPosY());
+                        }
                     }
+                    else if (!circleDistance && rectangleDistance)
+                    {
+                        nearestPos = getDistance(stateX, stateY, currentState.getPartnerX(), currentState.getPartnerY());
+                        if (nearestPos == 0)
+                        {
+                            nearestPos = (float)utils.eucDist(stateX, currentState.getPartnerX(), stateY, currentState.getPartnerY());
+                        }
+                    }
+                    else
+                    {
+                        nearestPos = Math.Min(getDistance(stateX, stateY, currentState.getPosX(), currentState.getPosY()),
+                                              getDistance(stateX, stateY, currentState.getPartnerX(), currentState.getPartnerY()));
+                        if (nearestPos == 0)
+                        {
+                            nearestPos = (float)Math.Min(utils.eucDist(stateX, currentState.getPosX(), stateY, currentState.getPosY()),
+                                                         utils.eucDist(stateX, currentState.getPartnerX(), stateY, currentState.getPartnerY()));
+                        }
+                    }
+
                 }
                 //if the number of diamonds is the same - get the closest one in position
                 else if (Math.Abs(stateCol - currentState.getUncaughtCollectibles().Count) == nearestColl)
                 {
-                    double dist = 0;
-                    //check if there is a platform between the agent and the selected position
-                    dist = getDistance(stateX, stateY, currentState.getPosX(), currentState.getPosY());
-                    //if not, get the euclidean distance
-                    if (dist == 0)
-                    {
-                        dist = utils.eucDist(stateX, currentState.getPosX(), stateY, currentState.getPosY());
-                    }
+                    bool circleDistance = atHeight(stateX, stateY, currentState.getPosX(), currentState.getPosY(), 0);
+                    bool rectangleDistance = atHeight(stateX, stateY, currentState.getPartnerX(), currentState.getPartnerY(), 1);
 
-                    if (dist < nearestPos)
+                    //if the other state has an agent at a possible height to reach the position directly but this one does not
+                    if (possibleHeight && !circleDistance && !rectangleDistance)
+                    {
+                        continue;
+                    }
+                    //if the other state does not have an agent at a possible height and this one does
+                    else if (!possibleHeight && (circleDistance || rectangleDistance))
                     {
                         nearestNode = node;
-                        nearestColl = stateCol - currentState.getUncaughtCollectibles().Count;
-                        nearestPos = (float)dist;
+                        nearestColl = Math.Abs(stateCol - currentState.getUncaughtCollectibles().Count);
+                        if (circleDistance && !rectangleDistance)
+                        {
+                            nearestPos = getDistance(stateX, stateY, currentState.getPosX(), currentState.getPosY());
+                            if (nearestPos == 0)
+                            {
+                                nearestPos = (float)utils.eucDist(stateX, currentState.getPosX(), stateY, currentState.getPosY());
+                            }
+                        }
+                        else if (!circleDistance && rectangleDistance)
+                        {
+                            nearestPos = getDistance(stateX, stateY, currentState.getPartnerX(), currentState.getPartnerY());
+                            if (nearestPos == 0)
+                            {
+                                nearestPos = (float)utils.eucDist(stateX, currentState.getPartnerX(), stateY, currentState.getPartnerY());
+                            }
+                        }
+                        else
+                        {
+                            nearestPos = Math.Min(getDistance(stateX, stateY, currentState.getPosX(), currentState.getPosY()),
+                                                  getDistance(stateX, stateY, currentState.getPartnerX(), currentState.getPartnerY()));
+                            if (nearestPos == 0)
+                            {
+                                nearestPos = (float)Math.Min(utils.eucDist(stateX, currentState.getPosX(), stateY, currentState.getPosY()),
+                                                             utils.eucDist(stateX, currentState.getPartnerX(), stateY, currentState.getPartnerY()));
+                            }
+                        }
+                    }
+                    else
+                    {
+                        double dist = 0;
+
+                        if (circleDistance && !rectangleDistance)
+                        {
+                            dist = getDistance(stateX, stateY, currentState.getPosX(), currentState.getPosY());
+                            if (dist == 0)
+                            {
+                                dist = utils.eucDist(stateX, currentState.getPosX(), stateY, currentState.getPosY());
+                            }
+                        }
+                        else if (!circleDistance && rectangleDistance)
+                        {
+                            dist = getDistance(stateX, stateY, currentState.getPartnerX(), currentState.getPartnerY());
+                            if (dist == 0)
+                            {
+                                dist = utils.eucDist(stateX, currentState.getPartnerX(), stateY, currentState.getPartnerY());
+                            }
+                        }
+                        else
+                        {
+                            dist = Math.Min(getDistance(stateX, stateY, currentState.getPosX(), currentState.getPosY()),
+                                                  getDistance(stateX, stateY, currentState.getPartnerX(), currentState.getPartnerY()));
+                            if (dist == 0)
+                            {
+                                dist = (float)Math.Min(utils.eucDist(stateX, currentState.getPosX(), stateY, currentState.getPosY()),
+                                                             utils.eucDist(stateX, currentState.getPartnerX(), stateY, currentState.getPartnerY()));
+                            }
+                        }
+
+                        if (dist < nearestPos)
+                        {
+                            nearestNode = node;
+                            nearestColl = Math.Abs(stateCol - currentState.getUncaughtCollectibles().Count);
+                            nearestPos = (float)dist;
+                        }
                     }
                 }
             }
@@ -767,7 +774,38 @@ namespace GeometryFriendsAgents
             return nearestNode;
         }
 
-        private Node getNodeBiasedState(Tree tree)
+        //type - 0 circle; 1 rectangle
+        private bool atHeight(float stateX, float stateY, float currentX, float currentY, int type)
+        {
+            //if circle
+            if (type == 0)
+            {
+                //if the state is above the current Y with a difference greater than the circle can jump
+                if (stateY < currentY && currentY - stateY > circleMaxJump)
+                {
+                    return false;
+                }
+                else
+                {
+                    return true;
+                }
+            }
+            //rectangle
+            else
+            {
+                //if the state is above the current Y with a difference greater than the circle can jump
+                if (stateY < currentY && currentY - stateY > rectangleMaxHeight / 2)
+                {
+                    return false;
+                }
+                else
+                {
+                    return true;
+                }
+            }
+        }
+
+        private NodeMP getNodeBiasedState(TreeMP tree)
         {
             float random = (float)rnd.NextDouble();
 
@@ -782,7 +820,7 @@ namespace GeometryFriendsAgents
             }
         }
 
-        private Node getBGTNode(Tree tree, bool biased)
+        private NodeMP getBGTNode(TreeMP tree, bool biased)
         {
             if (biased)
             {
@@ -799,35 +837,15 @@ namespace GeometryFriendsAgents
 
             if (ratio > mu)
             {
-                var node = tree.getRandomNonLeafNode();
-                if(node == null)
-                {
-                    node = tree.getRandomLeafNode();
-                    if(node == null)
-                    {
-                        return getNearestNode(tree, true);
-                    }
-                    return node;
-                }
-                return node;
+                return tree.getRandomNonLeafNode();
             }
             else
             {
-                var node = tree.getRandomLeafNode();
-                if(node == null)
-                {
-                    node = tree.getRandomNonLeafNode();
-                    if(node == null)
-                    {
-                        return getNearestNode(tree, true);
-                    }
-                    return node;
-                }
-                return node;
+                return tree.getRandomLeafNode();
             }
         }
 
-        private Node getRandomNode(Tree tree, bool biased)
+        private NodeMP getRandomNode(TreeMP tree, bool biased)
         {
             if (biased)
             {
@@ -842,10 +860,25 @@ namespace GeometryFriendsAgents
             return tree.getRandomNode(); ;
         }
 
-        private bool repeatedState(State state)
+        private void addNodesPositions(NodeMP node)
         {
+            if(node.getChildren().Count == 0)
+            {
+                addNodePositions(node);
+            }
+            foreach(NodeMP child in node.getChildren())
+            {
+                addNodePositions(child);
+            }
+        }
+
+        private void addNodePositions(NodeMP node)
+        {
+            StateMP state = node.getState();
             int posX = (int)Math.Round(state.getPosX() / matrixSize);
             int posY = (int)Math.Round(state.getPosY() / matrixSize);
+            int partX = (int)Math.Round(state.getPartnerX() / matrixSize);
+            int partY = (int)Math.Round(state.getPartnerY() / matrixSize);
 
             //make sure it is within bounds
             if (posX >= positions.GetLength(0))
@@ -856,14 +889,85 @@ namespace GeometryFriendsAgents
             {
                 posY = positions.GetLength(1) - 1;
             }
+            if (partX >= positions.GetLength(0))
+            {
+                partX = positions.GetLength(0) - 1;
+            }
+            if (partY >= positions.GetLength(1))
+            {
+                partY = positions.GetLength(1) - 1;
+            }
+
+            positions[posX, posY, partX, partY, state.getNumberUncaughtCollectibles()] = node;
+
+        }
+
+        private bool repeatedState(StateMP state)
+        {
+            int posX = (int)Math.Round(state.getPosX() / matrixSize);
+            int posY = (int)Math.Round(state.getPosY() / matrixSize);
+            int partX = (int)Math.Round(state.getPartnerX() / matrixSize);
+            int partY = (int)Math.Round(state.getPartnerY() / matrixSize);
+
+            //make sure it is within bounds
+            if (posX >= positions.GetLength(0))
+            {
+                posX = positions.GetLength(0) - 1;
+            }
+            if (posY >= positions.GetLength(1))
+            {
+                posY = positions.GetLength(1) - 1;
+            }
+            if (partX >= positions.GetLength(0))
+            {
+                partX = positions.GetLength(0) - 1;
+            }
+            if (partY >= positions.GetLength(1))
+            {
+                partY = positions.GetLength(1) - 1;
+            }
 
             //check if there is already a state at that position
-            if (positions[posX, posY, state.getNumberUncaughtCollectibles()])
+            if (positions[posX, posY, partX, partY, state.getNumberUncaughtCollectibles()] != null)
+            {
+                return true;
+            }
+
+            return false;
+        }
+
+        private bool repeatedNode(NodeMP node, StateMP state)
+        {
+            int posX = (int)Math.Round(state.getPosX() / matrixSize);
+            int posY = (int)Math.Round(state.getPosY() / matrixSize);
+            int partX = (int)Math.Round(state.getPartnerX() / matrixSize);
+            int partY = (int)Math.Round(state.getPartnerY() / matrixSize);
+
+            //make sure it is within bounds
+            if (posX >= positions.GetLength(0))
+            {
+                posX = positions.GetLength(0) - 1;
+            }
+            if (posY >= positions.GetLength(1))
+            {
+                posY = positions.GetLength(1) - 1;
+            }
+            if (partX >= positions.GetLength(0))
+            {
+                partX = positions.GetLength(0) - 1;
+            }
+            if (partY >= positions.GetLength(1))
+            {
+                partY = positions.GetLength(1) - 1;
+            }
+
+            //check if there is already a state at that position
+            if (positions[posX, posY, partX, partY, state.getNumberUncaughtCollectibles()] != null)
             {
                 return true;
             }
             //if it is not a repeated state, then update the matrix
-            positions[posX, posY, state.getNumberUncaughtCollectibles()] = true;
+            positions[posX, posY, partX, partY, state.getNumberUncaughtCollectibles()] = node;
 
             return false;
         }
@@ -871,10 +975,18 @@ namespace GeometryFriendsAgents
         /*******************************************************/
         /*                          STP                        */
         /*******************************************************/
-        private Moves STPAction(Node node)
+        private Moves[] STPAction(NodeMP node)
         {
             //Tactic/skills - select diamond, go to diamond, catch diamond
-            Moves action = Moves.NO_ACTION;
+            Moves[] action = new Moves[2];
+            action[0] = Moves.NO_ACTION;
+            action[1] = Moves.NO_ACTION;
+
+            //if there are no more actions to be performed with stp return a random one
+            if (!node.anyRemainingSTPActions())
+            {
+                return getSTPAction(node, action);
+            }
 
             //select the next diamond to catch - One on the platform if any 
             DiamondInfo highestDiamond = null;
@@ -898,12 +1010,48 @@ namespace GeometryFriendsAgents
                             //if circle
                             if (charType == 0)
                             {
-                                action = circleSTP.skillCatchDiamond(node, dInfo);
+                                action[0] = circleSTP.skillCatchDiamond(node, dInfo, node.getRemainingMoves());
+                                List<Moves[]> rectangleMoves = new List<Moves[]>();
+                                foreach (Moves[] moves in node.getRemainingMoves())
+                                {
+                                    if (moves[0] == action[0])
+                                    {
+                                        rectangleMoves.Add(moves);
+                                    }
+                                }
+                                //if there are no more moves possible for the rectangle then these moves should be removed
+                                if (rectangleMoves.Count == 0)
+                                {
+                                    //what the hell?
+                                    action[1] = Moves.NO_ACTION;
+                                }
+                                else
+                                {
+                                    action[1] = rectangleSTP.skillCatchDiamond(node, dInfo, rectangleMoves);
+                                }
                             }
                             //if rectangle
                             else if (charType == 1)
                             {
-                                action = rectangleSTP.skillCatchDiamond(node, dInfo);
+                                action[0] = rectangleSTP.skillCatchDiamond(node, dInfo, node.getRemainingMoves());
+                                List<Moves[]> circleMoves = new List<Moves[]>();
+                                foreach (Moves[] moves in node.getRemainingMoves())
+                                {
+                                    if (moves[0] == action[0])
+                                    {
+                                        circleMoves.Add(moves);
+                                    }
+                                }
+                                //if there are no more moves possible for the rectangle then these moves should be removed
+                                if (circleMoves.Count == 0)
+                                {
+                                    //what the hell?
+                                    action[1] = Moves.NO_ACTION;
+                                }
+                                else
+                                {
+                                    action[1] = circleSTP.skillCatchDiamond(node, dInfo, circleMoves);
+                                }
                             }
                             else
                             {
@@ -912,7 +1060,14 @@ namespace GeometryFriendsAgents
 
                             return getSTPAction(node, action);
                         }
-
+                        //if the diamond is too high for the circle to catch by itself but low enought to be possible with the rectangle's help
+                        else if (platform != null && dInfo.getPlatform().getX() == platform.getX() &&
+                            dInfo.getPlatform().getY() == platform.getY() &&
+                            Math.Abs(dInfo.getY() - (node.getState().getPartnerY() - node.getState().getHeight() / 2 - radius)) <= circleMaxJump &&
+                            !utils.obstacleBetween(node.getState().getPosX(), dInfo.getX(), platform))
+                        {
+                            //TODO skill that tries to use the rectangle as a platform
+                        }
                     }
                 }
             }
@@ -937,38 +1092,147 @@ namespace GeometryFriendsAgents
             return getSTPAction(node, action);
         }
 
-        private Moves getSTPAction(Node node, Moves action)
+        private Moves[] getSTPAction(NodeMP node, Moves[] action)
         {
-            if (action != Moves.NO_ACTION)
+            if (action[0] != Moves.NO_ACTION || action[1] != Moves.NO_ACTION)
             {
-                //node.removeMove(action);
+                node.removeMove(action);
                 return action;
             }
             else
             {
-                if (charType == 0)
+                if (node.possibleMovesCount() == 0)
                 {
-                    if (rnd.NextDouble() < stpBias)
-                    {
-                        return Moves.NO_ACTION;
-                    }
-                    return randomAction(node);
+                    return action;
                 }
-                else
-                {
-                    if (rnd.NextDouble() < stpBiasRectangle)
-                    {
-                        return Moves.NO_ACTION;
-                    }
-                    return randomAction(node);
-                }
-                
+                return randomAction(node);
             }
         }
 
-        private Moves skillCatchHighestDiamond(Node node, DiamondInfo dInfo)
+        private Moves[] skillCatchHighestDiamond(NodeMP node, DiamondInfo dInfo)
         {
-            Moves action = Moves.NO_ACTION;
+            Moves[] action = new Moves[2];
+            action[0] = Moves.NO_ACTION;
+            action[1] = Moves.NO_ACTION;
+
+            Platform dPlatform = dInfo.getPlatform();
+            
+            if (dPlatform != null)
+            {
+                //check if the diamond is between two platforms with a narrow space between them
+                foreach (Platform platform in platformsInfo)
+                {
+                    if (platform.getY() + platform.getHeight() / 2 < dPlatform.getY() - dPlatform.getHeight() / 2 &&
+                        dPlatform.getY() - dPlatform.getHeight() / 2 - (platform.getY() + platform.getHeight() / 2) < radius * 2 &&
+                        dInfo.getX() < platform.getX() + platform.getWidth() / 2 && dInfo.getX() > platform.getX() - platform.getWidth() / 2)
+                    {
+                        if (charType == 0)
+                        {
+                            action[0] = circleSTP.skillClosePlatforms(node, dInfo, node.getRemainingMoves(), charType);
+                            List<Moves[]> rectangleMoves = new List<Moves[]>();
+                            foreach (Moves[] moves in node.getRemainingMoves())
+                            {
+                                if (moves[0] == action[0])
+                                {
+                                    rectangleMoves.Add(moves);
+                                }
+                            }
+                            if (rectangleMoves.Count == 0)
+                            {
+                                action[0] = Moves.NO_ACTION;
+                                action[1] = Moves.NO_ACTION;
+                            }
+                            else
+                            {
+                                action[1] = rectangleSTP.skillClosePlatforms(node, dInfo, rectangleMoves, charType);
+                            }
+                        }
+                        //if rectangle
+                        else if (charType == 1)
+                        {
+                            action[0] = rectangleSTP.skillClosePlatforms(node, dInfo, node.getRemainingMoves(), charType);
+                            List<Moves[]> circleMoves = new List<Moves[]>();
+                            foreach (Moves[] moves in node.getRemainingMoves())
+                            {
+                                if (moves[0] == action[0])
+                                {
+                                    circleMoves.Add(moves);
+                                }
+                            }
+                            if (circleMoves.Count == 0)
+                            {
+                                action[0] = Moves.NO_ACTION;
+                                action[1] = Moves.NO_ACTION;
+                            }
+                            else
+                            {
+                                action[1] = circleSTP.skillClosePlatforms(node, dInfo, circleMoves, charType);
+                            }
+                        }
+                        else
+                        {
+                            throw new Exception("the character id must be either 0 (circle) or 1 (rectangle)");
+                        }
+                    }
+                    //check if the diamond is too high to be caught alone but low enough to be caught in coop
+                    else if (dInfo.getY() + diamondRadius < dPlatform.getY() - dPlatform.getHeight() / 2 - rectangleMaxHeight - circleMaxJump)
+                    {
+                        Platform agentPlatform = utils.onPlatform(node.getState().getPosX(), node.getState().getPosY());
+                        //check if agent is on that platform
+                        if(agentPlatform != null && utils.samePlatform(dPlatform, agentPlatform))
+                        {
+                            //if this is the circle
+                            if(charType == 0)
+                            {
+                                action[0] = circleSTP.skillCoopHighDiamond(node, dInfo, node.getRemainingMoves(), charType);
+                                List<Moves[]> rectangleMoves = new List<Moves[]>();
+                                foreach (Moves[] moves in node.getRemainingMoves())
+                                {
+                                    if (moves[0] == action[0])
+                                    {
+                                        rectangleMoves.Add(moves);
+                                    }
+                                }
+                                if (rectangleMoves.Count == 0)
+                                {
+                                    action[0] = Moves.NO_ACTION;
+                                    action[1] = Moves.NO_ACTION;
+                                }
+                                else
+                                {
+                                    action[1] = rectangleSTP.skillCoopHighDiamond(node, dInfo, rectangleMoves, charType);
+                                }
+                            }
+                            //if this is the rectangle
+                            else 
+                            {
+                                action[0] = rectangleSTP.skillCoopHighDiamond(node, dInfo, node.getRemainingMoves(), charType);
+                                List<Moves[]> circleMoves = new List<Moves[]>();
+                                foreach (Moves[] moves in node.getRemainingMoves())
+                                {
+                                    if (moves[0] == action[0])
+                                    {
+                                        circleMoves.Add(moves);
+                                    }
+                                }
+                                if (circleMoves.Count == 0)
+                                {
+                                    action[0] = Moves.NO_ACTION;
+                                    action[1] = Moves.NO_ACTION;
+                                }
+                                else
+                                {
+                                    action[1] = circleSTP.skillCoopHighDiamond(node, dInfo, circleMoves, charType);
+                                }
+                            }
+                        }
+                    }
+                }
+                if (action[0] != Moves.NO_ACTION || action[1] != Moves.NO_ACTION)
+                {
+                    return action;
+                }
+            }
 
             //if the platform of the diamond is higher than the one the agent is on
             if (node.getState().getPosY() > dInfo.getPlatform().getY())
@@ -976,12 +1240,46 @@ namespace GeometryFriendsAgents
                 //if circle
                 if (charType == 0)
                 {
-                    action = circleSTP.skillHigherPlatform(node, dInfo);
+                    action[0] = circleSTP.skillHigherPlatform(node, dInfo, node.getRemainingMoves());
+                    List<Moves[]> rectangleMoves = new List<Moves[]>();
+                    foreach (Moves[] moves in node.getRemainingMoves())
+                    {
+                        if (moves[0] == action[0])
+                        {
+                            rectangleMoves.Add(moves);
+                        }
+                    }
+                    if (rectangleMoves.Count == 0)
+                    {
+                        action[0] = Moves.NO_ACTION;
+                        action[1] = Moves.NO_ACTION;
+                    }
+                    else
+                    {
+                        action[1] = rectangleSTP.skillHigherPlatform(node, dInfo, rectangleMoves);
+                    }
                 }
                 //if rectangle
                 else if (charType == 1)
                 {
-                    action = rectangleSTP.skillHigherPlatform(node, dInfo);
+                    action[0] = rectangleSTP.skillHigherPlatform(node, dInfo, node.getRemainingMoves());
+                    List<Moves[]> circleMoves = new List<Moves[]>();
+                    foreach (Moves[] moves in node.getRemainingMoves())
+                    {
+                        if (moves[0] == action[0])
+                        {
+                            circleMoves.Add(moves);
+                        }
+                    }
+                    if (circleMoves.Count == 0)
+                    {
+                        action[0] = Moves.NO_ACTION;
+                        action[1] = Moves.NO_ACTION;
+                    }
+                    else
+                    {
+                        action[1] = circleSTP.skillHigherPlatform(node, dInfo, circleMoves);
+                    }
                 }
                 else
                 {
@@ -995,12 +1293,46 @@ namespace GeometryFriendsAgents
                 //if circle
                 if (charType == 0)
                 {
-                    action = circleSTP.skillLowerPlatform(node, dInfo);
+                    action[0] = circleSTP.skillLowerPlatform(node, dInfo, node.getRemainingMoves());
+                    List<Moves[]> rectangleMoves = new List<Moves[]>();
+                    foreach (Moves[] moves in node.getRemainingMoves())
+                    {
+                        if (moves[0] == action[0])
+                        {
+                            rectangleMoves.Add(moves);
+                        }
+                    }
+                    if (rectangleMoves.Count == 0)
+                    {
+                        action[0] = Moves.NO_ACTION;
+                        action[1] = Moves.NO_ACTION;
+                    }
+                    else
+                    {
+                        action[1] = rectangleSTP.skillLowerPlatform(node, dInfo, rectangleMoves);
+                    }
                 }
                 //if rectangle
                 else if (charType == 1)
                 {
-                    action = rectangleSTP.skillLowerPlatform(node, dInfo);
+                    action[0] = rectangleSTP.skillLowerPlatform(node, dInfo, node.getRemainingMoves());
+                    List<Moves[]> circleMoves = new List<Moves[]>();
+                    foreach (Moves[] moves in node.getRemainingMoves())
+                    {
+                        if (moves[0] == action[0])
+                        {
+                            circleMoves.Add(moves);
+                        }
+                    }
+                    if (circleMoves.Count == 0)
+                    {
+                        action[0] = Moves.NO_ACTION;
+                        action[1] = Moves.NO_ACTION;
+                    }
+                    else
+                    {
+                        action[1] = circleSTP.skillLowerPlatform(node, dInfo, circleMoves);
+                    }
                 }
                 else
                 {
@@ -1008,24 +1340,35 @@ namespace GeometryFriendsAgents
                 }
 
             }
+
             return action;
+            //SHOULD NOT REACH HERE
+            throw new Exception("It must return a possible action");
         }
 
         /*******************************************************/
         /*                Correction funtions                  */
         /*******************************************************/
 
-        private Tree repopulateMatrix(Tree t)
+        private TreeMP repopulateMatrix(TreeMP t)
         {
             //new matrix
-            positions = new bool[area.Right / matrixSize, area.Bottom / matrixSize, totalCollectibles + 1];
+            positions = new NodeMP[area.Right / matrixSize, area.Bottom / matrixSize, area.Right / matrixSize, area.Bottom / matrixSize, totalCollectibles + 1];
 
-            List<Moves> newMoves;
+            List<Moves[]> newMoves;
 
             //reset tree info
             t.resetTree();
 
-            foreach (Node node in t.getNodes())
+            if (replan)
+            {
+                foreach (DiamondInfo diamond in diamondsInfo)
+                {
+                    diamond.clearAreaLists();
+                }
+            }
+
+            foreach (NodeMP node in t.getNodes())
             {
                 //check if circle agent is on a platform or middle jump/fall
                 if (charType == 0)
@@ -1044,9 +1387,16 @@ namespace GeometryFriendsAgents
                     newMoves = copyMoves();
                 }
                 //reset node info
-                node.resetNode(newMoves, t, bgt);
+                node.resetNode(newMoves, t);
                 //put the state in the new matrix
-                repeatedState(node.getState());
+                if(!repeatedNode(node, node.getState()))
+                {
+                    //see if the node is close to any diamond
+                    foreach (DiamondInfo diamond in diamondsInfo)
+                    {
+                        diamond.insertClosestNodeMP(node);
+                    }
+                }
             }
 
             goal = false;
@@ -1054,13 +1404,13 @@ namespace GeometryFriendsAgents
             return t;
         }
 
-        public void correctPlan(PathPlan plan)
+        public void correctPlan(PathPlanMP plan)
         {
             correction = true;
             //get only the points where the agent is on a platform so it can be tested if the platforms have been reached
-            previousPoints = new PathPlan(cutplan, plan.getTotalCollectibles(), utils);
+            previousPoints = new PathPlanMP(cutplan, plan.getTotalCollectibles(), plan.getTree(), utils);
             previousPlatforms = new List<Platform>();
-            List<Point> points = plan.getPathPoints();
+            List<PointMP> points = plan.getPathPoints();
             for (int i = 0; i < points.Count; i++)
             {
                 Platform pointPl = utils.onPlatform(points[i].getPosX(), points[i].getPosY() + radius, 25, 10);
@@ -1073,13 +1423,13 @@ namespace GeometryFriendsAgents
         }
 
         //Builds a tree that will connect with the previous version
-        public Tree correctRRT(State initialState, ActionSimulator predictor, Tree t)
+        public TreeMP correctRRT(StateMP initialState, ActionSimulator predictor, TreeMP t)
         {
             correction = true;
             newPlan = false;
             goal = false;
             iterations = correctionIterations;
-            Tree newTree = buildRRT(initialState, predictor);
+            TreeMP newTree = buildRRT(initialState, predictor);
             //if we got a new plan for the original goal replace the tree completely
             if (goal)
             {
@@ -1103,7 +1453,40 @@ namespace GeometryFriendsAgents
             return t;
         }
 
-        private Tree connectTrees(Tree newTree, Tree previousTree)
+        //for MP replanning
+        public TreeMP newRoot(NodeMPGS node)
+        {
+            //get all nodes from the node children and children children to put as open nodes
+            List<NodeMP> children = getChildren(node);
+            TreeMP t = new TreeMPGS(node.getState(), node.getSimulator(), copyMoves(), bgt);
+
+            //add the children to the nodes and open lists
+            foreach (NodeMP child in children)
+            {
+                t.addNode(child);
+            }
+
+            //repopulate matrix - it takes care of closing the supposed nodes
+            repopulateMatrix(t);
+
+            return t;
+        }
+
+        private List<NodeMP> getChildren(NodeMP node)
+        {
+            List<NodeMP> children = new List<NodeMP>();
+            if (node.getChildren().Count != 0)
+            {
+                foreach (NodeMP child in node.getChildren())
+                {
+                    children.AddRange(getChildren(child));
+                }
+            }
+            children.Add(node);
+            return children;
+        }
+
+        private TreeMP connectTrees(TreeMP newTree, TreeMP previousTree)
         {
             //connect the new tree node to the next node in the plan
             connectNode.connectNodes(planNodes[0]);
@@ -1111,20 +1494,20 @@ namespace GeometryFriendsAgents
         }
 
         //see if the current calculated state is the same as the next one in the plan
-        private bool stateReached(State state)
+        private bool stateReached(StateMP state)
         {
             //TODO - check any state in the plan
             return checkState(state, planNodes[0].getState());
         }
 
         //temporary - plan from file
-        private bool stateReachedTemp(State state)
+        private bool stateReachedTemp(StateMP state)
         {
             //TODO - check any state in the plan
             return checkStateTemp(state, planNodes[0].getState());
         }
 
-        private bool checkState(State state1, State state2)
+        private bool checkState(StateMP state1, StateMP state2)
         {
             float state1X = state1.getPosX();
             float state1Y = state1.getPosY();
@@ -1160,7 +1543,7 @@ namespace GeometryFriendsAgents
         }
 
         //temporary
-        private bool checkStateTemp(State state1, State state2)
+        private bool checkStateTemp(StateMP state1, StateMP state2)
         {
             float state1X = state1.getPosX();
             float state1Y = state1.getPosY();
@@ -1186,14 +1569,14 @@ namespace GeometryFriendsAgents
         /*                  Plan funtions                      */
         /*******************************************************/
 
-        public void getPathPlan(Tree t)
+        public void getPathPlan(TreeMP t)
         {
             //create a list with the ordered actions to aplly from the tree
-            Node currentNode = t.getGoal();
+            NodeMP currentNode = t.getGoal();
             while (currentNode.getParent() != null)
             {
                 //insert action to the plan
-                plan.Insert(0, currentNode.getAction());
+                plan.Insert(0, currentNode.getActions());
                 //insert the state it is before applying the action
                 planNodes.Insert(0, currentNode.getParent());
 
@@ -1201,11 +1584,11 @@ namespace GeometryFriendsAgents
             }
         }
 
-        public List<Node> getPathPlan(Node node)
+        public List<NodeMP> getPathPlan(NodeMP node)
         {
             //create a list with the ordered actions to aplly from the tree
-            Node currentNode = node;
-            List<Node> currentPlanNodes = new List<Node>();
+            NodeMP currentNode = node;
+            List<NodeMP> currentPlanNodes = new List<NodeMP>();
             while (currentNode.getParent() != null)
             {
                 currentPlanNodes.Insert(0, currentNode.getParent());
@@ -1213,14 +1596,16 @@ namespace GeometryFriendsAgents
             }
             return currentPlanNodes;
         }
-        public PathPlan getPlan(Tree t)
+        public PathPlanMP getPlan(TreeMP t)
         {
-            PathPlan p = new PathPlan(cutplan, t.getRoot().getState().getNumberUncaughtCollectibles(), utils);
+            PathPlanMP p = new PathPlanMP(cutplan, t.getRoot().getState().getNumberUncaughtCollectibles(), t, utils);
 
-            Node currentNode = t.getGoal();
-            
-            State currentState;
-            Point point;
+            NodeMP currentNode = t.getGoal();
+
+            p.setTotalCollectibles(currentNode.getState().getNumberUncaughtCollectibles());
+
+            StateMP currentState;
+            PointMP point;
 
             while (currentNode.getParent() != null)
             {
@@ -1229,18 +1614,18 @@ namespace GeometryFriendsAgents
                 if (charType == 0)
                 {
                     //the jump action needs the point it has to make the jump and not where to reach
-                    if (currentNode.getAction() == Moves.JUMP)
+                    if (currentNode.getActions()[0] == Moves.JUMP)
                     {
-                        point = new Point(currentNode.getParent().getState().getPosX(), currentNode.getParent().getState().getPosY(), currentNode.getParent().getState().getVelX(), currentState.getHeight(), currentNode.getAction(), currentState.getUncaughtCollectibles());
+                        point = new PointMP(currentNode.getParent().getState().getPosX(), currentNode.getParent().getState().getPosY(), currentNode.getParent().getState().getVelX(), currentState.getHeight(), currentNode.getParent().getState().getPartnerX(), currentNode.getParent().getState().getPartnerY(), currentNode.getActions()[0], currentState.getUncaughtCollectibles(), currentNode.getParent());
                     }
                     else
                     {
-                        point = new Point(currentState.getPosX(), currentState.getPosY(), currentState.getVelX(), currentState.getHeight(), currentNode.getAction(), currentState.getUncaughtCollectibles());
+                        point = new PointMP(currentState.getPosX(), currentState.getPosY(), currentState.getVelX(), currentState.getHeight(), currentState.getPartnerX(), currentState.getPartnerY(), currentNode.getActions()[0], currentState.getUncaughtCollectibles(), currentNode);
                     }
                 }
                 else
                 {
-                    point = new Point(currentState.getPosX(), currentState.getPosY(), currentState.getVelX(), currentState.getHeight(), currentNode.getAction(), currentState.getUncaughtCollectibles());
+                    point = new PointMP(currentState.getPosX(), currentState.getPosY(), currentState.getVelX(), currentState.getHeight(), currentState.getPartnerX(), currentState.getPartnerY(), currentNode.getActions()[0], currentState.getUncaughtCollectibles(), currentNode);
                 }
 
                 //it adds the points in the reverse order
@@ -1258,7 +1643,7 @@ namespace GeometryFriendsAgents
             return p;
         }
 
-        public bool checkState(Point point, float X, float Y, float velX, float velY, List<CollectibleRepresentation> uncaughtColl)
+        public bool checkState(PointMP point, float X, float Y, float velX, float velY, List<CollectibleRepresentation> uncaughtColl)
         {
             //calculate the margins of error
             float marginPosX = Math.Abs(velX) / marginDenominator + marginMinX;
@@ -1286,7 +1671,7 @@ namespace GeometryFriendsAgents
             return false;
         }
 
-        public bool checkState(State planState, float X, float Y, float velX, float velY, List<CollectibleRepresentation> caughtColl)
+        public bool checkState(StateMP planState, float X, float Y, float velX, float velY, List<CollectibleRepresentation> caughtColl)
         {
             float stateX = planState.getPosX();
             float stateY = planState.getPosY();
@@ -1324,7 +1709,7 @@ namespace GeometryFriendsAgents
         }
 
         //temporary - to use with a plan taken from a file - ignores collectibles
-        public bool checkStateTemp(State planState, float X, float Y, float velX, float velY, List<CollectibleRepresentation> caughtColl)
+        public bool checkStateTemp(StateMP planState, float X, float Y, float velX, float velY, List<CollectibleRepresentation> caughtColl)
         {
             float stateX = planState.getPosX();
             float stateY = planState.getPosY();
@@ -1351,54 +1736,17 @@ namespace GeometryFriendsAgents
             return false;
         }
 
-        public List<Moves> getPlanMoves()
+        public List<Moves[]> getPlanMoves()
         {
             return plan;
         }
 
-        public List<Node> getPlanNodes()
+        public List<NodeMP> getPlanNodes()
         {
             return planNodes;
         }
 
-        private bool checkPlan(Tree tree)
-        {
-            //get plan
-            getPathPlan(tree);
-            List<Moves> actionList = plan;
-
-            //prepare simulator
-            List<CollectibleRepresentation> simCaughtCollectibles = new List<CollectibleRepresentation>();
-            ActionSimulator toSim = simulator;
-
-            //add all actions of the plan to simulate
-            foreach (Moves action in actionList)
-            {
-                toSim.AddInstruction(action, actionTime);
-            }
-
-            toSim.SimulatorCollectedEvent += delegate (Object o, CollectibleRepresentation col) { simCaughtCollectibles.Add(col); };
-
-            //simulate
-            for (float i = 0; i < actionTime * actionList.Count; i += .05f)
-            {
-                toSim.Update(.05f);
-            }
-            toSim.Update(.05f);
-
-            //if the final state of the simulation is a goal state then return true
-            if (toSim.CollectiblesUncaughtCount == 0)
-            {
-                return true;
-            }
-            else
-            {
-                return false;
-            }
-
-        }
-
-        private void checkSemiPlan(Tree tree, Node newNode)
+        private void checkSemiPlan(TreeMP tree, NodeMP newNode)
         {
             //if the agent is in the same platform as a diamond, this might be the safest semi-plan so far
             if (onSamePlatform(0, initialPlatform, newNode.getState().getUncaughtCollectibles(), true))
@@ -1428,7 +1776,7 @@ namespace GeometryFriendsAgents
             {
                 //get only the highest
 
-                bestSemiPlanNode = newNode;
+                bestSemiPlanNode = getOnlyHighest(newNode);
                 return;
             }
 
@@ -1436,16 +1784,16 @@ namespace GeometryFriendsAgents
         /*******************************************************/
         /*                Auxiliar funtions                    */
         /*******************************************************/
-        private Node getOnlyHighest(Node node)
+        private NodeMP getOnlyHighest(NodeMP node)
         {
-            Node currentNode = node;
+            NodeMP currentNode = node;
             int[] caughtDiamonds;
             int lowerDiamonds = 0;
             int newIndex;
 
             //get the order of the caught diamonds
             //get the path
-            List<Node> currentPlan = getPathPlan(currentNode);
+            List<NodeMP> currentPlan = getPathPlan(currentNode);
             int lastDiamondCount = currentPlan[0].getState().getNumberUncaughtCollectibles();
             int totalDiamonds = lastDiamondCount;
             newIndex = currentPlan.Count;
@@ -1528,41 +1876,12 @@ namespace GeometryFriendsAgents
             int currentHighest = getHighestNumber(diamonds);
             int bestHighest = getHighestNumber(bestCaughtDiamonds);
 
-            //if none of the plans catches the highest, see the others
-            if(currentHighest == 0 && bestHighest == 0)
-            {
-                currentHighest = getHighestDiamondNumber(diamonds);
-                bestHighest = getHighestDiamondNumber(bestCaughtDiamonds);
-                //if none of the plans catches a diamond at all
-                if (currentHighest == 0 && bestHighest == 0)
-                {
-                    return false;
-                }
-                //if the index of the current is lower, then the diamond is higher
-                if(currentHighest < bestHighest)
-                {
-                    return true;
-                }
-            }
-
             if (currentHighest > bestHighest)
             {
                 return true;
             }
 
             return false;
-        }
-
-        private int getHighestDiamondNumber(int[] diamonds)
-        {
-            for(int i = 0; i < diamonds.Length; i++)
-            {
-                if(diamonds[i] == 1)
-                {
-                    return i;
-                }
-            }
-            return 0;
         }
 
         private int getHighestNumber(int[] diamonds)
@@ -1614,11 +1933,11 @@ namespace GeometryFriendsAgents
             iterations = iterationNumber;
         }
 
-        private List<Moves> copyMoves()
+        private List<Moves[]> copyMoves()
         {
-            List<Moves> newMovesList = new List<Moves>();
+            List<Moves[]> newMovesList = new List<Moves[]>();
 
-            foreach (Moves move in possibleMoves)
+            foreach (Moves[] move in possibleMoves)
             {
                 newMovesList.Add(move);
             }
@@ -1626,13 +1945,13 @@ namespace GeometryFriendsAgents
             return newMovesList;
         }
 
-        private List<Moves> copyMovesNoJump()
+        private List<Moves[]> copyMovesNoJump()
         {
-            List<Moves> newMovesList = new List<Moves>();
+            List<Moves[]> newMovesList = new List<Moves[]>();
 
-            foreach (Moves move in possibleMoves)
+            foreach (Moves[] move in possibleMoves)
             {
-                if (move != Moves.JUMP)
+                if (move[0] != Moves.JUMP && move[1] != Moves.JUMP)
                 {
                     newMovesList.Add(move);
                 }
@@ -1641,16 +1960,45 @@ namespace GeometryFriendsAgents
             return newMovesList;
         }
 
-        private Moves randomAction(Node node)
+
+        private Moves[] randomAction(NodeMP node)
         {
+            //Random rnd = new Random();
+            Moves[] action;
+
             if (charType == 0) //circle
             {
-                return utils.randomAction(node, rnd, jumpBias);
+                if (rnd.NextDouble() > jumpBias || node.possibleMovesCount() <= 1)
+                {
+                    //choose from all moves
+                    action = node.getMove(rnd.Next(node.possibleMovesCount()));
+                }
+                else
+                {
+                    //chose a move that is not jump unless it is the only move left
+                    int random = rnd.Next(node.possibleMovesCount());
+                    if (node.getRemainingMoves()[random][0] == Moves.JUMP || node.getRemainingMoves()[random][1] == Moves.JUMP)
+                    {
+                        random = (random + 1) % node.possibleMovesCount();
+                    }
+                    action = node.getMove(random);
+                }
             }
             else //rectangle
             {
-                return utils.randomActionRectangle(node, rnd, jumpBias);
+                if (rnd.NextDouble() > jumpBias || node.possibleMovesCount() <= 2)
+                {
+                    //choose from all moves
+                    action = node.getMove(rnd.Next(node.possibleMovesCount()));
+                }
+                else
+                {
+                    //exclude the morph moves
+                    action = node.getMove(rnd.Next(node.possibleMovesCount() - 2));
+                }
             }
+
+            return action;
         }
 
         private bool checkObstacle(float dPosX, float dPosY, float cPosX, float cPosY, Platform obstacle)
@@ -1693,37 +2041,6 @@ namespace GeometryFriendsAgents
 
             return (float)Math.Pow(dist, 2);
         }
-
-        
-            //List<ObstacleRepresentation> platformsBelow = new List<ObstacleRepresentation>();
-
-            //foreach (ObstacleRepresentation platform in platforms)
-            //{
-            //    if (x >= (platform.X - platform.Width / 2) &&
-            //       x <= (platform.X + platform.Width / 2) &&
-            //       y <= platform.Y)
-            //    {
-            //        //make sure the highest platform is chosen if there are more than 1 platform below the agent
-            //        if (platformsBelow.Count == 1 && platformsBelow[0].Y > platform.Y)
-            //        {
-            //            platformsBelow.RemoveAt(0);
-            //        }
-            //        if (platformsBelow.Count == 0)
-            //        {
-            //            platformsBelow.Add(platform);
-            //        }
-
-            //    }
-            //}
-            //if (platformsBelow.Count == 1)
-            //{
-            //    return new Platform(platformsBelow[0].X, platformsBelow[0].Y, platformsBelow[0].Width, platformsBelow[0].Height);
-            //}
-            //if (platformsBelow.Count == 0)
-            //{
-            //    return new Platform(0, area.Bottom, 0, 0);
-            //}
-            //return null;
 
 
         public void setRadius(float rad)
@@ -1768,7 +2085,7 @@ namespace GeometryFriendsAgents
             ignoreDiamonds = new List<DiamondInfo>();
         }
 
-        public void removeGoal(Tree T)
+        public void removeGoal(TreeMP T)
         {
             T.setGoal(null);
             goal = false;
@@ -1778,9 +2095,9 @@ namespace GeometryFriendsAgents
         /***                                   Goal checking                                      ***/
         /********************************************************************************************/
 
-        private bool checkGoal(Tree tree, Node node)
+        private bool checkGoal(TreeMP tree, NodeMP node)
         {
-            State newState = node.getState();
+            StateMP newState = node.getState();
 
             if (goalType == GoalType.All)
             {
@@ -1849,7 +2166,7 @@ namespace GeometryFriendsAgents
             return false;
         }
 
-        private bool caughtHighest(Tree tree, Node node)
+        private bool caughtHighest(TreeMP tree, NodeMP node)
         {
             //check which is the highest diamond that is currently uncaught (root)
             DiamondInfo highest = null;
@@ -1880,7 +2197,7 @@ namespace GeometryFriendsAgents
         }
 
         //check if the caught diamond is to be ignored
-        public bool notIgnored(Node node)
+        public bool notIgnored(NodeMP node)
         {
             //should only get one index
             int[] caught = getCaughtDiamondsIndexes(node.getState().getUncaughtCollectibles());
@@ -1905,7 +2222,7 @@ namespace GeometryFriendsAgents
         /*******************************************************/
 
         //gets the information of the plan path and of the visited and total nodes
-        public List<DebugInformation> getDebugInfo(Tree t, List<DebugInformation> otherInfo)
+        public List<DebugInformation> getDebugInfo(TreeMP t, List<DebugInformation> otherInfo)
         {
 
             List<DebugInformation> debugInfo = new List<DebugInformation>();
@@ -1930,67 +2247,7 @@ namespace GeometryFriendsAgents
             return debugInfo;
         }
 
-        public void writePlanToFile()
-        {
-            string[] planText = new String[plan.Count * 6]; //6 indica o nr de info por casa passo do plano
-
-            for (int i = 0; i < plan.Count * 6; i += 6)
-            {
-                planText[i] = planNodes[i / 6].getAction().ToString();
-                planText[i + 1] = planNodes[i / 6].getState().getPosX().ToString();
-                planText[i + 2] = planNodes[i / 6].getState().getPosY().ToString();
-                planText[i + 3] = planNodes[i / 6].getState().getVelX().ToString();
-                planText[i + 4] = planNodes[i / 6].getState().getVelY().ToString();
-                planText[i + 5] = planNodes[i / 6].getState().getNumberUncaughtCollectibles().ToString();
-            }
-            System.IO.File.WriteAllLines(@".\SimulatedPlan.txt", planText);
-        }
-
-        public void readPlanFromFile()
-        {
-            String line;
-            plan = new List<Moves>();
-            planNodes = new List<Node>();
-            Moves action;
-            Node node;
-            State state;
-            float posX;
-            float posY;
-            float velX;
-            float velY;
-            int collectibles;
-
-            System.IO.StreamReader file = new System.IO.StreamReader(@".\SimulatedPlan.txt");
-
-            while ((line = file.ReadLine()) != null)
-            {
-                //get action
-                Enum.TryParse(line, out action);
-
-                //get position and velocity
-                line = file.ReadLine();
-                posX = Convert.ToSingle(line);
-                line = file.ReadLine();
-                posY = Convert.ToSingle(line);
-                line = file.ReadLine();
-                velX = Convert.ToSingle(line);
-                line = file.ReadLine();
-                velY = Convert.ToSingle(line);
-
-                //get number of uncaught collectibles 
-                line = file.ReadLine();
-                collectibles = Convert.ToInt32(line);
-
-                //add to plan
-                plan.Add(action);
-
-                state = new State(posX, posY, velX, velY, 0, 0, null, null);
-                node = new Node(null, state, action, null, null);
-            }
-            file.Close();
-        }
-
-        public List<DebugInformation> getDebugTreeInfo(Tree tree)
+        public List<DebugInformation> getDebugTreeInfo(TreeMP tree)
         {
             List<DebugInformation> debugInfo = new List<DebugInformation>();
 
@@ -2001,9 +2258,12 @@ namespace GeometryFriendsAgents
                 debugInfo.AddRange(diamond.getAreaDebug());
             }
 
-            foreach (Node node in tree.getNodes())
+            foreach (NodeMP node in tree.getNodes())
             {
+                //agent
                 debugInfo.Add(GeometryFriends.AI.Debug.DebugInformationFactory.CreateCircleDebugInfo(new PointF(node.getState().getPosX(), node.getState().getPosY()), 2.0f, new GeometryFriends.XNAStub.Color(255, 255, 255)));
+                //partner
+                debugInfo.Add(GeometryFriends.AI.Debug.DebugInformationFactory.CreateCircleDebugInfo(new PointF(node.getState().getPartnerX(), node.getState().getPartnerY()), 2.0f, new GeometryFriends.XNAStub.Color(255, 0, 0)));
             }
 
             return debugInfo;
@@ -2014,24 +2274,83 @@ namespace GeometryFriendsAgents
             return correction;
         }
 
-        public Point getConnectionPoint()
+        public PointMP getConnectionPoint()
         {
             return connectionPoint;
         }
 
-        public void setPartialPlan(bool p)
+        public NodeMP findNode(float agentX, float agentY, float partnerX, float partnerY, int diamondNumber, bool bin)
         {
-            semiplanTest = p;
+            int posX = (int)Math.Round(agentX / matrixSize);
+            int posY = (int)Math.Round(agentY / matrixSize);
+            int partX = (int)Math.Round(partnerX / matrixSize);
+            int partY = (int)Math.Round(partnerY / matrixSize);
+
+            //make sure it is within bounds
+            if (posX >= positions.GetLength(0))
+            {
+                posX = positions.GetLength(0) - 1;
+            }
+            if (posY >= positions.GetLength(1))
+            {
+                posY = positions.GetLength(1) - 1;
+            }
+            if (partX >= positions.GetLength(0))
+            {
+                partX = positions.GetLength(0) - 1;
+            }
+            if (partY >= positions.GetLength(1))
+            {
+                partY = positions.GetLength(1) - 1;
+            }
+
+            if (bin)
+            {
+                if (previousPositions[posX, posY, partX, partY, diamondNumber] != null)
+                {
+                    return previousPositions[posX, posY, partX, partY, diamondNumber];
+                }
+                return null;
+            }
+            if (positions[posX, posY, partX, partY, diamondNumber] != null )
+            {
+                return positions[posX, posY, partX, partY, diamondNumber];
+            }
+            return null;
         }
 
-        public int getExploredNodesOnce()
+        public void saveOldNodes(TreeMP t)
         {
-            return exploredNodesOnce;
+            previousTreeNodes = new List<NodeMP>();
+            foreach(NodeMP node in t.getNodes())
+            {
+                previousTreeNodes.Add(node);
+            }
+
+            previousPositions = new NodeMP[area.Right / matrixSize, area.Bottom / matrixSize, area.Right / matrixSize, area.Bottom / matrixSize, totalCollectibles + 1];
+
+            for(int i = 0 ; i < area.Right / matrixSize; i++)
+            {
+                for(int j = 0; j < area.Bottom / matrixSize; j++)
+                {
+                    for(int k = 0; k < area.Right / matrixSize; k++)
+                    {
+                        for(int l = 0; l < area.Bottom / matrixSize; l++)
+                        {
+                            for (int m = 0; m < totalCollectibles + 1; m++)
+                            {
+                                previousPositions[i, j, k, l, m] = positions[i, j, k, l, m];
+                            }
+                        }
+                    }
+                }
+            }
         }
 
-        public int getExploredNodesTotal()
+        public void setReplan(bool r)
         {
-            return exploredNodesTotal;
+            replan = r;
         }
+
     }
 }

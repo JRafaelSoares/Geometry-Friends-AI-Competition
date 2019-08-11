@@ -555,12 +555,15 @@ namespace GeometryFriendsAgents
                     RRT.setDiamonds(Diamonds);
                     //create initial state
                     State initialState = new State(circleInfo.X, circleInfo.Y, circleInfo.VelocityX, circleInfo.VelocityY, circleInfo.Radius / 2, 0, caughtDiamonds, remainingDiamonds);
+                    StateMP initialStateMP = new StateMP(circleInfo.X, circleInfo.Y, circleInfo.VelocityX, circleInfo.VelocityY, circleInfo.Radius / 2, 0, rectangleInfo.X, rectangleInfo.Y, rectangleInfo.VelocityX, rectangleInfo.VelocityY, caughtDiamonds, remainingDiamonds);
+
                     //Creates simulator
                     Simulator sim = new CircleSimulator(Platforms);
-                    sim.setSimulator(circleInfo.X, circleInfo.Y, circleInfo.VelocityX, circleInfo.VelocityY, Diamonds);
+                    sim.setSimulator(circleInfo.X, circleInfo.Y, circleInfo.VelocityX, circleInfo.VelocityY, remainingDiamonds);
 
                     //run algorithm
                     T = RRT.buildNewMPRRT(initialState, sim, goalMode, iterationsFirst);
+                    TMP = RRTMP.buildNewMPRRT(initialStateMP, sim, goalMode, iterationsFirst);
                 }
                 else //continue the previous tree
                 {
@@ -704,9 +707,12 @@ namespace GeometryFriendsAgents
                     //create initial state
                     if (newPlan)
                     {
+                        Simulator sim = new CircleSimulator(Platforms);
+                        sim.setSimulator(circleInfo.X, circleInfo.Y, circleInfo.VelocityX, circleInfo.VelocityY, Diamonds);
+
                         StateMP initialState = new StateMP(circleInfo.X, circleInfo.Y, circleInfo.VelocityX, circleInfo.VelocityY, rectangleInfo.Height / 2, rectangleInfo.X, rectangleInfo.Y, rectangleInfo.VelocityX, rectangleInfo.VelocityY, 0, caughtCollectibles, uncaughtCollectibles);
                         //run algorithm
-                        TMP = RRTMP.buildNewMPRRT(initialState, predictor, goalMode, iterationsMP);
+                        TMP = RRTMP.buildNewMPRRT(initialState, sim, goalMode, iterationsMP);
                     }
                     else
                     {
@@ -1459,8 +1465,10 @@ namespace GeometryFriendsAgents
                 {
                     //new tree
                     //create initial state
+                    Simulator sim = new CircleSimulator(Platforms);
+                    sim.setSimulator(circleInfo.X, circleInfo.Y, circleInfo.VelocityX, circleInfo.VelocityY, Diamonds);
                     StateMP initialState = new StateMP(circleInfo.X, circleInfo.Y, circleInfo.VelocityX, circleInfo.VelocityY, rectangleInfo.Height / 2, rectangleInfo.X, rectangleInfo.Y, rectangleInfo.VelocityX, rectangleInfo.VelocityY, 0, caughtCollectibles, uncaughtCollectibles);
-                    TMP = RRTMP.buildNewMPRRT(initialState, predictor, goalMode, iterationsMP);
+                    TMP = RRTMP.buildNewMPRRT(initialState, sim, goalMode, iterationsMP);
                 }
                 //update root - the previous node (the current has the final position)
                 TMP = RRTMP.newRoot(root);

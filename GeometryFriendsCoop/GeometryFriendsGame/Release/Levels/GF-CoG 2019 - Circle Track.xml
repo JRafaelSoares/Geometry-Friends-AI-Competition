@@ -19,6 +19,13 @@
     <GreenElevators />
     <OrangeElevators />
     <TimeLimit value="120" />
+    <HighScores>
+      <HighScore name="RRTCircle2017" value="44" />
+      <HighScore name="RRTCircle2017" value="53" />
+      <HighScore name="RRTCircle2017" value="56" />
+      <HighScore name="RRTCircle2017" value="62" />
+      <HighScore name="RRTCircle2017" value="68" />
+    </HighScores>
   </Level1>
   <Level2>
     <Description />
@@ -105,7 +112,9 @@
     <OrangeElevators />
     <TimeLimit value="120" />
     <HighScores>
+      <HighScore name="RRTCircle2017" value="14" />
       <HighScore name="RRTCircle2017" value="23" />
+      <HighScore name="RRTCircle2017" value="80" />
     </HighScores>
   </Level5>
 </Levels>

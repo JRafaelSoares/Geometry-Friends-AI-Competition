@@ -1041,3 +1041,7 @@ E:\IST\Tese Mestrado\GF - PreConference\rep\geometryfriends\bin\Debug\Agents\Con
 E:\IST\Tese Mestrado\GF - PreConference\rep\geometryfriends\bin\Debug\Agents\Content\Fonts\titleFont.spritefont
 E:\IST\Tese Mestrado\GF - PreConference\rep\geometryfriends\bin\Debug\Agents\RRTAgentsTest.dll
 E:\IST\Tese Mestrado\GF - PreConference\rep\geometryfriends\bin\Debug\Agents\RRTAgentsTest.pdb
+C:\Users\João Rafael Soares\Documents\GitHub\Geometry-Friends-AI-Competition\RRTAgentsCircleSimulator\RRTAgents\obj\Debug\RRTAgents.csprojAssemblyReference.cache
+C:\Users\João Rafael Soares\Documents\GitHub\Geometry-Friends-AI-Competition\RRTAgentsCircleSimulator\RRTAgents\obj\Debug\RRTAgents.csproj.CoreCompileInputs.cache
+C:\Users\João Rafael Soares\Documents\GitHub\Geometry-Friends-AI-Competition\RRTAgentsCircleSimulator\RRTAgents\obj\Debug\RRTAgentsTest.dll
+C:\Users\João Rafael Soares\Documents\GitHub\Geometry-Friends-AI-Competition\RRTAgentsCircleSimulator\RRTAgents\obj\Debug\RRTAgentsTest.pdb

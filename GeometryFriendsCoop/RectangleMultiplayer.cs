@@ -50,8 +50,8 @@ namespace GeometryFriendsAgents
         private int nCollectiblesLeft;
 
         //RRT tree
-        private RRTUtils RRT;
-        private RRTUtilsMP RRTMP;
+        private RRTUtilsGS RRT;
+        private RRTUtilsMPGS RRTMP;
         private Tree T;
         private Tree TReturn;
         private TreeMP TMP;
@@ -199,8 +199,8 @@ namespace GeometryFriendsAgents
             Diamonds = utils.setupDiamonds(collectiblesInfo, levelLayout);
 
             /*************FINAL*************/
-            RRT = new RRTUtils(actionTime, simTime, simTimeFinish, getPossibleMoves(), type, area, collectiblesInfo.Length, RRTTypes.BGT, RRTTypes.STP, obstaclesInfo, gSpeed, Diamonds, Platforms, utils, true, true);
-            RRTMP = new RRTUtilsMP(actionTime, simTime, simTimeFinish, getPossibleMovesMP(), type, area, collectiblesInfo.Length, RRTTypes.BGT, RRTTypes.STP, obstaclesInfo, gSpeed, Diamonds, Platforms, utils, true, true);
+            RRT = new RRTUtilsGS(actionTime, simTime, simTimeFinish, getPossibleMoves(), type, area, collectiblesInfo.Length, RRTTypes.BGT, RRTTypes.STP, obstaclesInfo, gSpeed, Diamonds, Platforms, utils, true, true);
+            RRTMP = new RRTUtilsMPGS(actionTime, simTime, simTimeFinish, getPossibleMovesMP(), type, area, collectiblesInfo.Length, RRTTypes.BGT, RRTTypes.STP, obstaclesInfo, gSpeed, Diamonds, Platforms, utils, true, true);
             RRTMP.setRadius(circleInfo.Radius);
             pathPlanMP = new PathPlanMP(cutplan, colI.GetLength(0), null, utils);
             controllerMP = new RectangleControllerMP(gSpeed, utils);
@@ -546,7 +546,7 @@ namespace GeometryFriendsAgents
                     }
 
                     //TODO - Add rectangle simulator
-                    sim.setSimulator(rectangleInfo.X, rectangleInfo.Y, rectangleInfo.VelocityX, rectangleInfo.VelocityY, Diamonds);
+                    //sim.setSimulator(rectangleInfo.X, rectangleInfo.Y, rectangleInfo.VelocityX, rectangleInfo.VelocityY, Diamonds);
 
                     //FIRST STEP
                     //always try to catch a diamond by itself first - to be changed
@@ -554,9 +554,13 @@ namespace GeometryFriendsAgents
                     //update the diamond list
                     RRT.setDiamonds(Diamonds);
                     //create initial state
-                    State initialState = new State(rectangleInfo.X, rectangleInfo.Y, rectangleInfo.VelocityX, rectangleInfo.VelocityY, rectangleInfo.Height / 2, 0, caughtDiamonds, remainingDiamonds);
+                    State initialState = new State(rectangleInfo.X, rectangleInfo.Y, rectangleInfo.VelocityX, rectangleInfo.VelocityY, rectangleInfo.Height / 2, 0, caughtCollectibles, uncaughtCollectibles);
+                    
+                    StateMP initialStateMP = new StateMP(rectangleInfo.X, rectangleInfo.Y, rectangleInfo.VelocityX, rectangleInfo.VelocityY, rectangleInfo.Height / 2, 0, circleInfo.X, circleInfo.Y, circleInfo.VelocityX, circleInfo.VelocityY, caughtCollectibles, uncaughtCollectibles);
+
                     //run algorithm
-                    T = RRT.buildNewMPRRT(initialState, sim, goalMode, iterationsMP);
+                    T = RRT.buildNewMPRRT(initialState, predictor, goalMode, iterationsMP);
+                    TMP = RRTMP.buildNewMPRRT(initialStateMP, predictor, goalMode, iterationsMP);
                 }
                 else //continue the previous tree
                 {
@@ -677,7 +681,7 @@ namespace GeometryFriendsAgents
                     }
 
                     //Initialize simulator
-                    sim.setSimulator(rectangleInfo.X, rectangleInfo.Y, rectangleInfo.VelocityX, rectangleInfo.VelocityY, Diamonds);
+                    //sim.setSimulator(rectangleInfo.X, rectangleInfo.Y, rectangleInfo.VelocityX, rectangleInfo.VelocityY, Diamonds);
 
                     //try to get the highest diamond in the higest platform in single player mode
                     goalMode = GoalType.HighestSingle;
@@ -687,7 +691,7 @@ namespace GeometryFriendsAgents
                     State initialState = new State(rectangleInfo.X, rectangleInfo.Y, rectangleInfo.VelocityX, rectangleInfo.VelocityY, rectangleInfo.Height / 2, 0, caughtDiamonds, remainingDiamonds);
                     //run algorithm
                     RRT.removeGoal(T);
-                    T = RRT.buildNewMPRRT(initialState, sim, goalMode, iterationsHighest);
+                    T = RRT.buildNewMPRRT(initialState, predictor, goalMode, iterationsHighest);
                 }
                 //catch it if plan found
                 if (T.getGoal() != null && goalMode == GoalType.HighestSingle)

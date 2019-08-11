@@ -29,9 +29,8 @@ namespace GeometryFriendsAgents
         private Random rnd;
 
         //constructor
-        public TreeMP(StateMP initialState, ActionSimulator predictor, List<Moves[]> moves, bool BGT)
+        public TreeMP(StateMP initialState, List<Moves[]> moves, bool BGT)
         {
-            root = new NodeMP(null, initialState, null, predictor, moves);
             nodes = new List<NodeMP>();
             open = new List<NodeMP>();
             closed = new List<NodeMP>();
@@ -46,7 +45,6 @@ namespace GeometryFriendsAgents
                 leafNodes = new List<NodeMP>();
             }
 
-            addNode(root);
             rnd = new Random();
         }
 
@@ -126,6 +124,11 @@ namespace GeometryFriendsAgents
             goal = g;
         }
 
+        public void setRoot(NodeMP r)
+        {
+            root = r;
+        }
+
         //choose a random node from the open list and return it
         public NodeMP getRandomNode()
         {
@@ -166,11 +169,6 @@ namespace GeometryFriendsAgents
         public NodeMP getRoot()
         {
             return root;
-        }
-
-        public void setRoot(NodeMP node)
-        {
-            root = node;
         }
 
         public NodeMP getGoal()

@@ -604,13 +604,27 @@ namespace GeometryFriendsAgents
         {
             //check if diamond has already been caught
             bool uncaught = false;
-            foreach (CollectibleRepresentation diamond in node.getState().getUncaughtCollectibles())
+            if (node.getState().getUncaughtDiamonds() != null)
             {
-                if (Math.Round(diamond.X) == Math.Round(this.posX) && Math.Round(diamond.Y) == Math.Round(this.posY))
+                foreach (DiamondInfo diamond in node.getState().getUncaughtDiamonds())
                 {
-                    uncaught = true;
+                    if (Math.Round(diamond.getX()) == Math.Round(this.posX) && Math.Round(diamond.getY()) == Math.Round(this.posY))
+                    {
+                        uncaught = true;
+                    }
                 }
             }
+            else
+            {
+                foreach (CollectibleRepresentation diamond in node.getState().getUncaughtCollectibles())
+                {
+                    if (Math.Round(diamond.X) == Math.Round(this.posX) && Math.Round(diamond.Y) == Math.Round(this.posY))
+                    {
+                        uncaught = true;
+                    }
+                }
+            }
+            
 
             //if the diamond has been caught in this state, then it is not a close state
             if (!uncaught)

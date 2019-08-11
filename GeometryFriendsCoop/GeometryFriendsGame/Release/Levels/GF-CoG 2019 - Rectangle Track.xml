@@ -18,6 +18,7 @@
     <OrangeElevators />
     <TimeLimit value="120" />
     <HighScores>
+      <HighScore name="RRTRectangle2017" value="41" />
       <HighScore name="RRTRectangle2017" value="74" />
     </HighScores>
   </Level1>
@@ -42,7 +43,9 @@
     <OrangeElevators />
     <TimeLimit value="120" />
     <HighScores>
+      <HighScore name="RRTRectangle2017" value="17" />
       <HighScore name="RRTRectangle2017" value="27" />
+      <HighScore name="RRTRectangle2017" value="29" />
     </HighScores>
   </Level2>
   <Level3>

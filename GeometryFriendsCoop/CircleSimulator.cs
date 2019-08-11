@@ -294,6 +294,8 @@ namespace GeometryFriendsAgents
                 case Moves.JUMP:
                     jump();
                     break;
+                case Moves.NO_ACTION:
+                    break;
                 default:
                     throw new Exception("Must have valid action");
             }

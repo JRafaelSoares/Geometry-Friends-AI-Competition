@@ -20,20 +20,17 @@ namespace GeometryFriendsAgents
         //actions that can still be tested
         private List<Moves[]> remainingMoves;
         private bool remainingSTPActions;
-        //simulator
-        ActionSimulator predictor;
         //debug info
         private List<DebugInformation> debugInfo;
         //bgt
         private bool leaf;
 
-        public NodeMP(NodeMP p, StateMP s, Moves[] actions, ActionSimulator pred, List<Moves[]> moves)
+        public NodeMP(NodeMP p, StateMP s, Moves[] actions, List<Moves[]> moves)
         {
             parent = p;
             state = s;
             treeDepth = 0;
             previousActions = actions;
-            predictor = pred;
             children = new List<NodeMP>();
             remainingMoves = moves;
             remainingSTPActions = true;
@@ -76,11 +73,6 @@ namespace GeometryFriendsAgents
         public Moves[] getActions()
         {
             return previousActions;
-        }
-
-        public ActionSimulator getPredictor()
-        {
-            return predictor;
         }
 
         public List<DebugInformation> getDebugInfo()
@@ -217,20 +209,5 @@ namespace GeometryFriendsAgents
             remainingSTPActions = rA;
         }
 
-        public NodeMP clone()
-        {
-            NodeMP newNode = new NodeMP(this.parent, this.state, this.previousActions, this.predictor, this.remainingMoves);
-            foreach(NodeMP child in this.children)
-            {
-                newNode.addChild(child);
-            }
-            newNode.setTreeDepht(this.getTreeDepth());
-            newNode.setRABool(this.remainingSTPActions);
-            if(newNode.getChildren().Count != 0)
-            {
-                newNode.nonLeaft();
-            }
-            return newNode;
-        }
     }
 }

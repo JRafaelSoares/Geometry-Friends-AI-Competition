@@ -56,12 +56,14 @@
     <Compile Include="CircleSTP.cs" />
     <Compile Include="CircleSTPMP.cs" />
     <Compile Include="CollisionType.cs" />
+    <Compile Include="CoopRules.cs" />
     <Compile Include="DiamondInfo.cs" />
     <Compile Include="GoalType.cs" />
     <Compile Include="Node.cs" />
     <Compile Include="NodeMP.cs" />
     <Compile Include="PathPlan.cs" />
     <Compile Include="PathPlanMP.cs" />
+    <Compile Include="PixelType.cs" />
     <Compile Include="Platform.cs" />
     <Compile Include="PlatformType.cs" />
     <Compile Include="Point.cs" />

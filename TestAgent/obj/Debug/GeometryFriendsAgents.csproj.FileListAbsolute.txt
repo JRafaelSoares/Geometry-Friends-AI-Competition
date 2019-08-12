@@ -1,0 +1,24 @@
+C:\Users\João Rafael Soares\Documents\GitHub\Geometry-Friends-AI-Competition\GeometryFriendsCoop\GeometryFriendsGame\Release\Agents\GeometryFriendsAgents.dll
+C:\Users\João Rafael Soares\Documents\GitHub\Geometry-Friends-AI-Competition\GeometryFriendsCoop\GeometryFriendsGame\Release\Agents\GeometryFriendsAgents.pdb
+C:\Users\João Rafael Soares\Documents\GitHub\Geometry-Friends-AI-Competition\GeometryFriendsCoop\obj\Debug\GeometryFriendsAgents.csprojAssemblyReference.cache
+C:\Users\João Rafael Soares\Documents\GitHub\Geometry-Friends-AI-Competition\GeometryFriendsCoop\obj\Debug\GeometryFriendsAgents.csproj.CoreCompileInputs.cache
+C:\Users\João Rafael Soares\Documents\GitHub\Geometry-Friends-AI-Competition\GeometryFriendsCoop\obj\Debug\GeometryFriendsAgents.dll
+C:\Users\João Rafael Soares\Documents\GitHub\Geometry-Friends-AI-Competition\GeometryFriendsCoop\obj\Debug\GeometryFriendsAgents.pdb
+C:\Users\Pedro\Documents\GitHub\Geometry-Friends-AI-Competition\GeometryFriendsCoop\GeometryFriendsGame\Release\Agents\GeometryFriendsAgents.dll
+C:\Users\Pedro\Documents\GitHub\Geometry-Friends-AI-Competition\GeometryFriendsCoop\GeometryFriendsGame\Release\Agents\GeometryFriendsAgents.pdb
+C:\Users\Pedro\Documents\GitHub\Geometry-Friends-AI-Competition\GeometryFriendsCoop\obj\Debug\GeometryFriendsAgents.csprojAssemblyReference.cache
+C:\Users\Pedro\Documents\GitHub\Geometry-Friends-AI-Competition\GeometryFriendsCoop\obj\Debug\GeometryFriendsAgents.csproj.CoreCompileInputs.cache
+C:\Users\Pedro\Documents\GitHub\Geometry-Friends-AI-Competition\GeometryFriendsCoop\obj\Debug\GeometryFriendsAgents.dll
+C:\Users\Pedro\Documents\GitHub\Geometry-Friends-AI-Competition\GeometryFriendsCoop\obj\Debug\GeometryFriendsAgents.pdb
+C:\Users\Pedro\Documents\GitHub\Geometry-Friends-AI-Competition\TestAgent2\GeometryFriendsGame\Release\Agents\GeometryFriendsAgents.dll
+C:\Users\Pedro\Documents\GitHub\Geometry-Friends-AI-Competition\TestAgent2\GeometryFriendsGame\Release\Agents\GeometryFriendsAgents.pdb
+C:\Users\Pedro\Documents\GitHub\Geometry-Friends-AI-Competition\TestAgent2\obj\Debug\GeometryFriendsAgents.csprojAssemblyReference.cache
+C:\Users\Pedro\Documents\GitHub\Geometry-Friends-AI-Competition\TestAgent2\obj\Debug\GeometryFriendsAgents.csproj.CoreCompileInputs.cache
+C:\Users\Pedro\Documents\GitHub\Geometry-Friends-AI-Competition\TestAgent2\obj\Debug\GeometryFriendsAgents.dll
+C:\Users\Pedro\Documents\GitHub\Geometry-Friends-AI-Competition\TestAgent2\obj\Debug\GeometryFriendsAgents.pdb
+C:\Users\Pedro\Documents\GitHub\Geometry-Friends-AI-Competition\TestAgent\GeometryFriendsGame\Release\Agents\GeometryFriendsAgents.dll
+C:\Users\Pedro\Documents\GitHub\Geometry-Friends-AI-Competition\TestAgent\GeometryFriendsGame\Release\Agents\GeometryFriendsAgents.pdb
+C:\Users\Pedro\Documents\GitHub\Geometry-Friends-AI-Competition\TestAgent\obj\Debug\GeometryFriendsAgents.csprojAssemblyReference.cache
+C:\Users\Pedro\Documents\GitHub\Geometry-Friends-AI-Competition\TestAgent\obj\Debug\GeometryFriendsAgents.csproj.CoreCompileInputs.cache
+C:\Users\Pedro\Documents\GitHub\Geometry-Friends-AI-Competition\TestAgent\obj\Debug\GeometryFriendsAgents.dll
+C:\Users\Pedro\Documents\GitHub\Geometry-Friends-AI-Competition\TestAgent\obj\Debug\GeometryFriendsAgents.pdb

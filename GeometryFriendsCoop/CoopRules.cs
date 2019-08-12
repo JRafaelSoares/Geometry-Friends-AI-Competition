@@ -9,20 +9,35 @@ using GeometryFriends.AI.Perceptions.Information;
 
 namespace GeometryFriendsAgents
 {
-    class CoopRules
+    public class CoopRules
     {
         private int pixelSize = 40;
-        List<List<PixelType>> levelInfo;
+        private List<List<PixelType>> levelInfo;
+        private CollectibleRepresentation[] diamonds;
+        CollectibleRepresentation[] circleDiamonds;
+        CollectibleRepresentation[] rectangleDiamonds;
+        CollectibleRepresentation[] coopDiamonds;
+        private Rectangle levelArea;
 
         public CoopRules(Rectangle area, CollectibleRepresentation[] diamonds, ObstacleRepresentation[] platforms, ObstacleRepresentation[] rectanglePlatforms, ObstacleRepresentation[] circlePlatforms)
         {
-            levelInfo = new List<List<PixelType>>((int)(area.Height / pixelSize));
+            this.diamonds = diamonds;
+            levelArea = area;
 
-            for(int y = 0; y < (int)(area.Height / pixelSize); y++)
+            foreach(ObstacleRepresentation platform in platforms)
             {
-                levelInfo.Add(new List<PixelType>((int)(area.Width / pixelSize)));
+                Debug.Print(platform.ToString() + "\n");
+            }
 
-                for(int x = 0; x < (int)(area.Width / pixelSize); x++)
+            Debug.Print("\n\n\n");
+
+            levelInfo = new List<List<PixelType>>((int)(area.Height / pixelSize + 1));
+
+            for(int y = 0; y <= (int)(area.Height / pixelSize); y++)
+            {
+                levelInfo.Add(new List<PixelType>((int)(area.Width / pixelSize + 1)));
+
+                for(int x = 0; x <= (int)(area.Width / pixelSize); x++)
                 {
                     levelInfo[y].Add(PixelType.NONE);
                 }
@@ -32,11 +47,11 @@ namespace GeometryFriendsAgents
 
             foreach (ObstacleRepresentation platform in platforms)
             {
-                int startX = (int)(platform.X / pixelSize);
-                int endX = (int)Math.Ceiling((platform.X + platform.Width) / pixelSize);
+                int startX = (int)((platform.X - area.X - (platform.Width / 2)) / pixelSize);
+                int endX = Math.Min((int)Math.Ceiling((platform.X - area.X + (platform.Width / 2)) / pixelSize), area.Width / pixelSize);
 
-                int startY = (int)(platform.Y / pixelSize);
-                int endY = (int)Math.Ceiling((platform.Y + platform.Height) / pixelSize);
+                int startY = (int)((platform.Y - area.Y - (platform.Height / 2)) / pixelSize);
+                int endY = Math.Min((int)Math.Ceiling((platform.Y - area.Y + (platform.Height / 2)) / pixelSize), area.Height / pixelSize);
 
                 for (int y = startY; y <= endY; y++) 
                 {
@@ -49,11 +64,11 @@ namespace GeometryFriendsAgents
 
             foreach(ObstacleRepresentation platform in rectanglePlatforms)
             {
-                int startX = (int)(platform.X / pixelSize);
-                int endX = (int)Math.Ceiling((platform.X + platform.Width) / pixelSize);
+                int startX = (int)((platform.X - area.X - (platform.Width / 2)) / pixelSize);
+                int endX = Math.Min((int)Math.Ceiling((platform.X - area.X + (platform.Width / 2)) / pixelSize), area.Width / pixelSize);
 
-                int startY = (int)(platform.Y / pixelSize);
-                int endY = (int)Math.Ceiling((platform.Y + platform.Height) / pixelSize);
+                int startY = (int)((platform.Y - area.Y - (platform.Height / 2)) / pixelSize);
+                int endY = Math.Min((int)Math.Ceiling((platform.Y - area.Y + (platform.Height / 2)) / pixelSize), area.Height / pixelSize);
 
                 for (int y = startY; y <= endY; y++) 
                 {
@@ -66,11 +81,11 @@ namespace GeometryFriendsAgents
 
             foreach(ObstacleRepresentation platform in circlePlatforms)
             {
-                int startX = (int)(platform.X / pixelSize);
-                int endX = (int)Math.Ceiling((platform.X + platform.Width) / pixelSize);
+                int startX = (int)((platform.X - area.X - (platform.Width / 2)) / pixelSize);
+                int endX = Math.Min((int)Math.Ceiling((platform.X - area.X + (platform.Width / 2)) / pixelSize), area.Width / pixelSize);
 
-                int startY = (int)(platform.Y / pixelSize);
-                int endY = (int)Math.Ceiling((platform.Y + platform.Height) / pixelSize);
+                int startY = (int)((platform.Y - area.Y - (platform.Height / 2)) / pixelSize);
+                int endY = Math.Min((int)Math.Ceiling((platform.Y - area.Y + (platform.Height / 2)) / pixelSize), area.Height / pixelSize);
 
                 for (int y = startY; y <= endY; y++) 
                 {
@@ -83,7 +98,24 @@ namespace GeometryFriendsAgents
 
             foreach(CollectibleRepresentation diamond in diamonds)
             {
-                levelInfo[(int)(diamond.X / pixelSize)][(int)(diamond.Y / pixelSize)] = PixelType.DIAMOND;
+                int x = Math.Min((int)((diamond.X - area.X) / pixelSize), area.Width / pixelSize);
+                int y = Math.Min((int)((diamond.Y - area.Y) / pixelSize), area.Height / pixelSize);
+
+                levelInfo[y][x] = PixelType.DIAMOND;
+            }
+        }
+
+        void ApplyRules()
+        {
+            List<CollectibleRepresentation> tmpCircleDiamonds = new List<CollectibleRepresentation>();
+            List<CollectibleRepresentation> tmpRectangleDiamonds = new List<CollectibleRepresentation>();
+            List<CollectibleRepresentation> tmpCoopDiamonds = new List<CollectibleRepresentation>();
+
+            foreach(CollectibleRepresentation diamond in diamonds)
+            {
+                // Rules return 0 for circleDiamonds, 1 for rectangleDiamonds, 2 for coopDiamonds and 3 for no decision
+
+                
             }
         }
 
@@ -92,15 +124,30 @@ namespace GeometryFriendsAgents
         {
             String result = "";
 
+            for (int y = 0; y < levelInfo[0].Count + 1; y++)
+            {
+                result += "++";
+            }
+
+            result += "\n";
+
             for (int y = 0; y < levelInfo.Count; y++) 
             {
+                result += "+";
                 for (int x = 0; x < levelInfo[0].Count; x++)
                 {
-                    result += levelInfo[y][x] + " ";
+                    result += levelInfo[y][x] == PixelType.PLATFORM ? "PP" : (levelInfo[y][x] == PixelType.DIAMOND ? "DD" : "  ");
                 }
 
-                result += "\n";
+                result += "+\n";
             }
+
+            for (int y = 0; y < levelInfo[0].Count + 1; y++)
+            {
+                result += "++";
+            }
+
+            result += "\n";
 
             return result;
         }

@@ -7,6 +7,7 @@ using GeometryFriends.AI.Interfaces;
 using GeometryFriends.AI.Perceptions.Information;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 
 namespace GeometryFriendsAgents
@@ -26,6 +27,10 @@ namespace GeometryFriendsAgents
         private long lastMoveTime;
         private Random rnd;
         private int actionCounter;
+
+        private int previousCount;
+        private float previousX;
+        private float previousY;
 
         //predictor of actions for the circle
         private ActionSimulator predictor = null;
@@ -63,6 +68,9 @@ namespace GeometryFriendsAgents
             lastMoveTime = DateTime.Now.Second;
             currentAction = Moves.NO_ACTION;
             rnd = new Random();
+
+            actionCounter = 0;
+            previousCount = 0;
 
             //prepare the possible moves  
             possibleMoves = new List<Moves>();
@@ -110,12 +118,23 @@ namespace GeometryFriendsAgents
             rectangleInfo = rI;
             circleInfo = cI;
             collectiblesInfo = colI;
-            lock (remaining)
+
+            if(previousCount < 10)
             {
-                remaining = new List<CollectibleRepresentation>(collectiblesInfo);
+                if (actionCounter > 100/* && Math.Abs(cI.X - previousX) <= 0.001*/ && Math.Abs(cI.Y - previousY) <= 0.1)
+                {
+                    previousCount++;
+                }
+                else
+                {
+                    previousCount = 0;
+                }
+
+                Debug.Print(cI.X.ToString() + ";" + cI.Y.ToString() + ";" + cI.VelocityX.ToString() + ";" + cI.VelocityY.ToString() + ";");
             }
 
-            //DebugSensorsInfo();
+            previousX = cI.X;
+            previousY = cI.Y;
         }
 
         //implements abstract circle interface: provides the circle agent with a simulator to make predictions about the future level state
@@ -155,97 +174,20 @@ namespace GeometryFriendsAgents
         //implements abstract circle interface: GeometryFriends agents manager gets the current action intended to be actuated in the enviroment for this agent
         public override Moves GetAction()
         {
-            return currentAction;
+            actionCounter++;
+
+            if(actionCounter <= 100)
+            {
+                return Moves.JUMP;
+            }
+
+            return Moves.NO_ACTION;
         }
 
         //implements abstract circle interface: updates the agent state logic and predictions
         public override void Update(TimeSpan elapsedGameTime)
         {
-            //Every second one new action is choosen
-            if (lastMoveTime == 60)
-                lastMoveTime = 0;
-
-            if ((lastMoveTime) <= (DateTime.Now.Second) && (lastMoveTime < 60))
-            {
-                if (!(DateTime.Now.Second == 59))
-                {
-                    RandomAction();
-                    lastMoveTime = lastMoveTime + 1;
-                    //DebugSensorsInfo();                    
-                }
-                else
-                    lastMoveTime = 60;
-            }
-
-            //check if any collectible was caught
-            lock (remaining)
-            {
-                if (remaining.Count > 0)
-                {
-                    List<CollectibleRepresentation> toRemove = new List<CollectibleRepresentation>();
-                    foreach (CollectibleRepresentation item in uncaughtCollectibles)
-                    {
-                        if (!remaining.Contains(item))
-                        {
-                            caughtCollectibles.Add(item);
-                            toRemove.Add(item);
-                        }
-                    }
-                    foreach (CollectibleRepresentation item in toRemove)
-                    {
-                        uncaughtCollectibles.Remove(item);
-                    }
-                }
-            }
-
-            //predict what will happen to the agent given the current state and current action
-            if (predictor != null) //predictions are only possible where the agents manager provided
-            {
-                /*
-                 * 1) simulator can only be properly used when the Circle and Rectangle characters are ready, this must be ensured for smooth simulation
-                 * 2) in this implementation we only wish to simulate a future state when whe have a fresh simulator instance, i.e. the generated debug information is empty
-                */
-                if (predictor.CharactersReady() && predictor.SimulationHistoryDebugInformation.Count == 0)
-                {
-                    List<CollectibleRepresentation> simCaughtCollectibles = new List<CollectibleRepresentation>();
-                    //keep a local reference to the simulator so that it can be updated even whilst we are performing simulations
-                    ActionSimulator toSim = predictor;
-
-                    //prepare the desired debug information (to observe this information during the game press F1)
-                    toSim.DebugInfo = true;
-                    //you can also select the type of debug information generated by the simulator to circle only, rectangle only or both as it is set by default
-                    //toSim.DebugInfoSelected = ActionSimulator.DebugInfoMode.Circle;
-
-                    //setup the current circle action in the simulator
-                    toSim.AddInstruction(currentAction);
-
-                    //register collectibles that are caught during simulation
-                    toSim.SimulatorCollectedEvent += delegate(Object o, CollectibleRepresentation col) { simCaughtCollectibles.Add(col); };
-                    
-                    //simulate 2 seconds (predict what will happen 2 seconds ahead)
-                    toSim.Update(2);
-
-                    //prepare all the debug information to be passed to the agents manager
-                    List<DebugInformation> newDebugInfo = new List<DebugInformation>();
-                    //clear any previously passed debug information (information passed to the manager is cumulative unless cleared in this way)
-                    newDebugInfo.Add(DebugInformationFactory.CreateClearDebugInfo());
-                    //add all the simulator generated debug information about circle/rectangle predicted paths
-                    newDebugInfo.AddRange(toSim.SimulationHistoryDebugInformation);
-                    //create additional debug information to visualize collectibles that have been predicted to be caught by the simulator
-                    foreach (CollectibleRepresentation item in simCaughtCollectibles)
-                    {
-                        newDebugInfo.Add(DebugInformationFactory.CreateCircleDebugInfo(new PointF(item.X - debugCircleSize / 2, item.Y - debugCircleSize / 2), debugCircleSize, GeometryFriends.XNAStub.Color.Red));
-                        newDebugInfo.Add(DebugInformationFactory.CreateTextDebugInfo(new PointF(item.X, item.Y), "Predicted catch!", GeometryFriends.XNAStub.Color.White));
-                    }
-                    //create additional debug information to visualize collectibles that have already been caught by the agent
-                    foreach (CollectibleRepresentation item in caughtCollectibles)
-                    {
-                        newDebugInfo.Add(DebugInformationFactory.CreateCircleDebugInfo(new PointF(item.X - debugCircleSize / 2, item.Y - debugCircleSize / 2), debugCircleSize, GeometryFriends.XNAStub.Color.GreenYellow));
-                    }                 
-                    //set all the debug information to be read by the agents manager
-                    debugInfo = newDebugInfo.ToArray();                    
-                }
-            }
+            
         }
 
         //typically used console debugging used in previous implementations of GeometryFriends

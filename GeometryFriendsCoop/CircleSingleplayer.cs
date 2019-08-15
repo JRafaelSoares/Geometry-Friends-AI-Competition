@@ -536,7 +536,7 @@ namespace GeometryFriendsAgents
                 sim.setSimulator(circleInfo.X, circleInfo.Y, circleInfo.VelocityX, circleInfo.VelocityY, remainingDiamonds);
 
                 //TEST
-                RRT.setDiamonds(remainingDiamonds);
+                RRT.setDiamonds(Diamonds);
 
                 State initialState = new State(circleInfo.X, circleInfo.Y, circleInfo.VelocityX, circleInfo.VelocityY, circleInfo.Radius, circleInfo.Radius, caughtDiamonds, remainingDiamonds);
                 float[] returnPos = new float[2];

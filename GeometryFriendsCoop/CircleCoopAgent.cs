@@ -20,7 +20,10 @@ namespace GeometryFriendsAgents
         {
             coopRules = new CoopRules(area, diamonds, platforms, rectanglePlatforms, circlePlatforms);
             //Splits the diamonds into each category
-            coopRules.ApplyRules();
+            //coopRules.ApplyRules();
+
+            //TEST
+            coopRules.setCircleDiamonds(diamonds);
             circleAgent = circleSingleplayer;
         }
 

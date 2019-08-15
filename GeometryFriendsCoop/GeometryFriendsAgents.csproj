@@ -48,6 +48,7 @@
     <Compile Include="Area.cs" />
     <Compile Include="CircleAgent.cs" />
     <Compile Include="CircleController.cs" />
+    <Compile Include="RectangleCoopAgent.cs" />
     <Compile Include="CircleCoopAgent.cs" />
     <Compile Include="OldMultiplayer\CircleControllerMP.cs" />
     <Compile Include="CircleMultiplayer.cs" />

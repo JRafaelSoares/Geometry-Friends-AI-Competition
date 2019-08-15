@@ -171,6 +171,24 @@ namespace GeometryFriendsAgents
             return coopDiamonds;
         }
 
+        /********************************************/
+        /***************** SETTERS ******************/
+        /********************************************/
+
+        public void setCircleDiamonds(CollectibleRepresentation[] diamondInfo)
+        {
+            circleDiamonds = diamondInfo;
+        }
+
+        public void setRectangleDiamonds(CollectibleRepresentation[] diamondInfo)
+        {
+            rectangleDiamonds = diamondInfo;
+        }
+        public void setCoopDiamonds(CollectibleRepresentation[] diamondInfo)
+        {
+            coopDiamonds = diamondInfo;
+        }
+
         /**********************************/
         /********* DIAMOND UPDATES ********/
         /**********************************/

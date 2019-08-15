@@ -17,6 +17,9 @@
     <GreenElevators />
     <OrangeElevators />
     <TimeLimit value="120" />
+    <HighScores>
+      <HighScore name="RRTRectangle2017" value="74" />
+    </HighScores>
   </Level1>
   <Level2>
     <Description />

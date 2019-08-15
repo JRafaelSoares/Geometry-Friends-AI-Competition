@@ -60,7 +60,9 @@
     <Compile Include="DiamondInfo.cs" />
     <Compile Include="GoalType.cs" />
     <Compile Include="Node.cs" />
+    <Compile Include="NodeGS.cs" />
     <Compile Include="NodeMP.cs" />
+    <Compile Include="NodeSimulator.cs" />
     <Compile Include="PathPlan.cs" />
     <Compile Include="PathPlanMP.cs" />
     <Compile Include="PixelType.cs" />
@@ -79,12 +81,15 @@
     <Compile Include="RectangleSTPMP.cs" />
     <Compile Include="RRTTypes.cs" />
     <Compile Include="RRTUtils.cs" />
+    <Compile Include="RRTUtilsGS.cs" />
     <Compile Include="RRTUtilsMP.cs" />
     <Compile Include="Simulator.cs" />
     <Compile Include="State.cs" />
     <Compile Include="StateMP.cs" />
     <Compile Include="Tree.cs" />
+    <Compile Include="TreeGS.cs" />
     <Compile Include="TreeMP.cs" />
+    <Compile Include="TreeSimulator.cs" />
     <Compile Include="Utils.cs" />
   </ItemGroup>
   <ItemGroup />

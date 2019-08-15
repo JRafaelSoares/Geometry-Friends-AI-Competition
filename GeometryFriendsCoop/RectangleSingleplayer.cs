@@ -50,8 +50,7 @@ namespace GeometryFriendsAgents
         private int nCollectiblesLeft;
 
         //RRT tree
-        private RRTUtils RRT;
-        private RRTUtilsMP RRTMP;
+        private RRTUtilsGS RRT;
         private Tree T;
         private Tree TReturn;
         private TreeMP TMP;
@@ -66,7 +65,6 @@ namespace GeometryFriendsAgents
         private bool planRRT = true;
         private bool newPlan = true;
         //simulator
-        Simulator sim;
         //time of simulation
         private float actionTime = 2.1f;
         private float actionTimeMargin = 0.5f;
@@ -104,6 +102,8 @@ namespace GeometryFriendsAgents
         private bool firstAction3;
         private bool lastAction = false;
         private List<DiamondInfo> Diamonds;
+        private List<DiamondInfo> remainingDiamonds = new List<DiamondInfo>();
+        private List<DiamondInfo> caughtDiamonds = new List<DiamondInfo>();
         private List<Platform> Platforms;
         private Platform ground;
         private int[,] levelLayout;
@@ -203,7 +203,7 @@ namespace GeometryFriendsAgents
             utils.writeStart(1);
 
             //search - state - original; action - original; no partial plans
-            RRT = new RRTUtils(actionTime, simTime, simTimeFinish, getPossibleMoves(), type, area, collectiblesInfo.Length, RRTTypes.Original, RRTTypes.Original, obstaclesInfo, gSpeed, Diamonds, Platforms, utils, false, false);
+            //RRT = new RRTUtilsGS(actionTime, simTime, simTimeFinish, getPossibleMoves(), type, area, collectiblesInfo.Length, RRTTypes.Original, RRTTypes.Original, obstaclesInfo, gSpeed, Diamonds, Platforms, utils, false, false);
             //search - state - original; action - STP; biasSTP - 0.25/0.5/0.75; no partial plans
             //RRT = new RRTUtils(actionTime, simTime, simTimeFinish, getPossibleMoves(), type, area, collectiblesInfo.Length, RRTTypes.Original, RRTTypes.STP, obstaclesInfo, gSpeed, Diamonds, Platforms, utils, false, false);
             //search - state - bias - 0.25/0.50/0.75; action - STP; biasSTP;  no partial plans
@@ -218,7 +218,7 @@ namespace GeometryFriendsAgents
             //RRT = new RRTUtils(actionTime, simTime, simTimeFinish, getPossibleMoves(), type, area, collectiblesInfo.Length, RRTTypes.AreaBias, RRTTypes.STP, obstaclesInfo, gSpeed, Diamonds, Platforms, utils, false, false);
 
             /*************FINAL*************/
-            RRT = new RRTUtils(actionTime, simTime, simTimeFinish, getPossibleMoves(), type, area, collectiblesInfo.Length, RRTTypes.BGT, RRTTypes.STP, obstaclesInfo, gSpeed, Diamonds, Platforms, utils, true, true);
+            RRT = new RRTUtilsGS(actionTime, simTime, simTimeFinish, getPossibleMoves(), type, area, collectiblesInfo.Length, RRTTypes.BGT, RRTTypes.STP, obstaclesInfo, gSpeed, Diamonds, Platforms, utils, true, true);
 
             //RRT = new RRTUtils(actionTime, simTime, simTimeFinish, getPossibleMoves(), type, area, collectiblesInfo.Length, RRTTypes.BGT, RRTTypes.Original, obstaclesInfo, gSpeed, Diamonds, Platforms, utils, false, false);
 
@@ -412,28 +412,13 @@ namespace GeometryFriendsAgents
                 //if the plan is new build a new tree
                 if (newPlan)
                 {
-                    List<DiamondInfo> remainingDiamonds = new List<DiamondInfo>();
-                    List<DiamondInfo> caughtDiamonds = new List<DiamondInfo>();
-                    foreach (DiamondInfo diamond in Diamonds)
-                    {
-                        if (!diamond.wasCaught())
-                        {
-                            remainingDiamonds.Add(diamond);
-                        }
-                        else
-                        {
-                            caughtDiamonds.Add(diamond);
-                        }
-                    }
 
-                    //Initialize simulator
-                    sim.setSimulator(rectangleInfo.X, rectangleInfo.Y, rectangleInfo.VelocityX, rectangleInfo.VelocityY, Diamonds);
 
                     //update the diamond list
                     RRT.setDiamonds(Diamonds);
-                    State initialState = new State(rectangleInfo.X, rectangleInfo.Y, rectangleInfo.VelocityX, rectangleInfo.VelocityY, rectangleInfo.Height / 2, 0, caughtDiamonds, remainingDiamonds);
+                    State initialState = new State(rectangleInfo.X, rectangleInfo.Y, rectangleInfo.VelocityX, rectangleInfo.VelocityY, rectangleInfo.Height / 2, 0, caughtCollectibles, uncaughtCollectibles);
                     //run algorithm
-                    T = RRT.buildNewRRT(initialState, sim, iterationsS);
+                    T = RRT.buildNewRRT(initialState, predictor, iterationsS);
                 }
                 else //continue the previous tree
                 {
@@ -739,6 +724,23 @@ namespace GeometryFriendsAgents
                 hasStarted = true;
                 searchTime = new Stopwatch();
                 searchTime.Start();
+            }
+        }
+
+        private void updateDiamonds()
+        {
+            remainingDiamonds = new List<DiamondInfo>();
+            caughtDiamonds = new List<DiamondInfo>();
+            foreach (DiamondInfo diamond in Diamonds)
+            {
+                if (!diamond.wasCaught())
+                {
+                    remainingDiamonds.Add(diamond);
+                }
+                else
+                {
+                    caughtDiamonds.Add(diamond);
+                }
             }
         }
     }

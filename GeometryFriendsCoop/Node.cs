@@ -20,21 +20,18 @@ namespace GeometryFriendsAgents
         //actions that can still be tested
         private List<Moves> remainingMoves;
         private bool remainingSTPActions;
-        //simulator
-        Simulator predictor;
         //debug info
         private List<DebugInformation> debugInfo;
         //bgt
         private bool leaf;
         private bool explored = false;
 
-        public Node(Node p, State s, Moves action, Simulator sim, List<Moves> moves)
+        public Node(Node p, State s, Moves action, List<Moves> moves)
         {
             parent = p;
             state = s;
             treeDepth = 0;
             previousAction = action;
-            predictor = sim;
             children = new List<Node>();
             remainingMoves = moves;
             remainingSTPActions = true;
@@ -77,11 +74,6 @@ namespace GeometryFriendsAgents
         public Moves getAction()
         {
             return previousAction;
-        }
-
-        public Simulator getPredictor()
-        {
-            return predictor;
         }
 
         public List<DebugInformation> getDebugInfo()

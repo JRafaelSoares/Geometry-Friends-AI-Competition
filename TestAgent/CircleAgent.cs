@@ -65,7 +65,7 @@ namespace GeometryFriendsAgents
             implementedAgent = true;
 
             //setup for action updates
-            lastMoveTime = DateTime.Now.Second;
+            lastMoveTime = DateTime.Now.Ticks;
             currentAction = Moves.NO_ACTION;
             rnd = new Random();
 
@@ -121,7 +121,7 @@ namespace GeometryFriendsAgents
 
             if(previousCount < 10)
             {
-                if (actionCounter > 100/* && Math.Abs(cI.X - previousX) <= 0.001*/ && Math.Abs(cI.Y - previousY) <= 0.1)
+                if (actionCounter > 100 /*&& Math.Abs(cI.X - previousX) <= 0.1 /*&& Math.Abs(cI.Y - previousY) <= 0.1*/)
                 {
                     previousCount++;
                 }
@@ -130,7 +130,7 @@ namespace GeometryFriendsAgents
                     previousCount = 0;
                 }
 
-                Debug.Print(cI.X.ToString() + ";" + cI.Y.ToString() + ";" + cI.VelocityX.ToString() + ";" + cI.VelocityY.ToString() + ";");
+                Debug.Print(((double)(DateTime.Now.Ticks - lastMoveTime) / 10000000).ToString() + "," + cI.X.ToString() + "," + (760 - cI.Y).ToString() + "," + cI.VelocityX.ToString() + "," + (-cI.VelocityY).ToString() + ",");
             }
 
             previousX = cI.X;
@@ -176,9 +176,9 @@ namespace GeometryFriendsAgents
         {
             actionCounter++;
 
-            if(actionCounter <= 100)
+            if(actionCounter >= 100 && actionCounter <= 110)
             {
-                return Moves.JUMP;
+                return Moves.ROLL_RIGHT;
             }
 
             return Moves.NO_ACTION;

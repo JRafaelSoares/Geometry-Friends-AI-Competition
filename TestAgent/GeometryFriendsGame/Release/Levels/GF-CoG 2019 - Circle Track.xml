@@ -111,10 +111,11 @@
   <Level6>
     <Description />
     <Tips />
-    <BallStartingPosition X="168" Y="720" />
+    <BallStartingPosition X="80" Y="720" />
     <SquareStartingPosition X="-5000" Y="-5000" />
     <Collectibles>
-		<Collectible X="-1000" Y="-1000" />
+		<Collectible X="100" Y="100" />
+		<Collectible X="168" Y="644.85" />
     </Collectibles>
     <GreenObstacles />
     <BlackObstacles />

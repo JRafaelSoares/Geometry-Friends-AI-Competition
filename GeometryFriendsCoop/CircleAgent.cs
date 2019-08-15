@@ -21,7 +21,7 @@ namespace GeometryFriendsAgents
 
         //game type
         private CircleSingleplayer singlePlayer;
-        private CircleCoopAgent multiPlayer;
+        private CircleMultiplayer multiPlayer;
         private int gameMode;
 
         //for tests
@@ -38,18 +38,18 @@ namespace GeometryFriendsAgents
         //implements abstract circle interface: used to setup the initial information so that the agent has basic knowledge about the level
         public override void Setup(CountInformation nI, RectangleRepresentation rI, CircleRepresentation cI, ObstacleRepresentation[] oI, ObstacleRepresentation[] rPI, ObstacleRepresentation[] cPI, CollectibleRepresentation[] colI, Rectangle area, double timeLimit)
         {
-            singlePlayer = new CircleSingleplayer(cutplan, testing, timer);
             //check if it is a single or multiplayer level
             if (rI.X < 0 || rI.Y < 0)
             {
                 //if the circle has negative position then this is a single player level
                 gameMode = 0;
+                singlePlayer = new CircleSingleplayer(cutplan, testing, timer);
                 singlePlayer.Setup(nI, rI, cI, oI, rPI, cPI, colI, area, timeLimit);
             }
             else
             {
                 gameMode = 1;
-                multiPlayer = new CircleCoopAgent(area, colI, oI, rPI, cPI, singlePlayer);
+                multiPlayer = new CircleMultiplayer(false, testing, timer);
                 multiPlayer.Setup(nI, rI, cI, oI, rPI, cPI, colI, area, timeLimit);
             }
         }

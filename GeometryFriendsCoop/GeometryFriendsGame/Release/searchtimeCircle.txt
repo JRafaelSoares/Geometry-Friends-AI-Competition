@@ -116,18 +116,3 @@ Level Started
 Explored Nodes (Once): 193
 Explored Nodes (Total): 382
 TotalNodes: 194
-Level Started
-0,299
-Explored Nodes (Once): 187
-Explored Nodes (Total): 382
-TotalNodes: 188
-Level Started
-0,238
-Explored Nodes (Once): 66
-Explored Nodes (Total): 84
-TotalNodes: 67
-Level Started
-0,315
-Explored Nodes (Once): 218
-Explored Nodes (Total): 444
-TotalNodes: 219

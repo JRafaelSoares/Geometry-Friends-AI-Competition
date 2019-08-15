@@ -105,7 +105,7 @@ namespace GeometryFriendsAgents
             }
         }
 
-        void ApplyRules()
+        public void ApplyRules()
         {
             List<CollectibleRepresentation> tmpCircleDiamonds = new List<CollectibleRepresentation>();
             List<CollectibleRepresentation> tmpRectangleDiamonds = new List<CollectibleRepresentation>();
@@ -119,8 +119,8 @@ namespace GeometryFriendsAgents
             }
         }
 
-        override
-        public String ToString()
+        
+        public override String ToString()
         {
             String result = "";
 
@@ -150,6 +150,86 @@ namespace GeometryFriendsAgents
             result += "\n";
 
             return result;
+        }
+
+        /********************************************/
+        /***************** GETTERS ******************/
+        /********************************************/
+
+        public CollectibleRepresentation[] getCircleDiamonds()
+        {
+            return circleDiamonds;
+        }
+
+        public CollectibleRepresentation[] getRectangleDiamonds()
+        {
+            return rectangleDiamonds;
+        }
+
+        public CollectibleRepresentation[] getCoopDiamonds()
+        {
+            return coopDiamonds;
+        }
+
+        /**********************************/
+        /********* DIAMOND UPDATES ********/
+        /**********************************/
+
+        //Since SensorUpdate gets all Diamonds, we need to keep filtering the diamonds to see which ones got caught
+        public CollectibleRepresentation[] updateCircleDiamonds(CollectibleRepresentation[] diamondInfo)
+        {
+            CollectibleRepresentation[] newDiamondCollectible = new CollectibleRepresentation[circleDiamonds.Count()];
+            int i = 0;
+
+            foreach(CollectibleRepresentation diamond in diamondInfo)
+            {
+                //if contains work
+                if (circleDiamonds.Contains(diamond))
+                {
+                    newDiamondCollectible[i] = diamond;
+                    i++;
+                }
+                //if it doesnt we need to do it hardcoded by transversing the vectors
+            }
+
+            circleDiamonds = newDiamondCollectible;
+            return circleDiamonds;
+        }
+
+        public CollectibleRepresentation[] updateRectangleDiamonds(CollectibleRepresentation[] diamondInfo)
+        {
+            CollectibleRepresentation[] newDiamondCollectible = new CollectibleRepresentation[rectangleDiamonds.Count()];
+            int i = 0;
+
+            foreach (CollectibleRepresentation diamond in diamondInfo)
+            {
+                if (rectangleDiamonds.Contains(diamond))
+                {
+                    newDiamondCollectible[i] = diamond;
+                    i++;
+                }
+            }
+
+            rectangleDiamonds = newDiamondCollectible;
+            return rectangleDiamonds;
+        }
+
+        public CollectibleRepresentation[] updateCoopDiamonds(CollectibleRepresentation[] diamondInfo)
+        {
+            CollectibleRepresentation[] newDiamondCollectible = new CollectibleRepresentation[coopDiamonds.Count()];
+            int i = 0;
+
+            foreach (CollectibleRepresentation diamond in diamondInfo)
+            {
+                if (coopDiamonds.Contains(diamond))
+                {
+                    newDiamondCollectible[i] = diamond;
+                    i++;
+                }
+            }
+
+            coopDiamonds = newDiamondCollectible;
+            return coopDiamonds;
         }
     }
 }

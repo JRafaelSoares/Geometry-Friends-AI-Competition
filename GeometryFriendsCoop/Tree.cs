@@ -29,9 +29,8 @@ namespace GeometryFriendsAgents
         private Random rnd;
 
         //constructor
-        public Tree(State initialState, Simulator sim, List<Moves> moves, bool BGT)
+        public Tree(State initialState, List<Moves> moves, bool BGT)
         {
-            root = new Node(null, initialState, 0, sim, moves);
             nodes = new List<Node>();
             open = new List<Node>();
             closed = new List<Node>();
@@ -46,7 +45,6 @@ namespace GeometryFriendsAgents
                 leafNodes = new List<Node>();
             }
 
-            addNode(root);
             rnd = new Random();
         }
 
@@ -89,6 +87,16 @@ namespace GeometryFriendsAgents
             goal = g;
         }
 
+        public void setRoot(Node root)
+        {
+            this.root = root;
+        }
+
+        public Node getRoot()
+        {
+            return root;
+        }
+
         //choose a random node from the open list and return it
         public Node getRandomNode()
         {
@@ -124,9 +132,9 @@ namespace GeometryFriendsAgents
             }
         }
 
-        public Node getRoot()
+        public bool getBGT()
         {
-            return root;
+            return bgt;
         }
 
         public Node getGoal()

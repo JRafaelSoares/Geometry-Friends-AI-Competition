@@ -597,7 +597,8 @@ namespace GeometryFriendsAgents
                     returnPos[0] = T.getRoot().getState().getPosX();
                     returnPos[1] = T.getRoot().getState().getPosY();
                     tempRRT.setReturnPos(returnPos);
-                    TReturn = tempRRT.buildNewMPRRT(finalState, T.getGoal().getPredictor(), goalMode, iterationsReturn);
+                    NodeSimulator simul = (NodeSimulator)T.getGoal();
+                    TReturn = tempRRT.buildNewMPRRT(finalState, simul.getSimulator(), goalMode, iterationsReturn);
 
                     //if a return path was found
                     if (TReturn.getGoal() != null)
@@ -623,8 +624,8 @@ namespace GeometryFriendsAgents
                             int currentDiamonds = auxNode.getParent().getState().getUncaughtCollectibles().Count;
                             if (currentDiamonds > prevDiamonds)
                             {
-                                List<DiamondInfo> prevDiamondsList = auxNode.getState().getUncaughtCollectibles();
-                                List<DiamondInfo> currentDiamondsList = auxNode.getParent().getState().getUncaughtCollectibles();
+                                List<DiamondInfo> prevDiamondsList = auxNode.getState().getUncaughtDiamonds();
+                                List<DiamondInfo> currentDiamondsList = auxNode.getParent().getState().getUncaughtDiamonds();
 
                                 foreach (DiamondInfo d1 in prevDiamondsList)
                                 {

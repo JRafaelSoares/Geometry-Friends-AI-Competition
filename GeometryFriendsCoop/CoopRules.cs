@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using GeometryFriends;
 using GeometryFriends.AI.Perceptions.Information;
+using GeometryFriends.AI.Communication;
 
 namespace GeometryFriendsAgents
 {
@@ -25,6 +26,7 @@ namespace GeometryFriendsAgents
         List<SortedDiamond> coopDiamonds;
 
         private Rectangle levelArea;
+        private List<AgentMessage> messages = new List<AgentMessage>();
 
         public CoopRules(Rectangle area, CollectibleRepresentation[] diamonds, ObstacleRepresentation[] platforms, ObstacleRepresentation[] rectanglePlatforms, ObstacleRepresentation[] circlePlatforms)
         {
@@ -197,10 +199,7 @@ namespace GeometryFriendsAgents
             return 0;
         }
 
-
-
-        override
-        public String ToString()
+        public override String ToString()
         {
             String result = "";
 
@@ -246,5 +245,116 @@ namespace GeometryFriendsAgents
 
             return result;
         }
+
+        /********************************************/
+        /***************** GETTERS ******************/
+        /********************************************/
+
+        public CollectibleRepresentation[] getCircleDiamonds()
+        {
+            return circleDiamonds;
+        }
+
+        public CollectibleRepresentation[] getRectangleDiamonds()
+        {
+            return rectangleDiamonds;
+        }
+
+        public CollectibleRepresentation[] getCoopDiamonds()
+        {
+            return coopDiamonds;
+        }
+
+        /********************************************/
+        /***************** SETTERS ******************/
+        /********************************************/
+
+        public void setCircleDiamonds(CollectibleRepresentation[] diamondInfo)
+        {
+            circleDiamonds = diamondInfo;
+        }
+
+        public void setRectangleDiamonds(CollectibleRepresentation[] diamondInfo)
+        {
+            rectangleDiamonds = diamondInfo;
+        }
+        public void setCoopDiamonds(CollectibleRepresentation[] diamondInfo)
+        {
+            coopDiamonds = diamondInfo;
+        }
+
+        /**********************************/
+        /********* DIAMOND UPDATES ********/
+        /**********************************/
+
+        //Since SensorUpdate gets all Diamonds, we need to keep filtering the diamonds to see which ones got caught
+        public CollectibleRepresentation[] updateCircleDiamonds(CollectibleRepresentation[] diamondInfo)
+        {
+            CollectibleRepresentation[] newDiamondCollectible = new CollectibleRepresentation[circleDiamonds.Count()];
+            int i = 0;
+
+            foreach(CollectibleRepresentation diamond in diamondInfo)
+            {
+                //if contains work
+                if (circleDiamonds.Contains(diamond))
+                {
+                    newDiamondCollectible[i] = diamond;
+                    i++;
+                }
+                //if it doesnt we need to do it hardcoded by transversing the vectors
+            }
+
+            circleDiamonds = newDiamondCollectible;
+            return circleDiamonds;
+        }
+
+        public CollectibleRepresentation[] updateRectangleDiamonds(CollectibleRepresentation[] diamondInfo)
+        {
+            CollectibleRepresentation[] newDiamondCollectible = new CollectibleRepresentation[rectangleDiamonds.Count()];
+            int i = 0;
+
+            foreach (CollectibleRepresentation diamond in diamondInfo)
+            {
+                if (rectangleDiamonds.Contains(diamond))
+                {
+                    newDiamondCollectible[i] = diamond;
+                    i++;
+                }
+            }
+
+            rectangleDiamonds = newDiamondCollectible;
+            return rectangleDiamonds;
+        }
+
+        public CollectibleRepresentation[] updateCoopDiamonds(CollectibleRepresentation[] diamondInfo)
+        {
+            CollectibleRepresentation[] newDiamondCollectible = new CollectibleRepresentation[coopDiamonds.Count()];
+            int i = 0;
+
+            foreach (CollectibleRepresentation diamond in diamondInfo)
+            {
+                if (coopDiamonds.Contains(diamond))
+                {
+                    newDiamondCollectible[i] = diamond;
+                    i++;
+                }
+            }
+
+            coopDiamonds = newDiamondCollectible;
+            return coopDiamonds;
+        }
+
+        
+        public void sendRectangleDiamonds()
+        {
+            messages.Add(new AgentMessage("Sending RectangleDiamongs", rectangleDiamonds));
+        }
+
+        public void recieveRectangleDiamonds()
+        {
+            rectangleDiamonds = (CollectibleRepresentation[]) messages[0].Attachment;
+        }
     }
+
+    
 }

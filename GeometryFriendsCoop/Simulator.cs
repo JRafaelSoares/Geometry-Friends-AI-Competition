@@ -33,7 +33,7 @@ namespace GeometryFriendsAgents
         protected const float restitCoef = 0.4f;
         protected const float gravity = 10 * stepPSec;
         protected const float radius = 40;
-        protected const float diamondRadius = 35; //VERIFICAR
+        protected const float diamondRadius = 10; //VERIFICAR
 
         //margins of error
         protected const float yMargin = 5;

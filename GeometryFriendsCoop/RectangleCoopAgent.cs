@@ -22,9 +22,11 @@ namespace GeometryFriendsAgents
             //Splits the diamonds into each category
             //Testing
             coopRules.setRectangleDiamonds(diamonds);
-            
+
             //Actual function
             //coopRules.ApplyRules();
+            //coopRules.recieveRectangleDiamonds();
+
             rectangleAgent = rectangleSingleplayer;
         }
 

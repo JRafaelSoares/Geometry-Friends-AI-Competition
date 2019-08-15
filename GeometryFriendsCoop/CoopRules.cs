@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using GeometryFriends;
 using GeometryFriends.AI.Perceptions.Information;
+using GeometryFriends.AI.Communication;
 
 namespace GeometryFriendsAgents
 {
@@ -18,6 +19,7 @@ namespace GeometryFriendsAgents
         CollectibleRepresentation[] rectangleDiamonds;
         CollectibleRepresentation[] coopDiamonds;
         private Rectangle levelArea;
+        private List<AgentMessage> messages = new List<AgentMessage>();
 
         public CoopRules(Rectangle area, CollectibleRepresentation[] diamonds, ObstacleRepresentation[] platforms, ObstacleRepresentation[] rectanglePlatforms, ObstacleRepresentation[] circlePlatforms)
         {
@@ -249,5 +251,18 @@ namespace GeometryFriendsAgents
             coopDiamonds = newDiamondCollectible;
             return coopDiamonds;
         }
+
+        
+        public void sendRectangleDiamonds()
+        {
+            messages.Add(new AgentMessage("Sending RectangleDiamongs", rectangleDiamonds));
+        }
+
+        public void recieveRectangleDiamonds()
+        {
+            rectangleDiamonds = (CollectibleRepresentation[]) messages[0].Attachment;
+        }
     }
+
+    
 }

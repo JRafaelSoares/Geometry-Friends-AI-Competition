@@ -308,7 +308,6 @@ namespace GeometryFriendsAgents
             }
 
             State selectedState = node.getState();
-            Debug.WriteLine("Number of collectibles: " + selectedState.getNumberUncaughtCollectibles());
             NodeGS nodePredictor = (NodeGS)node;
             ActionSimulator selectedSim = nodePredictor.getSimulator().CreateUpdatedSimulator();
 

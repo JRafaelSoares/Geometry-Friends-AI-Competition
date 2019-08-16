@@ -670,7 +670,7 @@ namespace GeometryFriendsAgents
         //For tests:  1- search; 2- completion
         public void writeTimeToFile(int type, int character, Stopwatch searchTime, float gSpeed)
         {
-            float timeTaken = searchTime.ElapsedMilliseconds * 0.001f * gSpeed;
+            /*float timeTaken = searchTime.ElapsedMilliseconds * 0.001f * gSpeed;
             string timeText = timeTaken.ToString();
             String filePath;
 
@@ -714,7 +714,7 @@ namespace GeometryFriendsAgents
             //        file.WriteLine(timeText);
             //    }
             //}
-
+            */
         }
 
         public void writeTimeToFile(int type, int character, Stopwatch searchTime, int eNO, int eNT, int tN, float gSpeed)

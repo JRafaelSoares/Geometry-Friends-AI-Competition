@@ -7,7 +7,7 @@ using GeometryFriends.AI.Perceptions.Information;
 using GeometryFriends.AI.ActionSimulation;
 using GeometryFriends.AI;
 using GeometryFriends.AI.Debug;
-
+using System.Diagnostics;
 
 namespace GeometryFriendsAgents
 {
@@ -26,7 +26,6 @@ namespace GeometryFriendsAgents
         {
             //Splits the diamonds into each category
             coopRules.ApplyRules(cI, rI);
-
             circleAgent.Setup(nI, rI, cI, oI, rPI, cPI, coopRules.getCircleDiamonds(), area, timeLimit);
         }
 

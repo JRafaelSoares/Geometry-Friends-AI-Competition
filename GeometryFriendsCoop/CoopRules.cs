@@ -12,8 +12,8 @@ namespace GeometryFriendsAgents
 {
     public class CoopRules
     {
-        private int pixelSize = 40;
-        private List<List<PixelType>> levelInfo;
+        //private int pixelSize = 40;
+        //private List<List<PixelType>> levelInfo;
 
         private double maxJump = 320; //322.57;
         private double maxRadius = 40;
@@ -40,14 +40,7 @@ namespace GeometryFriendsAgents
             //xPlatforms = xPlatforms.OrderBy(o => o.X).ToList();
             yPlatforms = yPlatforms.OrderBy(o => o.Y).ToList();
 
-            foreach (ObstacleRepresentation platform in platforms)
-            {
-                Debug.Print(platform.ToString() + "\n");
-            }
-
-            Debug.Print("\n\n\n");
-
-            levelInfo = new List<List<PixelType>>((int)(area.Height / pixelSize + 1));
+            /*levelInfo = new List<List<PixelType>>((int)(area.Height / pixelSize + 1));
 
             for (int y = 0; y <= (int)(area.Height / pixelSize); y++)
             {
@@ -118,7 +111,7 @@ namespace GeometryFriendsAgents
                 int y = Math.Min((int)((diamond.Y - area.Y) / pixelSize), area.Height / pixelSize);
 
                 levelInfo[y][x] = PixelType.DIAMOND;
-            }
+            }*/
 
         }
 
@@ -161,27 +154,36 @@ namespace GeometryFriendsAgents
 
         public int unreachableByJump(float dX, float dY, CircleRepresentation c, RectangleRepresentation r)
         {
-            if (c.Y - dY < maxJump)
-            {
-                return 0;
-            }
-
-            float varX = dX, varY = dY;
+            float varY = dY;
+            ObstacleRepresentation previousPlatform = new ObstacleRepresentation(-10f, -10f, 0, 0);
 
             foreach (ObstacleRepresentation platform in yPlatforms)
             {
-                if (varY <= c.Y)
+                if (c.Y - varY < maxJump)
                 {
-                    break;
+                    return 0;
                 }
 
-                if (varY <= platform.Y)
+                if (varY >= platform.Y)
                 {
                     continue;
                 }
                 else if (platform.Y - varY < maxJump)
                 {
-                    varY = platform.Y;
+                    if(previousPlatform.X >= 0)
+                    {
+                        if(Math.Max(previousPlatform.X - previousPlatform.Width / 2, levelArea.X) - Math.Max(platform.X - platform.Width / 2, levelArea.X) > maxRadius / 2 || Math.Min(platform.X + platform.Width / 2, levelArea.Width + levelArea.X) - Math.Min(previousPlatform.X + previousPlatform.Width / 2, levelArea.Width + levelArea.X) > maxRadius / 2)
+                        {
+                            previousPlatform = platform;
+                            varY = platform.Y;
+                        }
+                    }
+                    else if(dX - platform.X + platform.Width / 2 >= 0 && platform.X + platform.Width / 2 - dX >= 0)
+                    {
+                        varY = platform.Y;
+                        previousPlatform = platform;
+                    }
+
                 }
                 else
                 {
@@ -189,7 +191,7 @@ namespace GeometryFriendsAgents
                 }
             }
 
-            return 0;
+            return 2;
         }
 
         public int unreachableBetweenPlatforms(float dX, float dY, CircleRepresentation c, RectangleRepresentation r)
@@ -217,7 +219,7 @@ namespace GeometryFriendsAgents
             }
 
             // Either rectangle or coop
-            if (closestBelow.Y - closestAbove.Y <= maxRadius * 2)
+            if (closestBelow.Y - closestBelow.Height / 2 - closestAbove.Y - closestAbove.Height / 2 <= maxRadius * 2)
             {
                 // If rectangle is on top of the platform below, it can get there alone
                 if (r.Y + (r.Height / 2) - closestBelow.Y + closestBelow.Height / 2  <= 10)
@@ -238,7 +240,7 @@ namespace GeometryFriendsAgents
         {
             String result = "";
 
-            for (int y = 0; y < levelInfo[0].Count + 1; y++)
+            /*for (int y = 0; y < levelInfo[0].Count + 1; y++)
             {
                 result += "++";
             }
@@ -259,7 +261,7 @@ namespace GeometryFriendsAgents
             for (int y = 0; y < levelInfo[0].Count + 1; y++)
             {
                 result += "++";
-            }
+            }*/
 
             result += "\n Circle Diamonds \n";
 
@@ -268,14 +270,14 @@ namespace GeometryFriendsAgents
                 result += d.ToString() + "\n";
             }
 
-            result += "Rectangle Diamonds \n";
+            result += " Rectangle Diamonds \n";
 
             foreach (CollectibleRepresentation d in rectangleDiamonds)
             {
                 result += d.ToString() + "\n";
             }
 
-            result += "Coop Diamonds \n";
+            result += " Coop Diamonds \n";
 
             foreach (SortedDiamond d in coopDiamonds)
             {
@@ -308,6 +310,7 @@ namespace GeometryFriendsAgents
         {
             return diamonds;
         }
+
         /********************************************/
         /***************** SETTERS ******************/
         /********************************************/
@@ -386,10 +389,10 @@ namespace GeometryFriendsAgents
         
         public void sendRectangleDiamonds()
         {
-            messages.Add(new AgentMessage("Sending RectangleDiamongs", rectangleDiamonds));
+            messages.Add(new AgentMessage("Sending RectangleDiamonds", rectangleDiamonds));
         }
 
-        public void recieveRectangleDiamonds()
+        public void receiveRectangleDiamonds()
         {
             rectangleDiamonds = (List<CollectibleRepresentation>) messages[0].Attachment;
         }

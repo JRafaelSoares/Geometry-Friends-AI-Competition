@@ -16,10 +16,13 @@ namespace GeometryFriendsAgents
     {
         private CoopRules coopRules;
         private RectangleSingleplayer rectangleAgent;
+        private int state;
 
         public RectangleCoopAgent(Rectangle area, CollectibleRepresentation[] diamonds, ObstacleRepresentation[] platforms, ObstacleRepresentation[] rectanglePlatforms, ObstacleRepresentation[] circlePlatforms, RectangleSingleplayer rectangleSingleplayer)
         {
             coopRules = new CoopRules(area, diamonds, platforms, rectanglePlatforms, circlePlatforms);
+
+            state = 0; // Getting singleplayer diamonds
 
             rectangleAgent = rectangleSingleplayer;
         }
@@ -33,8 +36,19 @@ namespace GeometryFriendsAgents
 
         public void SensorsUpdated(int nC, RectangleRepresentation rI, CircleRepresentation cI, CollectibleRepresentation[] colI)
         {
-            CollectibleRepresentation[] rectDiamonds = coopRules.updateRectangleDiamonds(colI);
-            rectangleAgent.SensorsUpdated(rectDiamonds.Count(), rI, cI, rectDiamonds);
+            switch (state)
+            {
+                case 0:
+                    CollectibleRepresentation[] singleplayerDiamonds = coopRules.updateRectangleDiamonds(colI);
+
+                    if (singleplayerDiamonds.Count() == 0)
+                    {
+                        state = 1; // Coop State
+                    }
+
+                    rectangleAgent.SensorsUpdated(nC, rI, cI, singleplayerDiamonds);
+                    break;
+            }
         }
 
         public void ActionSimulatorUpdated(ActionSimulator updatedSimulator)
@@ -44,7 +58,13 @@ namespace GeometryFriendsAgents
 
         public Moves GetAction()
         {
-            return rectangleAgent.GetAction();
+            switch (state)
+            {
+                case 0:
+                    return rectangleAgent.GetAction();
+            }
+
+            return Moves.NO_ACTION;
         }
 
         public void Update(TimeSpan elapsedGameTime)

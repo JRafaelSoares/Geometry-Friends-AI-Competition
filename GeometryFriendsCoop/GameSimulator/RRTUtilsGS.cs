@@ -308,6 +308,7 @@ namespace GeometryFriendsAgents
             }
 
             State selectedState = node.getState();
+            Debug.WriteLine("Number of collectibles: " + selectedState.getNumberUncaughtCollectibles());
             NodeGS nodePredictor = (NodeGS)node;
             ActionSimulator selectedSim = nodePredictor.getSimulator().CreateUpdatedSimulator();
 
@@ -472,9 +473,11 @@ namespace GeometryFriendsAgents
             {
                 stateSim.AddInstruction(newAction, actionTime);
             }
+            //stateSim.SimulatorCollectedEvent += delegate (Object o, CollectibleRepresentation col) { simCaughtCollectibles.Add(col); };
             stateSim.SimulatorCollectedEvent += delegate (Object o, CollectibleRepresentation col) { simCaughtCollectibles.Add(col); };
 
-            
+
+           
             stateSim.Update(.05f);
 
             if(newAction != Moves.JUMP)
@@ -499,7 +502,20 @@ namespace GeometryFriendsAgents
             }
             else
             {
-                newState = new State(stateSim.RectanglePositionX, stateSim.RectanglePositionY, stateSim.RectangleVelocityX, stateSim.RectangleVelocityY, stateSim.RectangleHeight / 2, 0, selectedState.getCaughtCollectibles(), stateSim.CollectiblesUncaught);
+                List<CollectibleRepresentation> newCollectibles = new List<CollectibleRepresentation>();
+                //if the detected diamonds are the same as the ones initially given to them
+                foreach(CollectibleRepresentation diamond in stateSim.CollectiblesUncaught)
+                {
+                    foreach(CollectibleRepresentation existingDiamond in selectedState.getUncaughtCollectibles())
+                    {
+                        if ( Math.Abs(diamond.X - existingDiamond.X) <= 1 && Math.Abs(diamond.Y - existingDiamond.Y) <= 1)
+                        {
+                            newCollectibles.Add(diamond);
+                            break;
+                        }
+                    }
+                }
+                newState = new State(stateSim.RectanglePositionX, stateSim.RectanglePositionY, stateSim.RectangleVelocityX, stateSim.RectangleVelocityY, stateSim.RectangleHeight / 2, 0, selectedState.getCaughtCollectibles(), newCollectibles);
             }
 
             return newState;
@@ -861,7 +877,6 @@ namespace GeometryFriendsAgents
             }
 
             //check if there is already a state at that position
-            Debug.WriteLine("number: " + state.getNumberUncaughtCollectibles());
             if (positions[posX, posY, state.getNumberUncaughtCollectibles()])
             {
                 return true;

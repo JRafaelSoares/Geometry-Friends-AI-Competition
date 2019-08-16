@@ -181,10 +181,9 @@ namespace GeometryFriendsAgents
             circlePlatformsInfo = cPI;
             collectiblesInfo = colI;
             uncaughtCollectibles = new List<CollectibleRepresentation>(collectiblesInfo);
-            Debug.WriteLine("UNCAUGHT COLLECTIBLES: " + uncaughtCollectibles.Count);
             this.area = area;
             gSpeed = 1.0f;
-            goalMode = GoalType.All;
+            goalMode = GoalType.FirstPossible;
 
             //setup level layout
             levelLayout = utils.getLevelLayout(obstaclesInfo, area);

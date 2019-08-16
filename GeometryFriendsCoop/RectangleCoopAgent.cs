@@ -28,16 +28,13 @@ namespace GeometryFriendsAgents
         {
             //Splits the diamonds into each category
             coopRules.ApplyRules(cI, rI);
-            Debug.WriteLine(coopRules.ToString());
             rectangleAgent.Setup(nI, rI, cI, oI, rPI, cPI, coopRules.getRectangleDiamonds(), area, timeLimit);
         }
 
         public void SensorsUpdated(int nC, RectangleRepresentation rI, CircleRepresentation cI, CollectibleRepresentation[] colI)
         {
-            CollectibleRepresentation[] rect = coopRules.updateRectangleDiamonds(colI);
-            Debug.WriteLine("REct count: " + rect.Count());
-
-            rectangleAgent.SensorsUpdated(nC, rI, cI, coopRules.updateRectangleDiamonds(colI));
+            CollectibleRepresentation[] rectDiamonds = coopRules.updateRectangleDiamonds(colI);
+            rectangleAgent.SensorsUpdated(rectDiamonds.Count(), rI, cI, rectDiamonds);
         }
 
         public void ActionSimulatorUpdated(ActionSimulator updatedSimulator)

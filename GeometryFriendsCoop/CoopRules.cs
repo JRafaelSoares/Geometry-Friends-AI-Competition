@@ -304,6 +304,10 @@ namespace GeometryFriendsAgents
             return coopDiamonds;
         }
 
+        public CollectibleRepresentation[] getAllDiamonds()
+        {
+            return diamonds;
+        }
         /********************************************/
         /***************** SETTERS ******************/
         /********************************************/

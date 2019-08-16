@@ -861,6 +861,7 @@ namespace GeometryFriendsAgents
             }
 
             //check if there is already a state at that position
+            Debug.WriteLine("number: " + state.getNumberUncaughtCollectibles());
             if (positions[posX, posY, state.getNumberUncaughtCollectibles()])
             {
                 return true;

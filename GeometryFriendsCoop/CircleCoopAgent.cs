@@ -19,16 +19,14 @@ namespace GeometryFriendsAgents
         public CircleCoopAgent(Rectangle area, CollectibleRepresentation[] diamonds, ObstacleRepresentation[] platforms, ObstacleRepresentation[] rectanglePlatforms, ObstacleRepresentation[] circlePlatforms, CircleSingleplayer circleSingleplayer)
         {
             coopRules = new CoopRules(area, diamonds, platforms, rectanglePlatforms, circlePlatforms);
-            //Splits the diamonds into each category
-            //coopRules.ApplyRules();
-            //coopRules.sendRectangleDiamonds();
-            //TEST
-            coopRules.setCircleDiamonds(diamonds);
             circleAgent = circleSingleplayer;
         }
 
         public void Setup(CountInformation nI, RectangleRepresentation rI, CircleRepresentation cI, ObstacleRepresentation[] oI, ObstacleRepresentation[] rPI, ObstacleRepresentation[] cPI, CollectibleRepresentation[] colI, Rectangle area, double timeLimit)
         {
+            //Splits the diamonds into each category
+            coopRules.ApplyRules(cI, rI);
+
             circleAgent.Setup(nI, rI, cI, oI, rPI, cPI, coopRules.getCircleDiamonds(), area, timeLimit);
         }
 

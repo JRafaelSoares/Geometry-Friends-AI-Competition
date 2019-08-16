@@ -22,8 +22,8 @@ namespace GeometryFriendsAgents
         //private List<ObstacleRepresentation> xPlatforms;
         private CollectibleRepresentation[] diamonds;
 
-        List<ObstacleRepresentation> circleDiamonds;
-        List<ObstacleRepresentation> rectangleDiamonds;
+        List<CollectibleRepresentation> circleDiamonds;
+        List<CollectibleRepresentation> rectangleDiamonds;
         List<SortedDiamond> coopDiamonds;
 
         private Rectangle levelArea;
@@ -39,7 +39,7 @@ namespace GeometryFriendsAgents
 
             //xPlatforms = xPlatforms.OrderBy(o => o.X).ToList();
             yPlatforms = yPlatforms.OrderBy(o => o.Y).ToList();
-            
+
             foreach (ObstacleRepresentation platform in platforms)
             {
                 Debug.Print(platform.ToString() + "\n");
@@ -119,26 +119,49 @@ namespace GeometryFriendsAgents
 
                 levelInfo[y][x] = PixelType.DIAMOND;
             }
-            
+
         }
 
-        void ApplyRules(CircleRepresentation c, RectangleRepresentation r)
+        public void ApplyRules(CircleRepresentation c, RectangleRepresentation r)
         {
-            List<SortedDiamond> circleDiamonds = new List<SortedDiamond>();
-            List<SortedDiamond> rectangleDiamonds = new List<SortedDiamond>();
-            List<SortedDiamond> coopDiamonds = new List<SortedDiamond>();
+            circleDiamonds = new List<CollectibleRepresentation>();
+            rectangleDiamonds = new List<CollectibleRepresentation>();
+            coopDiamonds = new List<SortedDiamond>();
 
-            foreach(CollectibleRepresentation diamond in diamonds)
+            // Rules return 0 for circle diamond, 1 for rectangle diamond and 2 for coop
+            foreach (CollectibleRepresentation diamond in diamonds)
             {
-                // Rules return 0 for circle diamond, 1 for rectangle diamond and 2 for coop
+                int unreachableJump = unreachableByJump(diamond.X, diamond.Y, c, r);
+                int unreachableBetween = unreachableBetweenPlatforms(diamond.X, diamond.Y, c, r);
 
-                
+                //if it must be done by coop
+                if (unreachableBetween == 2)
+                {
+                    //int on sorted means it is unreachebleBetween
+                    coopDiamonds.Add(new SortedDiamond(diamond, 2));
+                    continue;
+                }
+
+                if(unreachableJump == 2)
+                {
+                    coopDiamonds.Add(new SortedDiamond(diamond, 1));
+                    continue;
+                }
+
+                if(unreachableBetween == 1)
+                {
+                    rectangleDiamonds.Add(diamond);
+                    continue;
+                }
+
+                //if none of the others apply, its a circle diamond
+                circleDiamonds.Add(diamond);
             }
         }
 
-        int unreachableByJump(float dX, float dY, CircleRepresentation c, RectangleRepresentation r)
+        public int unreachableByJump(float dX, float dY, CircleRepresentation c, RectangleRepresentation r)
         {
-            if(c.Y - dY < maxJump)
+            if (c.Y - dY < maxJump)
             {
                 return 0;
             }
@@ -147,7 +170,7 @@ namespace GeometryFriendsAgents
 
             foreach (ObstacleRepresentation platform in yPlatforms)
             {
-                if(varY <= c.Y)
+                if (varY <= c.Y)
                 {
                     break;
                 }
@@ -169,24 +192,24 @@ namespace GeometryFriendsAgents
             return 0;
         }
 
-        int unreachableBetweenPlatforms(float dX, float dY)
+        public int unreachableBetweenPlatforms(float dX, float dY, CircleRepresentation c, RectangleRepresentation r)
         {
             ObstacleRepresentation closestAbove = new ObstacleRepresentation(dX, levelArea.Y, 0, 0), closestBelow = new ObstacleRepresentation(dX, levelArea.Height + levelArea.Y, 0, 0);
 
             // Might be able to be changed into logarithmic complexity
             // Might not work for some combinations of Circle and regular platforms
-            foreach(ObstacleRepresentation platform in yPlatforms)
+            foreach (ObstacleRepresentation platform in yPlatforms)
             {
                 // Check that diamond is above or below platform (same X)
-                if(platform.X - platform.Width / 2 < dX && dX < platform.X + platform.Width / 2)
+                if (platform.X - platform.Width / 2 < dX && dX < platform.X + platform.Width / 2)
                 {
                     // Since its ordered the first below is the closest
-                    if(platform.Y > dY && platform.Y < closestBelow.Y)
+                    if (platform.Y > dY && platform.Y < closestBelow.Y)
                     {
                         closestBelow = platform;
                         break;
                     }
-                    else if(platform.Y < dY && platform.Y > closestAbove.Y)
+                    else if (platform.Y < dY && platform.Y > closestAbove.Y)
                     {
                         closestAbove = platform;
                     }
@@ -194,9 +217,18 @@ namespace GeometryFriendsAgents
             }
 
             // Either rectangle or coop
-            if(closestBelow.Y - closestAbove.Y <= maxRadius * 2)
+            if (closestBelow.Y - closestAbove.Y <= maxRadius * 2)
             {
-                
+                // If rectangle is on top of the platform below, it can get there alone
+                if (r.Y + (r.Height / 2) - closestBelow.Y + closestBelow.Height / 2  <= 10)
+                {
+                    return 1;
+                }
+                // Else, it needs the help from the circle
+                else
+                {
+                    return 2;
+                }
             }
 
             return 0;
@@ -213,7 +245,7 @@ namespace GeometryFriendsAgents
 
             result += "\n";
 
-            for (int y = 0; y < levelInfo.Count; y++) 
+            for (int y = 0; y < levelInfo.Count; y++)
             {
                 result += "+";
                 for (int x = 0; x < levelInfo[0].Count; x++)
@@ -229,17 +261,21 @@ namespace GeometryFriendsAgents
                 result += "++";
             }
 
-            result += "\n";
+            result += "\n Circle Diamonds \n";
 
-            foreach(SortedDiamond d in circleDiamonds)
+            foreach (CollectibleRepresentation d in circleDiamonds)
             {
                 result += d.ToString() + "\n";
             }
 
-            foreach (SortedDiamond d in rectangleDiamonds)
+            result += "Rectangle Diamonds \n";
+
+            foreach (CollectibleRepresentation d in rectangleDiamonds)
             {
                 result += d.ToString() + "\n";
             }
+
+            result += "Coop Diamonds \n";
 
             foreach (SortedDiamond d in coopDiamonds)
             {
@@ -253,14 +289,14 @@ namespace GeometryFriendsAgents
         /***************** GETTERS ******************/
         /********************************************/
 
-        public List<SortedDiamond> getCircleDiamonds()
+        public CollectibleRepresentation[] getCircleDiamonds()
         {
-            return circleDiamonds;
+            return circleDiamonds.ToArray();
         }
 
-        public List<SortedDiamond> getRectangleDiamonds()
+        public CollectibleRepresentation[] getRectangleDiamonds()
         {
-            return rectangleDiamonds;
+            return rectangleDiamonds.ToArray();
         }
 
         public List<SortedDiamond> getCoopDiamonds()
@@ -272,14 +308,14 @@ namespace GeometryFriendsAgents
         /***************** SETTERS ******************/
         /********************************************/
 
-        public void setCircleDiamonds(List<SortedDiamond> diamondInfo)
+        public void setCircleDiamonds(CollectibleRepresentation[] diamondInfo)
         {
-            circleDiamonds = diamondInfo;
+            circleDiamonds = diamondInfo.ToList();
         }
 
-        public void setRectangleDiamonds(List<SortedDiamond> diamondInfo)
+        public void setRectangleDiamonds(CollectibleRepresentation[] diamondInfo)
         {
-            rectangleDiamonds = diamondInfo;
+            rectangleDiamonds = diamondInfo.ToList();
         }
         public void setCoopDiamonds(List<SortedDiamond> diamondInfo)
         {
@@ -291,55 +327,51 @@ namespace GeometryFriendsAgents
         /**********************************/
 
         //Since SensorUpdate gets all Diamonds, we need to keep filtering the diamonds to see which ones got caught
-        public void updateCircleDiamonds(CollectibleRepresentation[] diamondInfo)
+        public CollectibleRepresentation[] updateCircleDiamonds(CollectibleRepresentation[] diamondInfo)
         {
-            CollectibleRepresentation[] newDiamondCollectible = new CollectibleRepresentation[circleDiamonds.Count()];
-            int i = 0;
+            List<CollectibleRepresentation> newDiamondCollectible = new List<CollectibleRepresentation>();
 
-            foreach(CollectibleRepresentation diamond in diamondInfo)
+            foreach(CollectibleRepresentation diamond in circleDiamonds)
             {
                 //if contains work
-                if (circleDiamonds.Contains(diamond))
+                if (diamondInfo.Contains(diamond))
                 {
-                    newDiamondCollectible[i] = diamond;
-                    i++;
+                    newDiamondCollectible.Add(diamond);
                 }
                 //if it doesnt we need to do it hardcoded by transversing the vectors
             }
 
             circleDiamonds = newDiamondCollectible;
-            return circleDiamonds;
+            return circleDiamonds.ToArray();
         }
 
         public CollectibleRepresentation[] updateRectangleDiamonds(CollectibleRepresentation[] diamondInfo)
         {
-            CollectibleRepresentation[] newDiamondCollectible = new CollectibleRepresentation[rectangleDiamonds.Count()];
-            int i = 0;
+            List<CollectibleRepresentation> newDiamondCollectible = new List<CollectibleRepresentation>();
 
-            foreach (CollectibleRepresentation diamond in diamondInfo)
+            foreach (CollectibleRepresentation diamond in rectangleDiamonds)
             {
-                if (rectangleDiamonds.Contains(diamond))
+                //if contains work
+                if (diamondInfo.Contains(diamond))
                 {
-                    newDiamondCollectible[i] = diamond;
-                    i++;
+                    newDiamondCollectible.Add(diamond);
                 }
+                //if it doesnt we need to do it hardcoded by transversing the vectors
             }
 
             rectangleDiamonds = newDiamondCollectible;
-            return rectangleDiamonds;
+            return rectangleDiamonds.ToArray();
         }
 
-        public CollectibleRepresentation[] updateCoopDiamonds(CollectibleRepresentation[] diamondInfo)
+        public List<SortedDiamond> updateCoopDiamonds(CollectibleRepresentation[] diamondInfo)
         {
-            CollectibleRepresentation[] newDiamondCollectible = new CollectibleRepresentation[coopDiamonds.Count()];
-            int i = 0;
+            List<SortedDiamond> newDiamondCollectible = new List<SortedDiamond>();
 
-            foreach (CollectibleRepresentation diamond in diamondInfo)
+            foreach (SortedDiamond diamond in coopDiamonds)
             {
-                if (coopDiamonds.Contains(diamond))
+                if (diamondInfo.Contains(diamond.getDiamond()))
                 {
-                    newDiamondCollectible[i] = diamond;
-                    i++;
+                    newDiamondCollectible.Add(diamond);
                 }
             }
 
@@ -355,7 +387,7 @@ namespace GeometryFriendsAgents
 
         public void recieveRectangleDiamonds()
         {
-            rectangleDiamonds = (CollectibleRepresentation[]) messages[0].Attachment;
+            rectangleDiamonds = (List<CollectibleRepresentation>) messages[0].Attachment;
         }
     }
 

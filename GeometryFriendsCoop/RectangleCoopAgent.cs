@@ -7,6 +7,7 @@ using GeometryFriends.AI.Perceptions.Information;
 using GeometryFriends.AI.ActionSimulation;
 using GeometryFriends.AI;
 using GeometryFriends.AI.Debug;
+using System.Diagnostics;
 
 
 namespace GeometryFriendsAgents
@@ -19,24 +20,23 @@ namespace GeometryFriendsAgents
         public RectangleCoopAgent(Rectangle area, CollectibleRepresentation[] diamonds, ObstacleRepresentation[] platforms, ObstacleRepresentation[] rectanglePlatforms, ObstacleRepresentation[] circlePlatforms, RectangleSingleplayer rectangleSingleplayer)
         {
             coopRules = new CoopRules(area, diamonds, platforms, rectanglePlatforms, circlePlatforms);
-            //Splits the diamonds into each category
-            //Testing
-            coopRules.setRectangleDiamonds(diamonds);
-
-            //Actual function
-            //coopRules.ApplyRules();
-            //coopRules.recieveRectangleDiamonds();
 
             rectangleAgent = rectangleSingleplayer;
         }
 
         public void Setup(CountInformation nI, RectangleRepresentation rI, CircleRepresentation cI, ObstacleRepresentation[] oI, ObstacleRepresentation[] rPI, ObstacleRepresentation[] cPI, Rectangle area, double timeLimit)
         {
+            //Splits the diamonds into each category
+            coopRules.ApplyRules(cI, rI);
+            Debug.WriteLine(coopRules.ToString());
             rectangleAgent.Setup(nI, rI, cI, oI, rPI, cPI, coopRules.getRectangleDiamonds(), area, timeLimit);
         }
 
         public void SensorsUpdated(int nC, RectangleRepresentation rI, CircleRepresentation cI, CollectibleRepresentation[] colI)
         {
+            CollectibleRepresentation[] rect = coopRules.updateRectangleDiamonds(colI);
+            Debug.WriteLine("REct count: " + rect.Count());
+
             rectangleAgent.SensorsUpdated(nC, rI, cI, coopRules.updateRectangleDiamonds(colI));
         }
 

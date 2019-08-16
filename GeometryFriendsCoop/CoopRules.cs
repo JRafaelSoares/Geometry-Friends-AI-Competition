@@ -19,10 +19,11 @@ namespace GeometryFriendsAgents
         private double maxRadius = 40;
 
         private List<ObstacleRepresentation> yPlatforms;
+        //private List<ObstacleRepresentation> xPlatforms;
         private CollectibleRepresentation[] diamonds;
 
-        List<SortedDiamond> circleDiamonds;
-        List<SortedDiamond> rectangleDiamonds;
+        List<ObstacleRepresentation> circleDiamonds;
+        List<ObstacleRepresentation> rectangleDiamonds;
         List<SortedDiamond> coopDiamonds;
 
         private Rectangle levelArea;
@@ -33,8 +34,10 @@ namespace GeometryFriendsAgents
             this.diamonds = diamonds;
             levelArea = area;
 
+            //xPlatforms = new List<ObstacleRepresentation>(platforms);
             yPlatforms = new List<ObstacleRepresentation>(platforms);
 
+            //xPlatforms = xPlatforms.OrderBy(o => o.X).ToList();
             yPlatforms = yPlatforms.OrderBy(o => o.Y).ToList();
             
             foreach (ObstacleRepresentation platform in platforms)
@@ -127,15 +130,15 @@ namespace GeometryFriendsAgents
 
             foreach(CollectibleRepresentation diamond in diamonds)
             {
-                // Rules return 0 for no match and 1 for match
+                // Rules return 0 for circle diamond, 1 for rectangle diamond and 2 for coop
 
                 
             }
         }
 
-        int unreachableByJump(float dX, float dY, float cStartHeight)
+        int unreachableByJump(float dX, float dY, CircleRepresentation c, RectangleRepresentation r)
         {
-            if(cStartHeight - dY < maxJump)
+            if(c.Y - dY < maxJump)
             {
                 return 0;
             }
@@ -144,7 +147,7 @@ namespace GeometryFriendsAgents
 
             foreach (ObstacleRepresentation platform in yPlatforms)
             {
-                if(varY <= cStartHeight)
+                if(varY <= c.Y)
                 {
                     break;
                 }
@@ -159,41 +162,41 @@ namespace GeometryFriendsAgents
                 }
                 else
                 {
-                    return 1;
+                    return 2;
                 }
             }
 
             return 0;
         }
 
-        int unreachableBetweenPlatforms(float dX, float dY, float rStartHeight)
+        int unreachableBetweenPlatforms(float dX, float dY)
         {
-            int x = Math.Min((int)((dX - levelArea.X) / pixelSize), levelArea.Width / pixelSize);
-            int y = Math.Min((int)((dY - levelArea.Y) / pixelSize), levelArea.Height / pixelSize);
+            ObstacleRepresentation closestAbove = new ObstacleRepresentation(dX, levelArea.Y, 0, 0), closestBelow = new ObstacleRepresentation(dX, levelArea.Height + levelArea.Y, 0, 0);
 
-            int dUp, dDown;
-
-            for(dUp = 1; y - dUp >= 0; dUp++)
+            // Might be able to be changed into logarithmic complexity
+            // Might not work for some combinations of Circle and regular platforms
+            foreach(ObstacleRepresentation platform in yPlatforms)
             {
-                if(levelInfo[y - dUp][x] == PixelType.PLATFORM || levelInfo[y - dUp][x] == PixelType.CIRCLE_PLATFORM)
+                // Check that diamond is above or below platform (same X)
+                if(platform.X - platform.Width / 2 < dX && dX < platform.X + platform.Width / 2)
                 {
-                    break;
+                    // Since its ordered the first below is the closest
+                    if(platform.Y > dY && platform.Y < closestBelow.Y)
+                    {
+                        closestBelow = platform;
+                        break;
+                    }
+                    else if(platform.Y < dY && platform.Y > closestAbove.Y)
+                    {
+                        closestAbove = platform;
+                    }
                 }
             }
 
-            for (dDown = 1; y + dDown < levelInfo.Count; dDown++)
+            // Either rectangle or coop
+            if(closestBelow.Y - closestAbove.Y <= maxRadius * 2)
             {
-                if (levelInfo[y + dDown][x] == PixelType.PLATFORM || levelInfo[y + dDown][x] == PixelType.CIRCLE_PLATFORM)
-                {
-                    break;
-                }
-            }
-
-            if((dUp + dDown - 1) * pixelSize < maxRadius * 2)
-            {
-                // The space between the platforms is too narrow for the circle
-                // But the rectangle might still be able to reach it if it's at a height above or equal to the first platform
-                if((y + dDown) * pixelSize + levelArea.Y <= rStartHeight)
+                
             }
 
             return 0;
@@ -250,17 +253,17 @@ namespace GeometryFriendsAgents
         /***************** GETTERS ******************/
         /********************************************/
 
-        public CollectibleRepresentation[] getCircleDiamonds()
+        public List<SortedDiamond> getCircleDiamonds()
         {
             return circleDiamonds;
         }
 
-        public CollectibleRepresentation[] getRectangleDiamonds()
+        public List<SortedDiamond> getRectangleDiamonds()
         {
             return rectangleDiamonds;
         }
 
-        public CollectibleRepresentation[] getCoopDiamonds()
+        public List<SortedDiamond> getCoopDiamonds()
         {
             return coopDiamonds;
         }
@@ -269,16 +272,16 @@ namespace GeometryFriendsAgents
         /***************** SETTERS ******************/
         /********************************************/
 
-        public void setCircleDiamonds(CollectibleRepresentation[] diamondInfo)
+        public void setCircleDiamonds(List<SortedDiamond> diamondInfo)
         {
             circleDiamonds = diamondInfo;
         }
 
-        public void setRectangleDiamonds(CollectibleRepresentation[] diamondInfo)
+        public void setRectangleDiamonds(List<SortedDiamond> diamondInfo)
         {
             rectangleDiamonds = diamondInfo;
         }
-        public void setCoopDiamonds(CollectibleRepresentation[] diamondInfo)
+        public void setCoopDiamonds(List<SortedDiamond> diamondInfo)
         {
             coopDiamonds = diamondInfo;
         }
@@ -288,7 +291,7 @@ namespace GeometryFriendsAgents
         /**********************************/
 
         //Since SensorUpdate gets all Diamonds, we need to keep filtering the diamonds to see which ones got caught
-        public CollectibleRepresentation[] updateCircleDiamonds(CollectibleRepresentation[] diamondInfo)
+        public void updateCircleDiamonds(CollectibleRepresentation[] diamondInfo)
         {
             CollectibleRepresentation[] newDiamondCollectible = new CollectibleRepresentation[circleDiamonds.Count()];
             int i = 0;

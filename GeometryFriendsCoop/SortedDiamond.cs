@@ -6,10 +6,10 @@ using System.Text;
 
 namespace GeometryFriendsAgents
 {
-    class SortedDiamond
+    public class SortedDiamond
     {
-        CollectibleRepresentation diamond;
-        int rule;
+        private CollectibleRepresentation diamond;
+        private int rule;
 
         public SortedDiamond(CollectibleRepresentation diamond, int rule)
         {
@@ -26,6 +26,21 @@ namespace GeometryFriendsAgents
             result += "Rule: " + rule.ToString();
 
             return result;
+        }
+
+        public CollectibleRepresentation getDiamond()
+        {
+            return diamond;
+        }
+
+        public int getRule()
+        {
+            return rule;
+        }
+
+        public void setRule(int rule)
+        {
+            this.rule = rule;
         }
     }
 }

@@ -17,6 +17,7 @@ namespace GeometryFriendsAgents
         private CoopRules coopRules;
         private RectangleSingleplayer rectangleAgent;
         private int state;
+        private SortedDiamond currentCoop; 
 
         public RectangleCoopAgent(Rectangle area, CollectibleRepresentation[] diamonds, ObstacleRepresentation[] platforms, ObstacleRepresentation[] rectanglePlatforms, ObstacleRepresentation[] circlePlatforms, RectangleSingleplayer rectangleSingleplayer)
         {
@@ -48,6 +49,27 @@ namespace GeometryFriendsAgents
 
                     rectangleAgent.SensorsUpdated(nC, rI, cI, singleplayerDiamonds);
                     break;
+                // Waiting for circle to begin Coop
+                case 1: 
+                    currentCoop = coopRules.getCoopDiamonds()[0];
+
+                    if(coopRules.updateCircleDiamonds(colI).Count() == 0)
+                    {
+                        state = 2;
+                    }
+
+                    break;
+                case 2:
+                    int previousCount = coopRules.getCoopDiamonds().Count();
+
+                    List<SortedDiamond> coopDiamonds = coopRules.updateCoopDiamonds(colI);
+
+                    if(previousCount > coopDiamonds.Count() && coopDiamonds.Count() > 0)
+                    {
+                        currentCoop = coopDiamonds[0];
+                    }
+
+                    break;
             }
         }
 
@@ -62,9 +84,9 @@ namespace GeometryFriendsAgents
             {
                 case 0:
                     return rectangleAgent.GetAction();
+                default:
+                    return Moves.NO_ACTION;
             }
-
-            return Moves.NO_ACTION;
         }
 
         public void Update(TimeSpan elapsedGameTime)

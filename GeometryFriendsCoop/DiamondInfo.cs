@@ -16,8 +16,6 @@ namespace GeometryFriendsAgents
         private Platform platform;
         private List<Node> closestStates;
         private List<Node> secondClosestStates;
-        private List<NodeMP> closestStatesMP;
-        private List<NodeMP> secondClosestStatesMP;
         private List<Area> smallArea;
         private List<Area> bigArea;
         private Random rnd;
@@ -32,8 +30,6 @@ namespace GeometryFriendsAgents
             platform = p;
             closestStates = new List<Node>();
             secondClosestStates = new List<Node>();
-            closestStatesMP = new List<NodeMP>();
-            secondClosestStatesMP = new List<NodeMP>();
             rnd = new Random();
             smallArea = new List<Area>();
             bigArea = new List<Area>();
@@ -435,16 +431,6 @@ namespace GeometryFriendsAgents
             secondClosestStates.Remove(node);
         }
 
-        public void removeClosestSateMP(NodeMP node)
-        {
-            closestStatesMP.Remove(node);
-        }
-
-        public void removeSecondClosestSateMP(NodeMP node)
-        {
-            secondClosestStatesMP.Remove(node);
-        }
-
         public Node getRandomClosestState()
         {
             if (closestStates.Count != 0)
@@ -484,59 +470,6 @@ namespace GeometryFriendsAgents
                 }
             }
             return null;
-        }
-
-        public NodeMP getRandomClosestStateMP()
-        {
-            if (closestStatesMP.Count != 0)
-            {
-                NodeMP node = closestStatesMP[rnd.Next(closestStatesMP.Count)];
-
-                //check if node is not a closed one
-                while (closestStates.Count != 0 && node.getRemainingMoves().Count == 0)
-                {
-                    removeClosestSateMP(node);
-                    if (closestStatesMP.Count != 0)
-                    {
-                        node = closestStatesMP[rnd.Next(closestStatesMP.Count)];
-                    }
-                }
-                if (closestStatesMP.Count != 0)
-                {
-                    return node;
-                }
-            }
-            if (secondClosestStatesMP.Count != 0)
-            {
-                NodeMP node = secondClosestStatesMP[rnd.Next(secondClosestStatesMP.Count)];
-
-                //check if node is not a closed one
-                while (secondClosestStatesMP.Count != 0 && node.getRemainingMoves().Count == 0)
-                {
-                    removeSecondClosestSateMP(node);
-                    if (secondClosestStatesMP.Count != 0)
-                    {
-                        node = secondClosestStatesMP[rnd.Next(secondClosestStatesMP.Count)];
-                    }
-                }
-                if (secondClosestStatesMP.Count != 0)
-                {
-                    return node;
-                }
-            }
-            return null;
-        }
-
-        public void insertClosestNodesMP(NodeMP node)
-        {
-            if(node.getChildren().Count == 0)
-            {
-                insertClosestNodeMP(node);
-            }
-            foreach(NodeMP child in node.getChildren())
-            {
-                insertClosestNodesMP(child);
-            }
         }
 
         public void insertClosestNode(Node node)
@@ -599,53 +532,6 @@ namespace GeometryFriendsAgents
             }
 
         }
-        
-        public void insertClosestNodeMP(NodeMP node)
-        {
-            //check if diamond has already been caught
-            bool uncaught = false;
-            foreach (CollectibleRepresentation diamond in node.getState().getUncaughtCollectibles())
-            {
-                if (Math.Round(diamond.X) == Math.Round(this.posX) && Math.Round(diamond.Y) == Math.Round(this.posY))
-                {
-                    uncaught = true;
-                }
-            }
-
-            //if the diamond has been caught in this state, then it is not a close state
-            if (!uncaught)
-            {
-                return;
-            }
-
-            float pX = (float)Math.Round(node.getState().getPosX());
-            float pY = (float)Math.Round(node.getState().getPosY());
-
-            for (int i = 0; i < smallArea.Count(); i++)
-            {
-                //check if in small area
-                if (pX >= smallArea[i].lX() &&
-                    pX <= smallArea[i].rX() &&
-                    pY >= smallArea[i].tY() &&
-                    pY <= smallArea[i].bY())
-                {
-                    closestStatesMP.Add(node);
-                    return;
-                }
-            }
-            for (int i = 0; i < bigArea.Count(); i++)
-            {
-                if (pX >= bigArea[i].lX() &&
-                pX <= bigArea[i].rX() &&
-                pY >= bigArea[i].tY() &&
-                pY <= bigArea[i].bY())
-                {
-                    secondClosestStatesMP.Add(node);
-                    return;
-                }
-            }
-
-        }
 
         public void setCaught()
         {
@@ -686,9 +572,7 @@ namespace GeometryFriendsAgents
         public void clearAreaLists()
         {
             closestStates.Clear();
-            closestStatesMP.Clear();
             secondClosestStates.Clear();
-            secondClosestStatesMP.Clear();
         }
     }
 }

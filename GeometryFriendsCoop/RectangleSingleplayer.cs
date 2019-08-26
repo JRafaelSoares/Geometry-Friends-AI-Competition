@@ -53,7 +53,6 @@ namespace GeometryFriendsAgents
         private RRTUtilsGS RRT;
         private Tree T;
         private Tree TReturn;
-        private TreeMP TMP;
         private int iterationsS = 150;
         private int iterationsFirst = 1;
         private int iterationsReturn = 1;
@@ -72,11 +71,8 @@ namespace GeometryFriendsAgents
         private float simTimeFinish = 0.1f;
         //control
         private RectangleController controller;
-        private RectangleControllerMP controllerMP;
         private PathPlan pathPlan;
         private PathPlan originalPlan;
-        private PathPlanMP pathPlanMP;
-        private PathPlanMP originalPlanMP;
         private float pointTimeMargin = 10;
         private float pointTimeMarginMP = 15; //more time to let the human player get there
         private Moves lastMove = Moves.NO_ACTION;
@@ -115,7 +111,6 @@ namespace GeometryFriendsAgents
         private float correctVelYMargin = 20.0f;
         private float correctVelXMargin = 1.0f;
         private PathPlan previousPlan;
-        private PathPlanMP previousPlanMP;
 
         //Area of the game screen
         private Rectangle area;

@@ -351,60 +351,6 @@ namespace GeometryFriendsAgents
             return action;
         }
 
-        public Moves randomAction(NodeMP node, List<Moves[]> possibleMoves, Random rnd, float jumpBias)
-        {
-            //Random rnd = new Random();
-            Moves[] action;
-
-            if (rnd.NextDouble() > jumpBias || possibleMoves.Count <= 1)
-            {
-                //choose from all moves
-                action = possibleMoves[rnd.Next(possibleMoves.Count)];
-            }
-            else
-            {
-                //chose a move that is not jump unless it is the only move left
-                action = possibleMoves[rnd.Next(possibleMoves.Count)];
-            }
-
-            if ((action[0] == Moves.ROLL_LEFT || action[0] == Moves.ROLL_RIGHT || action[0] == Moves.JUMP) && (action[1] == Moves.MOVE_LEFT || action[1] == Moves.MOVE_RIGHT || action[1] == Moves.MORPH_UP || action[1] == Moves.MORPH_DOWN))
-            {
-                return action[0];
-            }
-            else
-            {
-                return action[1];
-            }
-        }
-
-        public Moves randomActionRectangle(NodeMP node, List<Moves[]> possibleMoves, Random rnd, float morphBias)
-        {
-            //Random rnd = new Random();
-            Moves[] action;
-
-            if (rnd.NextDouble() > morphBias || node.possibleMovesCount() <= 1 ||
-               (possibleMoves.Count == 2 && (possibleMoves.Exists(x => x[0] == Moves.MORPH_UP) || possibleMoves.Exists(x => x[1] == Moves.MORPH_UP)) &&
-               (possibleMoves.Exists(x => x[0] == Moves.MORPH_DOWN) || possibleMoves.Exists(x => x[1] == Moves.MORPH_DOWN))))
-            {
-                //choose from all moves
-                action = possibleMoves[rnd.Next(possibleMoves.Count)];
-            }
-            else
-            {
-                //chose a move that is not jump unless it is the only move left
-                action = possibleMoves[rnd.Next(possibleMoves.Count)];
-            }
-
-            if ((action[0] == Moves.MOVE_LEFT || action[0] == Moves.MOVE_RIGHT || action[0] == Moves.MORPH_UP || action[0] == Moves.MORPH_DOWN) && (action[1] == Moves.MOVE_LEFT || action[1] == Moves.MOVE_RIGHT || action[1] == Moves.MORPH_UP || action[1] == Moves.MORPH_DOWN))
-            {
-                return action[0];
-            }
-            else
-            {
-                return action[1];
-            }
-        }
-
 
         /********************************************************************************************/
         /********************************************************************************************/

@@ -19,6 +19,7 @@ namespace GeometryFriendsAgents
         private int state;
         private SortedDiamond currentCoop; 
 
+
         public RectangleCoopAgent(Rectangle area, CollectibleRepresentation[] diamonds, ObstacleRepresentation[] platforms, ObstacleRepresentation[] rectanglePlatforms, ObstacleRepresentation[] circlePlatforms, RectangleSingleplayer rectangleSingleplayer)
         {
             coopRules = new CoopRules(area, diamonds, platforms, rectanglePlatforms, circlePlatforms);

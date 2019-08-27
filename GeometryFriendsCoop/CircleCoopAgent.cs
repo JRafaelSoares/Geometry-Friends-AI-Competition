@@ -16,37 +16,35 @@ namespace GeometryFriendsAgents
         private CoopRules coopRules;
         private CircleSingleplayer circleAgent;
         private int state;
+        private List<ActionRule> actionRules;
+        private List<ActionRule>.Enumerator iterator;
 
         public CircleCoopAgent(Rectangle area, CollectibleRepresentation[] diamonds, ObstacleRepresentation[] platforms, ObstacleRepresentation[] rectanglePlatforms, ObstacleRepresentation[] circlePlatforms, CircleSingleplayer circleSingleplayer)
         {
             state = 0; // Getting singleplayer diamonds
-            coopRules = new CoopRules(area, diamonds, platforms, rectanglePlatforms, circlePlatforms);
-            circleAgent = circleSingleplayer;
+            coopRules = new CoopRules(area, diamonds, platforms, rectanglePlatforms, circlePlatforms, circleAgent);
         }
 
         public void Setup(CountInformation nI, RectangleRepresentation rI, CircleRepresentation cI, ObstacleRepresentation[] oI, ObstacleRepresentation[] rPI, ObstacleRepresentation[] cPI, CollectibleRepresentation[] colI, Rectangle area, double timeLimit)
         {
             //Splits the diamonds into each category
-            coopRules.ApplyRules(cI, rI);
-            circleAgent.Setup(nI, rI, cI, oI, rPI, cPI, coopRules.getCircleDiamonds(), area, timeLimit);
+            actionRules = coopRules.ApplyRules(cI, rI);
+            iterator = actionRules.GetEnumerator();
+            iterator.MoveNext();
+
+            iterator.Current.Setup(nI, rI, cI, oI, rPI, cPI, colI, area, timeLimit);
         }
 
-        public void SensorsUpdated(int nC, RectangleRepresentation rI, CircleRepresentation cI, CollectibleRepresentation[] colI)
+        public void SensorsUpdated(RectangleRepresentation rI, CircleRepresentation cI, CollectibleRepresentation[] colI)
         {
-            switch (state)
+            if (iterator.Current.hasFinished())
             {
-                case 0:
-                    CollectibleRepresentation[] singleplayerDiamonds = coopRules.updateCircleDiamonds(colI);
-
-                    if (singleplayerDiamonds.Count() == 0)
-                    {
-                        state = 1; // Coop State
-                    }
-
-                    circleAgent.SensorsUpdated(nC, rI, cI, singleplayerDiamonds);
-                    break;
+                iterator.Current.SensorsUpdate(rI, cI, colI);
             }
-            
+            else
+            {
+                iterator.MoveNext();
+            }
         }
 
         public void ActionSimulatorUpdated(ActionSimulator updatedSimulator)

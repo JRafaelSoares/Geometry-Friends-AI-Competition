@@ -29,7 +29,8 @@ namespace GeometryFriendsAgents
         private Rectangle levelArea;
         private List<AgentMessage> messages = new List<AgentMessage>();
 
-        public CoopRules(Rectangle area, CollectibleRepresentation[] diamonds, ObstacleRepresentation[] platforms, ObstacleRepresentation[] rectanglePlatforms, ObstacleRepresentation[] circlePlatforms)
+        private CircleSingleplayer circleAgent;
+        public CoopRules(Rectangle area, CollectibleRepresentation[] diamonds, ObstacleRepresentation[] platforms, ObstacleRepresentation[] rectanglePlatforms, ObstacleRepresentation[] circlePlatforms, CircleSingleplayer circleSingleplayerAgent)
         {
             this.diamonds = diamonds;
             levelArea = area;
@@ -40,86 +41,12 @@ namespace GeometryFriendsAgents
             //xPlatforms = xPlatforms.OrderBy(o => o.X).ToList();
             yPlatforms = yPlatforms.OrderBy(o => o.Y).ToList();
 
-            /*levelInfo = new List<List<PixelType>>((int)(area.Height / pixelSize + 1));
-
-            for (int y = 0; y <= (int)(area.Height / pixelSize); y++)
-            {
-                levelInfo.Add(new List<PixelType>((int)(area.Width / pixelSize + 1)));
-
-                for (int x = 0; x <= (int)(area.Width / pixelSize); x++)
-                {
-                    levelInfo[y].Add(PixelType.NONE);
-                }
-            }
-
-            Debug.Print(levelInfo.Count.ToString());
-
-            foreach (ObstacleRepresentation platform in platforms)
-            {
-                int startX = (int)((platform.X - area.X - (platform.Width / 2)) / pixelSize);
-                int endX = Math.Min((int)Math.Ceiling((platform.X - area.X + (platform.Width / 2)) / pixelSize), area.Width / pixelSize);
-
-                int startY = (int)((platform.Y - area.Y - (platform.Height / 2)) / pixelSize);
-                int endY = Math.Min((int)Math.Ceiling((platform.Y - area.Y + (platform.Height / 2)) / pixelSize), area.Height / pixelSize);
-
-                for (int y = startY; y <= endY; y++)
-                {
-                    for (int x = startX; x <= endX; x++)
-                    {
-                        levelInfo[y][x] = PixelType.PLATFORM;
-                    }
-                }
-            }
-
-            foreach (ObstacleRepresentation platform in rectanglePlatforms)
-            {
-                int startX = (int)((platform.X - area.X - (platform.Width / 2)) / pixelSize);
-                int endX = Math.Min((int)Math.Ceiling((platform.X - area.X + (platform.Width / 2)) / pixelSize), area.Width / pixelSize);
-
-                int startY = (int)((platform.Y - area.Y - (platform.Height / 2)) / pixelSize);
-                int endY = Math.Min((int)Math.Ceiling((platform.Y - area.Y + (platform.Height / 2)) / pixelSize), area.Height / pixelSize);
-
-                for (int y = startY; y <= endY; y++)
-                {
-                    for (int x = startX; x <= endX; x++)
-                    {
-                        levelInfo[y][x] = PixelType.RECTANGLE_PLATFORM;
-                    }
-                }
-            }
-
-            foreach (ObstacleRepresentation platform in circlePlatforms)
-            {
-                int startX = (int)((platform.X - area.X - (platform.Width / 2)) / pixelSize);
-                int endX = Math.Min((int)Math.Ceiling((platform.X - area.X + (platform.Width / 2)) / pixelSize), area.Width / pixelSize);
-
-                int startY = (int)((platform.Y - area.Y - (platform.Height / 2)) / pixelSize);
-                int endY = Math.Min((int)Math.Ceiling((platform.Y - area.Y + (platform.Height / 2)) / pixelSize), area.Height / pixelSize);
-
-                for (int y = startY; y <= endY; y++)
-                {
-                    for (int x = startX; x <= endX; x++)
-                    {
-                        levelInfo[y][x] = PixelType.CIRCLE_PLATFORM;
-                    }
-                }
-            }
-
-            foreach (CollectibleRepresentation diamond in diamonds)
-            {
-                int x = Math.Min((int)((diamond.X - area.X) / pixelSize), area.Width / pixelSize);
-                int y = Math.Min((int)((diamond.Y - area.Y) / pixelSize), area.Height / pixelSize);
-
-                levelInfo[y][x] = PixelType.DIAMOND;
-            }*/
-
+            circleAgent = circleSingleplayerAgent;
         }
 
-        public void ApplyRules(CircleRepresentation c, RectangleRepresentation r)
+        public List<ActionRule> ApplyRules(CircleRepresentation c, RectangleRepresentation r)
         {
-            circleDiamonds = new List<CollectibleRepresentation>();
-            rectangleDiamonds = new List<CollectibleRepresentation>();
-            coopDiamonds = new List<SortedDiamond>();
+            List<ActionRule> actionRules = new List<ActionRule>(); 
 
             // Rules return 0 for circle diamond, 1 for rectangle diamond and 2 for coop
             foreach (CollectibleRepresentation diamond in diamonds)
@@ -150,6 +77,8 @@ namespace GeometryFriendsAgents
                 //if none of the others apply, its a circle diamond
                 circleDiamonds.Add(diamond);
             }
+
+            return actionRules;
         }
 
         public int unreachableByJump(float dX, float dY, CircleRepresentation c, RectangleRepresentation r)

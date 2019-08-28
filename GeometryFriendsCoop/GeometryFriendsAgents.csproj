@@ -45,9 +45,12 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="ActionRules\ActionRule.cs" />
+    <Compile Include="ActionStates\ActionState.cs" />
     <Compile Include="Area.cs" />
     <Compile Include="CircleAgent.cs" />
     <Compile Include="CircleController.cs" />
+    <Compile Include="FilterRules\FilterRule.cs" />
     <Compile Include="RectangleCoopAgent.cs" />
     <Compile Include="CircleCoopAgent.cs" />
     <Compile Include="CirclePID.cs" />

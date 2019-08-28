@@ -30,6 +30,10 @@ namespace GeometryFriendsAgents
         private List<AgentMessage> messages = new List<AgentMessage>();
 
         private CircleSingleplayer circleAgent;
+
+        //list of filters
+
+        private List<FilterRule> filters;
         public CoopRules(Rectangle area, CollectibleRepresentation[] diamonds, ObstacleRepresentation[] platforms, ObstacleRepresentation[] rectanglePlatforms, ObstacleRepresentation[] circlePlatforms, CircleSingleplayer circleSingleplayerAgent)
         {
             this.diamonds = diamonds;
@@ -42,40 +46,29 @@ namespace GeometryFriendsAgents
             yPlatforms = yPlatforms.OrderBy(o => o.Y).ToList();
 
             circleAgent = circleSingleplayerAgent;
+
+            FilterRule[] filterList = {
+                new TightSpaceFilter(area, platforms, rectanglePlatforms, circlePlatforms),
+                new HeightFilter(area, platforms, rectanglePlatforms, circlePlatforms)
+            };
+
+            filters = new List<FilterRule>(filterList);
         }
 
         public List<ActionRule> ApplyRules(CircleRepresentation c, RectangleRepresentation r)
         {
             List<ActionRule> actionRules = new List<ActionRule>(); 
 
-            // Rules return 0 for circle diamond, 1 for rectangle diamond and 2 for coop
-            foreach (CollectibleRepresentation diamond in diamonds)
+            foreach(CollectibleRepresentation diamond in diamonds)
             {
-                int unreachableJump = unreachableByJump(diamond.X, diamond.Y, c, r);
-                int unreachableBetween = unreachableBetweenPlatforms(diamond.X, diamond.Y, c, r);
-
-                //if it must be done by coop
-                if (unreachableBetween == 2)
+                foreach(FilterRule filter in filters)
                 {
-                    //int on sorted means it is unreachebleBetween
-                    coopDiamonds.Add(new SortedDiamond(diamond, 2));
-                    continue;
+                    ActionRule rule = filter.diamondFilter(r, c, diamond);
+                    if (rule != null)
+                    {
+                        actionRules.Add(rule);
+                    }
                 }
-
-                if(unreachableJump == 2)
-                {
-                    coopDiamonds.Add(new SortedDiamond(diamond, 1));
-                    continue;
-                }
-
-                if(unreachableBetween == 1)
-                {
-                    rectangleDiamonds.Add(diamond);
-                    continue;
-                }
-
-                //if none of the others apply, its a circle diamond
-                circleDiamonds.Add(diamond);
             }
 
             return actionRules;

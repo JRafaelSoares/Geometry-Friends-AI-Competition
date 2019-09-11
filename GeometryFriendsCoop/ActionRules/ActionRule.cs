@@ -8,56 +8,116 @@ namespace GeometryFriendsAgents
 {
     public abstract class ActionRule
     {
-        private List<ActionState> actionStates;
-        private List<ActionState>.Enumerator state;
-        private int diamondType;
+        protected CountInformation nI;
+        protected RectangleRepresentation rI;
+        protected CircleRepresentation cI;
+        protected ObstacleRepresentation[] oI;
+        protected ObstacleRepresentation[] rPI;
+        protected ObstacleRepresentation[] cPI;
+        protected CollectibleRepresentation[] colI;
+        protected Rectangle area;
+
+        protected List<ActionState> actionStatesCircle;
+        protected List<ActionState> actionStatesRectangle;
+
+        protected int currentStateCircle;
+        protected int currentStateRectangle;
+
         private bool finished = false;
         
-        //Diamond types
         private CollectibleRepresentation diamond;
-        public ActionRule() { }
 
-        public Moves getAction()
+        public ActionRule()
         {
-            return state.Current.getAction();
+            currentStateCircle = 0;
+            currentStateRectangle = 0;
         }
 
-        public ActionState getCurrentState()
+        public virtual Moves getActionCircle()
         {
-            return state.Current;
+            return actionStatesCircle[currentStateCircle].getAction();
         }
 
-        public bool nextState()
+        public virtual Moves getActionRectangle()
         {
-            return state.MoveNext();
+            return actionStatesRectangle[currentStateRectangle].getAction();
         }
 
-        public void Update(TimeSpan elapsedGameTime)
+        public virtual void Update(TimeSpan elapsedGameTime)
         {
-            state.Current.Update(elapsedGameTime);
+            actionStatesCircle[currentStateCircle].Update(elapsedGameTime);
+            actionStatesRectangle[currentStateRectangle].Update(elapsedGameTime);
         }
 
-        public void SensorsUpdate(RectangleRepresentation rI, CircleRepresentation cI, CollectibleRepresentation[] colI)
+        /*
+         
+            Does only independent linear progressions between states (So if, for example, there is a circle state that to finish depends on a rectangle state, then this function must be overriden)
+             
+        */
+        public virtual void SensorsUpdate(RectangleRepresentation rI, CircleRepresentation cI, CollectibleRepresentation[] colI)
         {
-            if (!state.Current.isFinished())
+            if (isFinished())
             {
-                //Caution: collectibles sent may not be the ones to be caught
-                state.Current.SensorsUpdate(rI, cI, colI);
+                return;
+            }
+
+            this.rI = rI;
+            this.cI = cI;
+            this.colI = colI;
+
+            //Caution: its each state's responsibility to filter the information sent to it by the ation rule
+            if (!actionStatesCircle[currentStateCircle].isFinished())
+            {
+                actionStatesCircle[currentStateCircle].SensorsUpdate(rI, cI, colI);
             }
             else
             {
-                finished = state.MoveNext();
+                if(currentStateCircle < actionStatesCircle.Count - 1)
+                {
+                    currentStateCircle++;
+                    actionStatesCircle[currentStateCircle].Setup(nI, rI, cI, oI, rPI, cPI, colI, area, 100.0);
+                }
+                else if(currentStateRectangle >= actionStatesRectangle.Count - 1 && actionStatesRectangle[currentStateRectangle].isFinished())
+                {
+                    setFinished();
+                    return;
+                }
+            }
+
+            if (!actionStatesRectangle[currentStateRectangle].isFinished())
+            {
+                actionStatesRectangle[currentStateRectangle].SensorsUpdate(rI, cI, colI);
+            }
+            else
+            {
+                if (currentStateRectangle < actionStatesRectangle.Count - 1)
+                {
+                    currentStateRectangle++;
+                    actionStatesRectangle[currentStateRectangle].Setup(nI, rI, cI, oI, rPI, cPI, colI, area, 100.0);
+                }
             }
         }
 
-        public bool hasFinished()
+        public void setFinished()
+        {
+            finished = true;
+        }
+
+        public bool isFinished()
         {
             return finished;
         }
 
-        public void Setup(CountInformation nI, RectangleRepresentation rI, CircleRepresentation cI, ObstacleRepresentation[] oI, ObstacleRepresentation[] rPI, ObstacleRepresentation[] cPI, CollectibleRepresentation[] colI, Rectangle area, double timeLimit)
+        public virtual void Setup(CountInformation nI, RectangleRepresentation rI, CircleRepresentation cI, ObstacleRepresentation[] oI, ObstacleRepresentation[] rPI, ObstacleRepresentation[] cPI, CollectibleRepresentation[] colI, Rectangle area, double timeLimit)
         {
-            state.Current.Setup(nI, rI, cI, oI, rPI, cPI, colI, area, timeLimit);
+            this.nI = nI;
+            this.rI = rI;
+            this.cI = cI;
+            this.oI = oI;
+            this.rPI = rPI;
+            this.cPI = cPI;
+            this.colI = colI;
+            this.area = area;
         }
         
     }

@@ -8,7 +8,12 @@ namespace GeometryFriendsAgents
 {
     public class CircleRule : ActionRule
     {
-        public CircleRule() { }
+        protected CircleSingleplayer circleSingleplayer;
+
+        public CircleRule(CircleSingleplayer circleSingleplayer) : base()
+        {
+            this.circleSingleplayer = circleSingleplayer;
+        }
         
     }
 }

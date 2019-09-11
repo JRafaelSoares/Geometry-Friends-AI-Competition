@@ -15,90 +15,96 @@ namespace GeometryFriendsAgents
     class RectangleCoopAgent
     {
         private CoopRules coopRules;
-        private RectangleSingleplayer rectangleAgent;
-        private int state;
-        private SortedDiamond currentCoop; 
+        private RectangleSingleplayer rectangleSingleplayer;
 
+        protected CountInformation nI;
+        protected RectangleRepresentation rI;
+        protected CircleRepresentation cI;
+        protected ObstacleRepresentation[] oI;
+        protected ObstacleRepresentation[] rPI;
+        protected ObstacleRepresentation[] cPI;
+        protected CollectibleRepresentation[] colI;
+        protected Rectangle area;
+
+        private List<ActionRule> actionRules;
+        private List<ActionRule>.Enumerator iterator;
+
+        private bool finished;
 
         public RectangleCoopAgent(Rectangle area, CollectibleRepresentation[] diamonds, ObstacleRepresentation[] platforms, ObstacleRepresentation[] rectanglePlatforms, ObstacleRepresentation[] circlePlatforms, RectangleSingleplayer rectangleSingleplayer)
         {
             coopRules = new CoopRules(area, diamonds, platforms, rectanglePlatforms, circlePlatforms);
 
-            state = 0; // Getting singleplayer diamonds
+            this.rectangleSingleplayer = rectangleSingleplayer;
 
-            rectangleAgent = rectangleSingleplayer;
+            finished = false;
         }
 
-        public void Setup(CountInformation nI, RectangleRepresentation rI, CircleRepresentation cI, ObstacleRepresentation[] oI, ObstacleRepresentation[] rPI, ObstacleRepresentation[] cPI, Rectangle area, double timeLimit)
+        public void Setup(CountInformation nI, RectangleRepresentation rI, CircleRepresentation cI, ObstacleRepresentation[] oI, ObstacleRepresentation[] rPI, ObstacleRepresentation[] cPI, CollectibleRepresentation[] colI, Rectangle area, double timeLimit)
         {
             //Splits the diamonds into each category
-            coopRules.ApplyRules(cI, rI);
-            rectangleAgent.Setup(nI, rI, cI, oI, rPI, cPI, coopRules.getRectangleDiamonds(), area, timeLimit);
+            actionRules = coopRules.ApplyRules(cI, rI);
+            iterator = actionRules.GetEnumerator();
+
+            iterator.MoveNext();
+            iterator.Current.Setup(nI, rI, cI, oI, rPI, cPI, colI, area, 100.0);
+
+            this.nI = nI;
+            this.rI = rI;
+            this.cI = cI;
+            this.oI = oI;
+            this.rPI = rPI;
+            this.cPI = cPI;
+            this.colI = colI;
+            this.area = area;
         }
 
         public void SensorsUpdated(int nC, RectangleRepresentation rI, CircleRepresentation cI, CollectibleRepresentation[] colI)
         {
-            switch (state)
+            if (!finished)
             {
-                case 0:
-                    CollectibleRepresentation[] singleplayerDiamonds = coopRules.updateRectangleDiamonds(colI);
+                if (!iterator.Current.isFinished())
+                {
+                    iterator.Current.SensorsUpdate(rI, cI, colI);
+                }
+                else
+                {
+                    finished = !iterator.MoveNext();
 
-                    if (singleplayerDiamonds.Count() == 0)
+                    if (!finished)
                     {
-                        state = 1; // Coop State
+                        iterator.Current.Setup(nI, rI, cI, oI, rPI, cPI, colI, area, 100.0);
                     }
-
-                    rectangleAgent.SensorsUpdated(nC, rI, cI, singleplayerDiamonds);
-                    break;
-                // Waiting for circle to begin Coop
-                case 1: 
-                    currentCoop = coopRules.getCoopDiamonds()[0];
-
-                    if(coopRules.updateCircleDiamonds(colI).Count() == 0)
-                    {
-                        state = 2;
-                    }
-
-                    break;
-                case 2:
-                    int previousCount = coopRules.getCoopDiamonds().Count();
-
-                    List<SortedDiamond> coopDiamonds = coopRules.updateCoopDiamonds(colI);
-
-                    if(previousCount > coopDiamonds.Count() && coopDiamonds.Count() > 0)
-                    {
-                        currentCoop = coopDiamonds[0];
-                    }
-
-                    break;
+                }
             }
         }
 
         public void ActionSimulatorUpdated(ActionSimulator updatedSimulator)
         {
-            rectangleAgent.ActionSimulatorUpdated(updatedSimulator);
+            rectangleSingleplayer.ActionSimulatorUpdated(updatedSimulator);
         }
 
         public Moves GetAction()
         {
-            switch (state)
+            if (!finished)
             {
-                case 0:
-                    return rectangleAgent.GetAction();
-                default:
-                    return Moves.NO_ACTION;
+                return iterator.Current.getActionRectangle();
             }
+
+            return Moves.NO_ACTION;
         }
 
         public void Update(TimeSpan elapsedGameTime)
         {
-            //All the special things will be implemented here
-            rectangleAgent.Update(elapsedGameTime);
+            if (!finished)
+            {
+                iterator.Current.Update(elapsedGameTime);
+            }
         }
 
         public DebugInformation[] GetDebugInformation()
         {
-            return rectangleAgent.GetDebugInformation();
+            return rectangleSingleplayer.GetDebugInformation();
         }
 
     }

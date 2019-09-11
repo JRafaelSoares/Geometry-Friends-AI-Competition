@@ -66,7 +66,7 @@ namespace GeometryFriendsAgents
             }
             else
             {
-                multiPlayer.SensorsUpdated(nC, rI, cI, colI);
+                multiPlayer.SensorsUpdated(rI, cI, colI);
             }
         }
 

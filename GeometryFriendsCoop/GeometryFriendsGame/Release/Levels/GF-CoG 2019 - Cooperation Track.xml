@@ -17,7 +17,7 @@
     <YellowObstacles />
     <GreenElevators />
     <OrangeElevators />
-	<TimeLimit value="120" />
+    <TimeLimit value="120" />
   </Level1>
   <Level2>
     <Description />
@@ -32,7 +32,10 @@
     <YellowObstacles />
     <GreenElevators />
     <OrangeElevators />
-	<TimeLimit value="120" />
+    <TimeLimit value="120" />
+    <HighScores>
+      <HighScore name="RRTCircle2017&amp;RRTRectangle2017" value="75" />
+    </HighScores>
   </Level2>
   <Level3>
     <Description />
@@ -52,7 +55,7 @@
     <YellowObstacles />
     <GreenElevators />
     <OrangeElevators />
-	<TimeLimit value="120" />
+    <TimeLimit value="120" />
   </Level3>
   <Level4>
     <Description />
@@ -75,7 +78,7 @@
     <YellowObstacles />
     <GreenElevators />
     <OrangeElevators />
-	<TimeLimit value="120" />
+    <TimeLimit value="120" />
   </Level4>
   <Level5>
     <Description />
@@ -96,6 +99,6 @@
     <YellowObstacles />
     <GreenElevators />
     <OrangeElevators />
-	<TimeLimit value="120" />
+    <TimeLimit value="120" />
   </Level5>
-  </Levels>
+</Levels>

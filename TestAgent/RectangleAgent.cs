@@ -5,6 +5,7 @@ using GeometryFriends.AI.Interfaces;
 using GeometryFriends.AI.Perceptions.Information;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 
 namespace GeometryFriendsAgents
@@ -23,6 +24,8 @@ namespace GeometryFriendsAgents
         private List<Moves> possibleMoves;
         private long lastMoveTime;
         private Random rnd;
+
+        private bool goingUp = true;
 
         //Sensors Information
         private CountInformation numbersInfo;
@@ -87,6 +90,12 @@ namespace GeometryFriendsAgents
             rectangleInfo = rI;
             circleInfo = cI;
             collectiblesInfo = colI;
+
+            Debug.Print(rectangleInfo.ToString());
+
+            if (rectangleInfo.Height >= 192)
+                goingUp = false;
+                
         }
 
         //implements abstract rectangle interface: signals if the agent is actually implemented or not
@@ -121,7 +130,10 @@ namespace GeometryFriendsAgents
         //implements abstract rectangle interface: GeometryFriends agents manager gets the current action intended to be actuated in the enviroment for this agent
         public override Moves GetAction()
         {
-            return currentAction;
+            if(goingUp)
+                return Moves.MORPH_DOWN;
+
+            return Moves.MORPH_DOWN;
         }
 
         //implements abstract rectangle interface: updates the agent state logic and predictions
@@ -134,7 +146,7 @@ namespace GeometryFriendsAgents
             {
                 if (!(DateTime.Now.Second == 59))
                 {
-                    RandomAction();
+                    //RandomAction();
                     lastMoveTime = lastMoveTime + 1;
                     //DebugSensorsInfo();
                 }

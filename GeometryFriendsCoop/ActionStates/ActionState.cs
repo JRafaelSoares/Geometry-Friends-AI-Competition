@@ -6,22 +6,43 @@ using GeometryFriends.AI.Perceptions.Information;
 
 namespace GeometryFriendsAgents
 {
-    public abstract class ActionState
+    public class ActionState
     {
         private bool finished = false;
-        public ActionState() { }
 
-        public abstract Moves getAction();
+        public ActionState()
+        {
 
-        public abstract void Update(TimeSpan elapsedGameTime);
+        }
 
-        public abstract void SensorsUpdate(RectangleRepresentation rI, CircleRepresentation cI, CollectibleRepresentation[] colI);
+        public virtual Moves getAction()
+        {
+            return Moves.NO_ACTION;
+        }
 
-        public abstract void Setup(CountInformation nI, RectangleRepresentation rI, CircleRepresentation cI, ObstacleRepresentation[] oI, ObstacleRepresentation[] rPI, ObstacleRepresentation[] cPI, CollectibleRepresentation[] colI, Rectangle area, double timeLimit);
-        
-            public bool isFinished()
+        public virtual void Update(TimeSpan elapsedGameTime)
+        {
+            // Don't do anything as default
+        }
+
+        public virtual void SensorsUpdate(RectangleRepresentation rI, CircleRepresentation cI, CollectibleRepresentation[] colI)
+        {
+
+        }
+
+        public virtual void Setup(CountInformation nI, RectangleRepresentation rI, CircleRepresentation cI, ObstacleRepresentation[] oI, ObstacleRepresentation[] rPI, ObstacleRepresentation[] cPI, CollectibleRepresentation[] colI, Rectangle area, double timeLimit)
+        {
+
+        }
+       
+        public bool isFinished()
         {
             return finished;
+        }
+
+        protected void setFinished()
+        {
+            finished = true;
         }
     }
 }

@@ -22,19 +22,16 @@ namespace GeometryFriendsAgents
         //private List<ObstacleRepresentation> xPlatforms;
         private CollectibleRepresentation[] diamonds;
 
-        List<CollectibleRepresentation> circleDiamonds;
-        List<CollectibleRepresentation> rectangleDiamonds;
-        List<SortedDiamond> coopDiamonds;
-
         private Rectangle levelArea;
         private List<AgentMessage> messages = new List<AgentMessage>();
 
-        private CircleSingleplayer circleAgent;
+        private CircleSingleplayer circleSingleplayer;
+        private RectangleSingleplayer rectangleSingleplayer;
 
         //list of filters
 
         private List<FilterRule> filters;
-        public CoopRules(Rectangle area, CollectibleRepresentation[] diamonds, ObstacleRepresentation[] platforms, ObstacleRepresentation[] rectanglePlatforms, ObstacleRepresentation[] circlePlatforms, CircleSingleplayer circleSingleplayerAgent)
+        public CoopRules(Rectangle area, CollectibleRepresentation[] diamonds, ObstacleRepresentation[] platforms, ObstacleRepresentation[] rectanglePlatforms, ObstacleRepresentation[] circlePlatforms)
         {
             this.diamonds = diamonds;
             levelArea = area;
@@ -45,10 +42,10 @@ namespace GeometryFriendsAgents
             //xPlatforms = xPlatforms.OrderBy(o => o.X).ToList();
             yPlatforms = yPlatforms.OrderBy(o => o.Y).ToList();
 
-            circleAgent = circleSingleplayerAgent;
+            circleSingleplayer = new CircleSingleplayer(true, true, true);
 
             FilterRule[] filterList = {
-                new TightSpaceFilter(area, platforms, rectanglePlatforms, circlePlatforms),
+                //new TightSpaceFilter(area, platforms, rectanglePlatforms, circlePlatforms),
                 new HeightFilter(area, platforms, rectanglePlatforms, circlePlatforms)
             };
 
@@ -63,7 +60,7 @@ namespace GeometryFriendsAgents
             {
                 foreach(FilterRule filter in filters)
                 {
-                    ActionRule rule = filter.diamondFilter(r, c, diamond);
+                    ActionRule rule = filter.filter(r, c, diamond, circleSingleplayer, rectangleSingleplayer);
                     if (rule != null)
                     {
                         actionRules.Add(rule);
@@ -162,161 +159,7 @@ namespace GeometryFriendsAgents
         {
             String result = "";
 
-            /*for (int y = 0; y < levelInfo[0].Count + 1; y++)
-            {
-                result += "++";
-            }
-
-            result += "\n";
-
-            for (int y = 0; y < levelInfo.Count; y++)
-            {
-                result += "+";
-                for (int x = 0; x < levelInfo[0].Count; x++)
-                {
-                    result += levelInfo[y][x] == PixelType.PLATFORM ? "PP" : (levelInfo[y][x] == PixelType.DIAMOND ? "DD" : "  ");
-                }
-
-                result += "+\n";
-            }
-
-            for (int y = 0; y < levelInfo[0].Count + 1; y++)
-            {
-                result += "++";
-            }*/
-
-            result += "\n Circle Diamonds \n";
-
-            foreach (CollectibleRepresentation d in circleDiamonds)
-            {
-                result += d.ToString() + "\n";
-            }
-
-            result += " Rectangle Diamonds \n";
-
-            foreach (CollectibleRepresentation d in rectangleDiamonds)
-            {
-                result += d.ToString() + "\n";
-            }
-
-            result += " Coop Diamonds \n";
-
-            foreach (SortedDiamond d in coopDiamonds)
-            {
-                result += d.ToString() + "\n";
-            }
-
             return result;
-        }
-
-        /********************************************/
-        /***************** GETTERS ******************/
-        /********************************************/
-
-        public CollectibleRepresentation[] getCircleDiamonds()
-        {
-            return circleDiamonds.ToArray();
-        }
-
-        public CollectibleRepresentation[] getRectangleDiamonds()
-        {
-            return rectangleDiamonds.ToArray();
-        }
-
-        public List<SortedDiamond> getCoopDiamonds()
-        {
-            return coopDiamonds;
-        }
-
-        public CollectibleRepresentation[] getAllDiamonds()
-        {
-            return diamonds;
-        }
-
-        /********************************************/
-        /***************** SETTERS ******************/
-        /********************************************/
-
-        public void setCircleDiamonds(CollectibleRepresentation[] diamondInfo)
-        {
-            circleDiamonds = diamondInfo.ToList();
-        }
-
-        public void setRectangleDiamonds(CollectibleRepresentation[] diamondInfo)
-        {
-            rectangleDiamonds = diamondInfo.ToList();
-        }
-        public void setCoopDiamonds(List<SortedDiamond> diamondInfo)
-        {
-            coopDiamonds = diamondInfo;
-        }
-
-        /**********************************/
-        /********* DIAMOND UPDATES ********/
-        /**********************************/
-
-        //Since SensorUpdate gets all Diamonds, we need to keep filtering the diamonds to see which ones got caught
-        public CollectibleRepresentation[] updateCircleDiamonds(CollectibleRepresentation[] diamondInfo)
-        {
-            List<CollectibleRepresentation> newDiamondCollectible = new List<CollectibleRepresentation>();
-
-            foreach(CollectibleRepresentation diamond in circleDiamonds)
-            {
-                //if contains work
-                if (diamondInfo.Contains(diamond))
-                {
-                    newDiamondCollectible.Add(diamond);
-                }
-                //if it doesnt we need to do it hardcoded by transversing the vectors
-            }
-
-            circleDiamonds = newDiamondCollectible;
-            return circleDiamonds.ToArray();
-        }
-
-        public CollectibleRepresentation[] updateRectangleDiamonds(CollectibleRepresentation[] diamondInfo)
-        {
-            List<CollectibleRepresentation> newDiamondCollectible = new List<CollectibleRepresentation>();
-
-            foreach (CollectibleRepresentation diamond in rectangleDiamonds)
-            {
-                //if contains work
-                if (diamondInfo.Contains(diamond))
-                {
-                    newDiamondCollectible.Add(diamond);
-                }
-                //if it doesnt we need to do it hardcoded by transversing the vectors
-            }
-
-            rectangleDiamonds = newDiamondCollectible;
-            return rectangleDiamonds.ToArray();
-        }
-
-        public List<SortedDiamond> updateCoopDiamonds(CollectibleRepresentation[] diamondInfo)
-        {
-            List<SortedDiamond> newDiamondCollectible = new List<SortedDiamond>();
-
-            foreach (SortedDiamond diamond in coopDiamonds)
-            {
-                if (diamondInfo.Contains(diamond.getDiamond()))
-                {
-                    newDiamondCollectible.Add(diamond);
-                }
-            }
-
-            coopDiamonds = newDiamondCollectible;
-            return coopDiamonds;
-        }
-
-        
-        public void sendRectangleDiamonds()
-        {
-            messages.Add(new AgentMessage("Sending RectangleDiamonds", rectangleDiamonds));
-        }
-
-        public void receiveRectangleDiamonds()
-        {
-            rectangleDiamonds = (List<CollectibleRepresentation>) messages[0].Attachment;
         }
     }
 

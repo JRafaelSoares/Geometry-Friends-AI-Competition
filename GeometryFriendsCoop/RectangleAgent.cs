@@ -59,7 +59,7 @@ namespace GeometryFriendsAgents
             {
                 gameMode = 1;
                 multiPlayer = new RectangleCoopAgent(area, colI, oI, rPI, cPI, singlePlayer);
-                multiPlayer.Setup(nI, rI, cI, oI, rPI, cPI, area, timeLimit);
+                multiPlayer.Setup(nI, rI, cI, oI, rPI, cPI, colI, area, timeLimit);
             }
         }
 

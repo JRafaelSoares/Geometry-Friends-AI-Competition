@@ -8,7 +8,12 @@ namespace GeometryFriendsAgents
 {
     public class RectangleRule : ActionRule
     {
-        public RectangleRule() { }
+        private RectangleSingleplayer rectangleSingleplayer;
+
+        public RectangleRule(RectangleSingleplayer rectangleSingleplayer) : base()
+        {
+            this.rectangleSingleplayer = rectangleSingleplayer;
+        }
         
     }
 }

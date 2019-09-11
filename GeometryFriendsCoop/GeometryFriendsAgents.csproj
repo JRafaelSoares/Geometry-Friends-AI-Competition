@@ -46,11 +46,22 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ActionRules\ActionRule.cs" />
+    <Compile Include="ActionRules\CircleRule.cs" />
+    <Compile Include="ActionRules\HeightRule.cs" />
+    <Compile Include="ActionRules\RectangleRule.cs" />
     <Compile Include="ActionStates\ActionState.cs" />
+    <Compile Include="ActionStates\CircleGoTo.cs" />
+    <Compile Include="ActionStates\CircleStay.cs" />
+    <Compile Include="ActionStates\RectangleGoToAndStay.cs" />
+    <Compile Include="ActionStates\MorphUp.cs" />
+    <Compile Include="ActionStates\MorphDown.cs" />
     <Compile Include="Area.cs" />
     <Compile Include="CircleAgent.cs" />
     <Compile Include="CircleController.cs" />
     <Compile Include="FilterRules\FilterRule.cs" />
+    <Compile Include="FilterRules\HeightFilter.cs" />
+    <Compile Include="FilterRules\SquareFilter.cs" />
+    <Compile Include="FilterRules\TightSpaceFilter.cs" />
     <Compile Include="RectangleCoopAgent.cs" />
     <Compile Include="CircleCoopAgent.cs" />
     <Compile Include="CirclePID.cs" />
@@ -65,7 +76,6 @@
     <Compile Include="GameSimulator\NodeGS.cs" />
     <Compile Include="Simulator\NodeSimulator.cs" />
     <Compile Include="PathPlan.cs" />
-    <Compile Include="PixelType.cs" />
     <Compile Include="Platform.cs" />
     <Compile Include="PlatformType.cs" />
     <Compile Include="Point.cs" />

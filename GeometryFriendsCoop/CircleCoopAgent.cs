@@ -14,15 +14,29 @@ namespace GeometryFriendsAgents
     class CircleCoopAgent
     {
         private CoopRules coopRules;
-        private CircleSingleplayer circleAgent;
-        private int state;
+        private CircleSingleplayer circleSingleplayer;
+
+        protected CountInformation nI;
+        protected RectangleRepresentation rI;
+        protected CircleRepresentation cI;
+        protected ObstacleRepresentation[] oI;
+        protected ObstacleRepresentation[] rPI;
+        protected ObstacleRepresentation[] cPI;
+        protected CollectibleRepresentation[] colI;
+        protected Rectangle area;
+
         private List<ActionRule> actionRules;
         private List<ActionRule>.Enumerator iterator;
 
+        private bool finished;
+
         public CircleCoopAgent(Rectangle area, CollectibleRepresentation[] diamonds, ObstacleRepresentation[] platforms, ObstacleRepresentation[] rectanglePlatforms, ObstacleRepresentation[] circlePlatforms, CircleSingleplayer circleSingleplayer)
         {
-            state = 0; // Getting singleplayer diamonds
-            coopRules = new CoopRules(area, diamonds, platforms, rectanglePlatforms, circlePlatforms, circleAgent);
+            coopRules = new CoopRules(area, diamonds, platforms, rectanglePlatforms, circlePlatforms);
+
+            this.circleSingleplayer = circleSingleplayer;
+
+            finished = false;
         }
 
         public void Setup(CountInformation nI, RectangleRepresentation rI, CircleRepresentation cI, ObstacleRepresentation[] oI, ObstacleRepresentation[] rPI, ObstacleRepresentation[] cPI, CollectibleRepresentation[] colI, Rectangle area, double timeLimit)
@@ -30,34 +44,50 @@ namespace GeometryFriendsAgents
             //Splits the diamonds into each category
             actionRules = coopRules.ApplyRules(cI, rI);
             iterator = actionRules.GetEnumerator();
-            iterator.MoveNext();
 
-            iterator.Current.Setup(nI, rI, cI, oI, rPI, cPI, colI, area, timeLimit);
+            iterator.MoveNext();
+            iterator.Current.Setup(nI, rI, cI, oI, rPI, cPI, colI, area, 100.0);
+
+            this.nI = nI;
+            this.rI = rI;
+            this.cI = cI;
+            this.oI = oI;
+            this.rPI = rPI;
+            this.cPI = cPI;
+            this.colI = colI;
+            this.area = area;
         }
 
         public void SensorsUpdated(RectangleRepresentation rI, CircleRepresentation cI, CollectibleRepresentation[] colI)
         {
-            if (iterator.Current.hasFinished())
+            if (!finished)
             {
-                iterator.Current.SensorsUpdate(rI, cI, colI);
-            }
-            else
-            {
-                iterator.MoveNext();
+                if (!iterator.Current.isFinished())
+                {
+                    iterator.Current.SensorsUpdate(rI, cI, colI);
+                }
+                else
+                {
+                    finished = !iterator.MoveNext();
+
+                    if (!finished)
+                    {
+                        iterator.Current.Setup(nI, rI, cI, oI, rPI, cPI, colI, area, 100.0);
+                    }
+                }
             }
         }
 
         public void ActionSimulatorUpdated(ActionSimulator updatedSimulator)
         {
-            circleAgent.ActionSimulatorUpdated(updatedSimulator);
+            circleSingleplayer.ActionSimulatorUpdated(updatedSimulator);
         }
 
         public Moves GetAction()
         {
-            switch (state)
+            if (!finished)
             {
-                case 0:
-                    return circleAgent.GetAction();
+                return iterator.Current.getActionCircle();
             }
 
             return Moves.NO_ACTION;
@@ -65,13 +95,15 @@ namespace GeometryFriendsAgents
 
         public void Update(TimeSpan elapsedGameTime)
         {
-            //All the special things will be implemented here
-            circleAgent.Update(elapsedGameTime);
+            if (!finished)
+            {
+                iterator.Current.Update(elapsedGameTime);
+            }
         }
 
         public DebugInformation[] GetDebugInformation()
         {
-            return circleAgent.GetDebugInformation();
+            return circleSingleplayer.GetDebugInformation();
         }
 
     }

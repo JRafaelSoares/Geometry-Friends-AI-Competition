@@ -131,3 +131,47 @@ Level Started
 Explored Nodes (Once): 218
 Explored Nodes (Total): 444
 TotalNodes: 219
+0.831
+Explored Nodes (Once): 4
+Explored Nodes (Total): 4
+TotalNodes: 5
+0.057
+Explored Nodes (Once): 44
+Explored Nodes (Total): 90
+TotalNodes: 45
+0.086
+Explored Nodes (Once): 45
+Explored Nodes (Total): 91
+TotalNodes: 45
+0.154
+Explored Nodes (Once): 1
+Explored Nodes (Total): 1
+TotalNodes: 2
+0.184
+Explored Nodes (Once): 2
+Explored Nodes (Total): 2
+TotalNodes: 3
+0.008
+Explored Nodes (Once): 29
+Explored Nodes (Total): 55
+TotalNodes: 30
+0.025
+Explored Nodes (Once): 30
+Explored Nodes (Total): 56
+TotalNodes: 31
+0.165
+Explored Nodes (Once): 70
+Explored Nodes (Total): 190
+TotalNodes: 71
+0.184
+Explored Nodes (Once): 71
+Explored Nodes (Total): 191
+TotalNodes: 72
+0.005
+Explored Nodes (Once): 19
+Explored Nodes (Total): 27
+TotalNodes: 20
+0.031
+Explored Nodes (Once): 20
+Explored Nodes (Total): 28
+TotalNodes: 21

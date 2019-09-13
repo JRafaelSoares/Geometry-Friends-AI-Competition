@@ -5,6 +5,7 @@ using System.Drawing;
 using System.Linq;
 using System.Text;
 using GeometryFriends.AI;
+using GeometryFriends.AI.ActionSimulation;
 using GeometryFriends.AI.Perceptions.Information;
 
 namespace GeometryFriendsAgents.ActionStates
@@ -101,6 +102,11 @@ namespace GeometryFriendsAgents.ActionStates
             {
                 singleplayer.Update(elapsedGameTime);
             }
+        }
+
+        public override void ActionSimulatorUpdated(ActionSimulator updatedSimulator)
+        {
+            singleplayer.ActionSimulatorUpdated(updatedSimulator);
         }
     }
 }

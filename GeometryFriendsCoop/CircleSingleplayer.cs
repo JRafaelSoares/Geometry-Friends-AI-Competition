@@ -308,7 +308,7 @@ namespace GeometryFriendsAgents
         public void SinglePUpdate(TimeSpan elapsedGameTime)
         {
             //Plan
-            if (planRRT/* && predictor != null && predictor.CharactersReady()*/)
+            if (planRRT && predictor != null && predictor.CharactersReady())
             {
                 controlling = false;
                 planSolution();
@@ -376,16 +376,12 @@ namespace GeometryFriendsAgents
 
         private void planSolution()
         {
-            Debug.Print("1: " + circleInfo.VelocityY.ToString() + " " + correctVelYMargin.ToString());
-            Debug.Print("2: " + circleInfo.VelocityX.ToString() + " " + correctVelXMargin.ToString());
-
             //The agent must be still so it starts at the same position as the one in the first point of the plan
             //This is to guarantee that the agent stops before start planning, and keeps still
             if (circleInfo.VelocityY < correctVelYMargin && circleInfo.VelocityY > -correctVelYMargin &&
-                circleInfo.VelocityX < correctVelXMargin && circleInfo.VelocityX > -correctVelXMargin/* &&
-                utils.onPlatform(circleInfo.X, circleInfo.Y + circleInfo.Radius, 25, 10) != null*/)
+                circleInfo.VelocityX < correctVelXMargin && circleInfo.VelocityX > -correctVelXMargin &&
+                utils.onPlatform(circleInfo.X, circleInfo.Y + circleInfo.Radius, 25, 10) != null)
             {
-                Debug.Print("1");
                 //make sure there is nothing moving the agent when planning
                 currentAction = Moves.NO_ACTION;
 
@@ -825,7 +821,7 @@ namespace GeometryFriendsAgents
             //checks if the game has started 
             if (!hasStarted)
             {
-                /*if (circleInfo.X <= previousCirclePosX + 1 && circleInfo.X >= previousCirclePosX - 1 && circleInfo.Y <= previousCirclePosY + 1 && circleInfo.Y >= previousCirclePosY - 1)
+                if (circleInfo.X <= previousCirclePosX + 1 && circleInfo.X >= previousCirclePosX - 1 && circleInfo.Y <= previousCirclePosY + 1 && circleInfo.Y >= previousCirclePosY - 1)
                 {
                     hasStarted = false;
                 }
@@ -834,11 +830,7 @@ namespace GeometryFriendsAgents
                     hasStarted = true;
                     searchTime = new Stopwatch();
                     searchTime.Start();
-                }*/
-
-                hasStarted = true;
-                searchTime = new Stopwatch();
-                searchTime.Start();
+                }
             }
         }
 

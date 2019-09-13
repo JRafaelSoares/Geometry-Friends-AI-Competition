@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using GeometryFriends.AI;
+using GeometryFriends.AI.ActionSimulation;
 using GeometryFriends.AI.Perceptions.Information;
 
 namespace GeometryFriendsAgents
@@ -43,6 +44,11 @@ namespace GeometryFriendsAgents
         protected void setFinished()
         {
             finished = true;
+        }
+
+        public virtual void ActionSimulatorUpdated(ActionSimulator updatedSimulator)
+        {
+
         }
     }
 }

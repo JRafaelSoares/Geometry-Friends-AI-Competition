@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using GeometryFriends.AI;
+using GeometryFriends.AI.ActionSimulation;
 using GeometryFriends.AI.Perceptions.Information;
 
 namespace GeometryFriendsAgents
@@ -119,6 +120,11 @@ namespace GeometryFriendsAgents
             this.colI = colI;
             this.area = area;
         }
-        
+
+        public virtual void ActionSimulatorUpdated(ActionSimulator updatedSimulator)
+        {
+            actionStatesCircle[currentStateCircle].ActionSimulatorUpdated(updatedSimulator);
+            actionStatesRectangle[currentStateRectangle].ActionSimulatorUpdated(updatedSimulator);
+        }
     }
 }

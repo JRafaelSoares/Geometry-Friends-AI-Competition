@@ -69,8 +69,18 @@ namespace GeometryFriendsAgents
                     }
                     else if (diamond.X - platform.X + platform.Width / 2 >= 0 && platform.X + platform.Width / 2 - diamond.X >= 0)
                     {
+                        // Platform directly bellow diamond
                         varY = platform.Y;
                         previousPlatform = platform;
+
+                        if(platform.X - (platform.Width / 2) <= getArea().X + (10000 / rectangleMinHeight))
+                        {
+                            coopX = platform.X + platform.Width / 2 + ((10000 / rectangleMinHeight) / 2);
+                        }
+                        else
+                        {
+                            coopX = platform.X - platform.Width / 2 - ((10000 / rectangleMinHeight) / 2);
+                        }
                     }
 
                 }

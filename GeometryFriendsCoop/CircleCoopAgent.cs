@@ -80,7 +80,7 @@ namespace GeometryFriendsAgents
 
         public void ActionSimulatorUpdated(ActionSimulator updatedSimulator)
         {
-            circleSingleplayer.ActionSimulatorUpdated(updatedSimulator);
+            iterator.Current.ActionSimulatorUpdated(updatedSimulator);
         }
 
         public Moves GetAction()

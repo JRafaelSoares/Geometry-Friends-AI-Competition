@@ -46,17 +46,17 @@ namespace GeometryFriendsAgents
             }
 
             // Either rectangle or coop
-            if (closestBelow.Y - closestBelow.Height / 2 - closestAbove.Y - closestAbove.Height / 2 <= getMaxJump() * 2)
+            if (closestBelow.Y - closestBelow.Height / 2 - closestAbove.Y - closestAbove.Height / 2 <= getMaxRadius() * 2)
             {
                 // If rectangle is on top of the platform below, it can get there alone
                 if (r.Y + (r.Height / 2) - closestBelow.Y + closestBelow.Height / 2 <= 10)
                 {
-                    return null;
+                    return new RectangleSingleplayerRule(rectangleSingleplayer, diamond);
                 }
                 // Else, it needs the help from the circle
                 else
                 {
-                    return null;
+                    return new TightSpaceRule();
                 }
             }
 

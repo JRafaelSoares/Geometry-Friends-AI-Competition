@@ -51,7 +51,7 @@ namespace GeometryFriendsAgents
                 // If rectangle is on top of the platform below, it can get there alone
                 if (r.Y + (r.Height / 2) - closestBelow.Y + closestBelow.Height / 2 <= 10)
                 {
-                    return new RectangleRule(rectangleSingleplayer);
+                    return new RectangleSingleplayerRule(rectangleSingleplayer, diamond);
                 }
                 // Else, it needs the help from the circle
                 else
@@ -60,7 +60,7 @@ namespace GeometryFriendsAgents
                 }
             }
 
-            return new CircleRule(circleSingleplayer);
+            return new CircleSingleplayerRule(circleSingleplayer, diamond);
         }
     }
 }

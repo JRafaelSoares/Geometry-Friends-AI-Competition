@@ -8,7 +8,10 @@ namespace GeometryFriendsAgents
 {
     public class TightSpaceRule : ActionRule
     {
-        public TightSpaceRule() { }
+        public TightSpaceRule() : base()
+        {
+
+        }
         
     }
 }

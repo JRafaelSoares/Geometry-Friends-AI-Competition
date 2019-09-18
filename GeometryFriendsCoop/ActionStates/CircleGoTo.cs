@@ -57,8 +57,6 @@ namespace GeometryFriendsAgents.ActionStates
 
         public override Moves getAction()
         {
-            Debug.Print(singleplayer.GetAction().ToString());
-
             return singleplayer.GetAction();
         }
 

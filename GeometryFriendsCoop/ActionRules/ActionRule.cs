@@ -18,8 +18,8 @@ namespace GeometryFriendsAgents
         protected CollectibleRepresentation[] colI;
         protected Rectangle area;
 
-        protected List<ActionState> actionStatesCircle;
-        protected List<ActionState> actionStatesRectangle;
+        protected List<ActionState> actionStatesCircle = null;
+        protected List<ActionState> actionStatesRectangle = null;
 
         protected int currentStateCircle;
         protected int currentStateRectangle;
@@ -36,18 +36,35 @@ namespace GeometryFriendsAgents
 
         public virtual Moves getActionCircle()
         {
-            return actionStatesCircle[currentStateCircle].getAction();
+            if(actionStatesCircle != null && currentStateCircle < actionStatesCircle.Count)
+            {
+                return actionStatesCircle[currentStateCircle].getAction();
+            }
+            else
+            {
+                return Moves.NO_ACTION;
+            }
         }
 
         public virtual Moves getActionRectangle()
         {
-            return actionStatesRectangle[currentStateRectangle].getAction();
+            if (actionStatesRectangle != null && currentStateRectangle < actionStatesRectangle.Count)
+            {
+                return actionStatesRectangle[currentStateRectangle].getAction();
+            }
+            else
+            {
+                return Moves.NO_ACTION;
+            }
         }
 
         public virtual void Update(TimeSpan elapsedGameTime)
         {
-            actionStatesCircle[currentStateCircle].Update(elapsedGameTime);
-            actionStatesRectangle[currentStateRectangle].Update(elapsedGameTime);
+            if (actionStatesRectangle != null && currentStateRectangle < actionStatesRectangle.Count)
+            {
+                actionStatesCircle[currentStateCircle].Update(elapsedGameTime);
+                actionStatesRectangle[currentStateRectangle].Update(elapsedGameTime);
+            }
         }
 
         /*
@@ -57,6 +74,11 @@ namespace GeometryFriendsAgents
         */
         public virtual void SensorsUpdate(RectangleRepresentation rI, CircleRepresentation cI, CollectibleRepresentation[] colI)
         {
+            if (actionStatesRectangle == null || (actionStatesRectangle != null && currentStateRectangle < actionStatesRectangle.Count))
+            {
+                return;
+            }
+
             if (isFinished())
             {
                 return;
@@ -123,8 +145,11 @@ namespace GeometryFriendsAgents
 
         public virtual void ActionSimulatorUpdated(ActionSimulator updatedSimulator)
         {
-            actionStatesCircle[currentStateCircle].ActionSimulatorUpdated(updatedSimulator);
-            actionStatesRectangle[currentStateRectangle].ActionSimulatorUpdated(updatedSimulator);
+            if (actionStatesRectangle != null && currentStateRectangle < actionStatesRectangle.Count)
+            {
+                actionStatesCircle[currentStateCircle].ActionSimulatorUpdated(updatedSimulator);
+                actionStatesRectangle[currentStateRectangle].ActionSimulatorUpdated(updatedSimulator);
+            }
         }
     }
 }

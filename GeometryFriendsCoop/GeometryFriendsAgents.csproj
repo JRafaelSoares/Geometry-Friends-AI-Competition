@@ -46,9 +46,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="ActionRules\ActionRule.cs" />
-    <Compile Include="ActionRules\CircleRule.cs" />
+    <Compile Include="ActionRules\CircleSingleplayerRule.cs" />
     <Compile Include="ActionRules\HeightRule.cs" />
-    <Compile Include="ActionRules\RectangleRule.cs" />
+    <Compile Include="ActionRules\RectangleSingleplayerRule.cs" />
+	<Compile Include="ActionRules\TightSpaceRule.cs" />
     <Compile Include="ActionStates\ActionState.cs" />
     <Compile Include="ActionStates\CircleGoTo.cs" />
     <Compile Include="ActionStates\CircleStay.cs" />
@@ -89,7 +90,6 @@
     <Compile Include="RRTUtils.cs" />
     <Compile Include="GameSimulator\RRTUtilsGS.cs" />
     <Compile Include="Simulator.cs" />
-    <Compile Include="SortedDiamond.cs" />
     <Compile Include="State.cs" />
     <Compile Include="Tree.cs" />
     <Compile Include="GameSimulator\TreeGS.cs" />

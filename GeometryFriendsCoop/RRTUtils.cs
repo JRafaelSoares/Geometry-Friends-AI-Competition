@@ -473,10 +473,14 @@ namespace GeometryFriendsAgents
             State newState;
             if (charType == 0)
             {
-                newState = new State(((CircleSimulator)stateSim).getCirclePositionX(), ((CircleSimulator)stateSim).getCirclePositionY(), ((CircleSimulator)stateSim).getCircleVelocityX(), ((CircleSimulator)stateSim).getCircleVelocityY(), radius, ((CircleSimulator)stateSim).getCircleVelocityRadius(), selectedState.getCaughtDiamonds(), stateSim.getUncaughtDiamonds());
+                //In case of another type of simulator, change the type here
+                //TODO - Add getters for Circle position info to Main class Simulator
+                CircleSimulator circleSim = (CircleSimulator)stateSim;
+                newState = new State(circleSim.getCirclePositionX(), circleSim.getCirclePositionY(), circleSim.getCircleVelocityX(), circleSim.getCircleVelocityY(), radius, circleSim.getCircleVelocityRadius(), selectedState.getCaughtDiamonds(), stateSim.getUncaughtDiamonds());
             }
             else
             {
+                //Add simulator Cast just like before
                 newState = new State(stateSim.getRectanglePositionX(), stateSim.getRectanglePositionY(), stateSim.getRectangleVelocityX(), stateSim.getRectangleVelocityY(), stateSim.getRectangleHeight() / 2, 0, selectedState.getCaughtDiamonds(), stateSim.getUncaughtDiamonds());
             }
 
@@ -1666,38 +1670,6 @@ namespace GeometryFriendsAgents
             return (float)Math.Pow(dist, 2);
         }
 
-        
-            //List<ObstacleRepresentation> platformsBelow = new List<ObstacleRepresentation>();
-
-            //foreach (ObstacleRepresentation platform in platforms)
-            //{
-            //    if (x >= (platform.X - platform.Width / 2) &&
-            //       x <= (platform.X + platform.Width / 2) &&
-            //       y <= platform.Y)
-            //    {
-            //        //make sure the highest platform is chosen if there are more than 1 platform below the agent
-            //        if (platformsBelow.Count == 1 && platformsBelow[0].Y > platform.Y)
-            //        {
-            //            platformsBelow.RemoveAt(0);
-            //        }
-            //        if (platformsBelow.Count == 0)
-            //        {
-            //            platformsBelow.Add(platform);
-            //        }
-
-            //    }
-            //}
-            //if (platformsBelow.Count == 1)
-            //{
-            //    return new Platform(platformsBelow[0].X, platformsBelow[0].Y, platformsBelow[0].Width, platformsBelow[0].Height);
-            //}
-            //if (platformsBelow.Count == 0)
-            //{
-            //    return new Platform(0, area.Bottom, 0, 0);
-            //}
-            //return null;
-
-
         public void setRadius(float rad)
         {
             radius = rad;
@@ -1965,8 +1937,6 @@ namespace GeometryFriendsAgents
                     state = new State(posX, posY, velX, velY, 0, 0, (List<DiamondInfo>)null, (List<DiamondInfo>)null);
 
                 }
-                
-                node = new NodeSimulator(null, state, action, null, null);
             }
             file.Close();
         }

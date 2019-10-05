@@ -16,7 +16,7 @@ namespace GeometryFriendsAgents
 
         CollectibleRepresentation diamond;
 
-        public HeightRule(CircleSingleplayer circleSingleplayer, float coopX, float coopY, CollectibleRepresentation diamond) : base()
+        public HeightRule(float coopX, float coopY, CollectibleRepresentation diamond) : base()
         {
             this.coopX = coopX;
             this.coopY = coopY;
@@ -27,9 +27,9 @@ namespace GeometryFriendsAgents
             actionStatesRectangle = new List<ActionState>();
 
             actionStatesCircle.Add(new ActionState());
-            actionStatesCircle.Add(new CircleGoTo(circleSingleplayer, coopX, coopY, true));
+            actionStatesCircle.Add(new CircleGoTo(coopX, coopY, true));
             actionStatesCircle.Add(new CircleStay(coopX, coopY));
-            actionStatesCircle.Add(new CircleGoTo(circleSingleplayer, diamond, true));
+            actionStatesCircle.Add(new CircleGoTo(diamond, true));
 
             actionStatesRectangle.Add(new MorphDown());
             actionStatesRectangle.Add(new RectangleGoToAndStay(coopX, coopY));

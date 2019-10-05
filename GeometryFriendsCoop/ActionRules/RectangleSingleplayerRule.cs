@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using GeometryFriends.AI;
 using GeometryFriends.AI.ActionSimulation;
+using GeometryFriends.AI.Debug;
 using GeometryFriends.AI.Perceptions.Information;
 
 namespace GeometryFriendsAgents
@@ -14,9 +16,9 @@ namespace GeometryFriendsAgents
 
         CollectibleRepresentation[] objectiveDiamond;
 
-        public RectangleSingleplayerRule(RectangleSingleplayer rectangleSingleplayer, CollectibleRepresentation objectiveDiamond) : base()
+        public RectangleSingleplayerRule(CollectibleRepresentation objectiveDiamond) : base()
         {
-            this.rectangleSingleplayer = rectangleSingleplayer;
+            this.rectangleSingleplayer = new RectangleSingleplayer(true, true, true);
 
             this.objectiveDiamond = new CollectibleRepresentation[1];
 
@@ -27,7 +29,8 @@ namespace GeometryFriendsAgents
 
         public override Moves getActionRectangle()
         {
-            return rectangleSingleplayer.GetAction();
+            Moves action = rectangleSingleplayer.GetAction();
+            return action;
         }
 
         public override Moves getActionCircle()
@@ -46,13 +49,15 @@ namespace GeometryFriendsAgents
 
             foreach (CollectibleRepresentation diamond in colI)
             {
-                if (diamond.X == objectiveDiamond[0].X && diamond.Y == objectiveDiamond[0].Y)
+                if (objectiveDiamond.Length > 0 && diamond.X == objectiveDiamond[0].X && diamond.Y == objectiveDiamond[0].Y)
                 {
-                    setFinished();
-
-                    objectiveDiamond = new CollectibleRepresentation[0];
+                    return;
                 }
             }
+
+            setFinished();
+
+            objectiveDiamond = new CollectibleRepresentation[0];
         }
 
         public override void Setup(CountInformation nI, RectangleRepresentation rI, CircleRepresentation cI, ObstacleRepresentation[] oI, ObstacleRepresentation[] rPI, ObstacleRepresentation[] cPI, CollectibleRepresentation[] colI, Rectangle area, double timeLimit)
@@ -72,6 +77,11 @@ namespace GeometryFriendsAgents
         public override void ActionSimulatorUpdated(ActionSimulator updatedSimulator)
         {
             rectangleSingleplayer.ActionSimulatorUpdated(updatedSimulator);
+        }
+
+        public override DebugInformation[] GetRectangleDebugInformation()
+        {
+            return rectangleSingleplayer.GetDebugInformation();
         }
 
     }

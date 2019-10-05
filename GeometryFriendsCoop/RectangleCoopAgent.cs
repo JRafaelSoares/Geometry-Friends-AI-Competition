@@ -25,6 +25,7 @@ namespace GeometryFriendsAgents
         protected ObstacleRepresentation[] cPI;
         protected CollectibleRepresentation[] colI;
         protected Rectangle area;
+        protected double timeLimit;
 
         private List<ActionRule> actionRules;
         private List<ActionRule>.Enumerator iterator;
@@ -47,7 +48,7 @@ namespace GeometryFriendsAgents
             iterator = actionRules.GetEnumerator();
 
             iterator.MoveNext();
-            iterator.Current.Setup(nI, rI, cI, oI, rPI, cPI, colI, area, 100.0);
+            iterator.Current.Setup(nI, rI, cI, oI, rPI, cPI, colI, area, timeLimit);
 
             this.nI = nI;
             this.rI = rI;
@@ -57,6 +58,7 @@ namespace GeometryFriendsAgents
             this.cPI = cPI;
             this.colI = colI;
             this.area = area;
+            this.timeLimit = timeLimit;
         }
 
         public void SensorsUpdated(int nC, RectangleRepresentation rI, CircleRepresentation cI, CollectibleRepresentation[] colI)
@@ -73,7 +75,7 @@ namespace GeometryFriendsAgents
 
                     if (!finished)
                     {
-                        iterator.Current.Setup(nI, rI, cI, oI, rPI, cPI, colI, area, 100.0);
+                        iterator.Current.Setup(nI, rI, cI, oI, rPI, cPI, colI, area, timeLimit);
                     }
                 }
             }
@@ -81,7 +83,10 @@ namespace GeometryFriendsAgents
 
         public void ActionSimulatorUpdated(ActionSimulator updatedSimulator)
         {
-            rectangleSingleplayer.ActionSimulatorUpdated(updatedSimulator);
+            if (!finished)
+            {
+                iterator.Current.ActionSimulatorUpdated(updatedSimulator);
+            }
         }
 
         public Moves GetAction()
@@ -104,7 +109,12 @@ namespace GeometryFriendsAgents
 
         public DebugInformation[] GetDebugInformation()
         {
-            return rectangleSingleplayer.GetDebugInformation();
+            if (!finished)
+            {
+                return iterator.Current.GetRectangleDebugInformation();
+            }
+
+            return new DebugInformation[0];
         }
 
     }

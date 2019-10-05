@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using GeometryFriends.AI;
 using GeometryFriends.AI.ActionSimulation;
+using GeometryFriends.AI.Debug;
 using GeometryFriends.AI.Perceptions.Information;
 
 namespace GeometryFriendsAgents
@@ -49,6 +50,11 @@ namespace GeometryFriendsAgents
         public virtual void ActionSimulatorUpdated(ActionSimulator updatedSimulator)
         {
 
+        }
+
+        public virtual DebugInformation[] GetDebugInformation()
+        {
+            return new DebugInformation[0];
         }
     }
 }

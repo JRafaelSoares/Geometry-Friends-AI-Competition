@@ -49,7 +49,7 @@ namespace GeometryFriendsAgents
             else
             {
                 gameMode = 1;
-                multiPlayer = new CircleCoopAgent(area, colI, oI, rPI, cPI, singlePlayer);
+                multiPlayer = new CircleCoopAgent(area, colI, oI, rPI, cPI);
                 multiPlayer.Setup(nI, rI, cI, oI, rPI, cPI, colI, area, timeLimit);
             }
         }

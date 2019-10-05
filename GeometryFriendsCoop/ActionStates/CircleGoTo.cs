@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using GeometryFriends.AI;
 using GeometryFriends.AI.ActionSimulation;
+using GeometryFriends.AI.Debug;
 using GeometryFriends.AI.Perceptions.Information;
 
 namespace GeometryFriendsAgents.ActionStates
@@ -28,7 +29,7 @@ namespace GeometryFriendsAgents.ActionStates
 
         bool setup = false;
 
-        public CircleGoTo(CircleSingleplayer singleplayer, CollectibleRepresentation objectiveDiamond, bool rectangleAsPlatform) : base()
+        public CircleGoTo(CollectibleRepresentation objectiveDiamond, bool rectangleAsPlatform) : base()
         {
             this.singleplayer = new CircleSingleplayer(true, true, true);
 
@@ -39,17 +40,17 @@ namespace GeometryFriendsAgents.ActionStates
             this.rectangleAsPlatform = rectangleAsPlatform;
         }
 
-        public CircleGoTo(CircleSingleplayer singleplayer, CollectibleRepresentation objectiveDiamond) : this(singleplayer, objectiveDiamond, false)
+        public CircleGoTo(CollectibleRepresentation objectiveDiamond) : this(objectiveDiamond, false)
         {
 
         }
 
-        public CircleGoTo(CircleSingleplayer singleplayer, float x, float y) : this(singleplayer, new CollectibleRepresentation(x, y), false)
+        public CircleGoTo(float x, float y) : this(new CollectibleRepresentation(x, y), false)
         {
 
         }
 
-        public CircleGoTo(CircleSingleplayer singleplayer, float x, float y, bool rectangleAsPlatform) : this(singleplayer, new CollectibleRepresentation(x, y), rectangleAsPlatform)
+        public CircleGoTo(float x, float y, bool rectangleAsPlatform) : this(new CollectibleRepresentation(x, y), rectangleAsPlatform)
         {
 
         }
@@ -105,6 +106,11 @@ namespace GeometryFriendsAgents.ActionStates
         public override void ActionSimulatorUpdated(ActionSimulator updatedSimulator)
         {
             singleplayer.ActionSimulatorUpdated(updatedSimulator);
+        }
+
+        public override DebugInformation[] GetDebugInformation()
+        {
+            return singleplayer.GetDebugInformation();
         }
     }
 }

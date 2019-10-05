@@ -28,7 +28,7 @@ namespace GeometryFriendsAgents
         /*
             Filtering accuracy could be improved by accounting for max sideways jump as well as max vertical jump 
         */
-        public override ActionRule filter(RectangleRepresentation r, CircleRepresentation c, CollectibleRepresentation diamond, CircleSingleplayer circleSingleplayer, RectangleSingleplayer rectangleSingleplayer)
+        public override ActionRule filter(RectangleRepresentation r, CircleRepresentation c, CollectibleRepresentation diamond)
         {
             float varY = diamond.Y;
             float coopX = diamond.X, coopY = getArea().Height + getArea().Y - rectangleMinHeight - c.Radius;
@@ -90,7 +90,7 @@ namespace GeometryFriendsAgents
                 }
             }
 
-            return new HeightRule(circleSingleplayer, coopX, coopY, diamond);
+            return new HeightRule(coopX, coopY, diamond);
         }
     }
 }

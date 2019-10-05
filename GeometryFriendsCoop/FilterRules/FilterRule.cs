@@ -25,7 +25,7 @@ namespace GeometryFriendsAgents
             
         }
 
-        public abstract ActionRule filter(RectangleRepresentation rI, CircleRepresentation cI, CollectibleRepresentation diamond, CircleSingleplayer circleSingleplayer, RectangleSingleplayer rectangleSingleplayer);
+        public abstract ActionRule filter(RectangleRepresentation rI, CircleRepresentation cI, CollectibleRepresentation diamond);
 
         public Rectangle getArea()
         {

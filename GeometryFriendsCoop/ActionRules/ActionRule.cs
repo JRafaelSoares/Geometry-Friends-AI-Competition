@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Drawing;
 using GeometryFriends.AI;
 using GeometryFriends.AI.ActionSimulation;
+using GeometryFriends.AI.Debug;
 using GeometryFriends.AI.Perceptions.Information;
 
 namespace GeometryFriendsAgents
@@ -62,8 +63,12 @@ namespace GeometryFriendsAgents
         {
             if (actionStatesRectangle != null && currentStateRectangle < actionStatesRectangle.Count)
             {
-                actionStatesCircle[currentStateCircle].Update(elapsedGameTime);
                 actionStatesRectangle[currentStateRectangle].Update(elapsedGameTime);
+            }
+
+            if (actionStatesCircle != null && currentStateCircle < actionStatesCircle.Count)
+            {
+                actionStatesCircle[currentStateCircle].Update(elapsedGameTime);
             }
         }
 
@@ -74,12 +79,7 @@ namespace GeometryFriendsAgents
         */
         public virtual void SensorsUpdate(RectangleRepresentation rI, CircleRepresentation cI, CollectibleRepresentation[] colI)
         {
-            if (actionStatesRectangle == null || (actionStatesRectangle != null && currentStateRectangle < actionStatesRectangle.Count))
-            {
-                return;
-            }
-
-            if (isFinished())
+            if (isFinished() || actionStatesRectangle == null || actionStatesCircle == null || (actionStatesRectangle != null && currentStateRectangle < actionStatesRectangle.Count) || (actionStatesCircle != null && currentStateCircle < actionStatesCircle.Count))
             {
                 return;
             }
@@ -119,6 +119,26 @@ namespace GeometryFriendsAgents
                     actionStatesRectangle[currentStateRectangle].Setup(nI, rI, cI, oI, rPI, cPI, colI, area, 100.0);
                 }
             }
+        }
+
+        public virtual DebugInformation[] GetRectangleDebugInformation()
+        {
+            if (actionStatesRectangle != null && currentStateRectangle < actionStatesRectangle.Count)
+            {
+                return actionStatesRectangle[currentStateRectangle].GetDebugInformation();
+            }
+
+            return null;
+        }
+
+        public virtual DebugInformation[] GetCircleDebugInformation()
+        {
+            if (actionStatesCircle != null && currentStateCircle < actionStatesCircle.Count)
+            {
+                return actionStatesCircle[currentStateCircle].GetDebugInformation();
+            }
+
+            return null;
         }
 
         public void setFinished()

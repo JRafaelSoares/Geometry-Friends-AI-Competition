@@ -21,7 +21,7 @@ namespace GeometryFriendsAgents
             yPlatforms = yPlatforms.OrderBy(o => o.Y).ToList();
         }
 
-        public override ActionRule filter(RectangleRepresentation r, CircleRepresentation c, CollectibleRepresentation diamond, CircleSingleplayer circleSingleplayer, RectangleSingleplayer rectangleSingleplayer)
+        public override ActionRule filter(RectangleRepresentation r, CircleRepresentation c, CollectibleRepresentation diamond)
         {
             ObstacleRepresentation closestAbove = new ObstacleRepresentation(diamond.X, getArea().Y, 0, 0), closestBelow = new ObstacleRepresentation(diamond.X, getArea().Height + getArea().Y, 0, 0);
 
@@ -51,7 +51,7 @@ namespace GeometryFriendsAgents
                 // If rectangle is on top of the platform below, it can get there alone
                 if (r.Y + (r.Height / 2) - closestBelow.Y + closestBelow.Height / 2 <= 10)
                 {
-                    return new RectangleSingleplayerRule(rectangleSingleplayer, diamond);
+                    return new RectangleSingleplayerRule(diamond);
                 }
                 // Else, it needs the help from the circle
                 else

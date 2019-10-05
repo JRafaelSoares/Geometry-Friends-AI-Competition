@@ -165,6 +165,7 @@ namespace GeometryFriendsAgents
         //implements abstract rectangle interface: used to setup the initial information so that the agent has basic knowledge about the level
         public void Setup(CountInformation nI, RectangleRepresentation rI, CircleRepresentation cI, ObstacleRepresentation[] oI, ObstacleRepresentation[] rPI, ObstacleRepresentation[] cPI, CollectibleRepresentation[] colI, Rectangle area, double timeLimit)
         {
+            
             ground = new Platform(0, area.Bottom, 0, 0, PlatformType.Black);
             utils = new Utils(ground, circleInfo.Radius, area);
             numbersInfo = nI;
@@ -183,7 +184,7 @@ namespace GeometryFriendsAgents
             //setup level layout
             levelLayout = utils.getLevelLayout(obstaclesInfo, area);
 
-            //calculates de area of the rectangle since only the info of the height is available
+            //calculates the area of the rectangle since only the info of the height is available
             rectangleArea = utils.setRectangleArea(rectangleInfo.Height);
 
             //gets the initial position of the Rectangle to test is the game has started or is still at the menu
@@ -230,6 +231,7 @@ namespace GeometryFriendsAgents
          */
         public void SensorsUpdated(int nC, RectangleRepresentation rI, CircleRepresentation cI, CollectibleRepresentation[] colI)
         {
+            
             nCollectiblesLeft = nC;
 
             rectangleInfo = rI;
@@ -251,6 +253,7 @@ namespace GeometryFriendsAgents
         //implements abstract rectangle interface: GeometryFriends agents manager gets the current action intended to be actuated in the enviroment for this agent
         public Moves GetAction()
         {
+            
             return currentAction;
         }
 
@@ -273,10 +276,7 @@ namespace GeometryFriendsAgents
 
             if (hasStarted)
             {
-                if (hasStarted)
-                {
-                    SinglePUpdate(elapsedGameTime);
-                }
+                SinglePUpdate(elapsedGameTime);
             }
 
 
@@ -407,8 +407,6 @@ namespace GeometryFriendsAgents
                 //if the plan is new build a new tree
                 if (newPlan)
                 {
-
-
                     //update the diamond list
                     RRT.setDiamonds(Diamonds);
                     State initialState = new State(rectangleInfo.X, rectangleInfo.Y, rectangleInfo.VelocityX, rectangleInfo.VelocityY, rectangleInfo.Height / 2, 0, caughtCollectibles, uncaughtCollectibles);
@@ -615,11 +613,14 @@ namespace GeometryFriendsAgents
                 timeStep = 0.001f;
             }
             currentAction = controller.computeAction(pathPlan.getPathPoints()[0], rectangleInfo.VelocityX, rectangleInfo.VelocityY, rectangleInfo.X, rectangleInfo.Y, timeStep, acceleration);
+
             timestep.Restart();
 
             //change to next point when a point is reached or when a jump was performed
             if (!correctRRT && (controller.slideReached || controller.morphReached))
             {
+                
+
                 lastMove = pathPlan.getPathPoints()[0].getAction();
 
                 if (firstAction3)
@@ -644,6 +645,7 @@ namespace GeometryFriendsAgents
             }
             else if (firstAction2)
             {
+                
                 firstAction2 = false;
                 firstAction3 = true;
                 pathPlan.getOriginalPoints()[pathPlan.getCurrentPoint()].passedThrough();
@@ -699,7 +701,6 @@ namespace GeometryFriendsAgents
         
         private void lastActionReplan()
         {
-            //TODO - verificar se completou ou não o plano que era suposto
             //if the state isn't the same but it has already passed more time than it should to take the action, apply plan recovery
             if ((gameTime.ElapsedMilliseconds * 0.001f * gSpeed > (simTime + actionTimeMargin) * gSpeed) && !correctRRT)
             {

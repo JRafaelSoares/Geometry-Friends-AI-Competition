@@ -14,7 +14,6 @@ namespace GeometryFriendsAgents
     class CircleCoopAgent
     {
         private CoopRules coopRules;
-        private CircleSingleplayer circleSingleplayer;
 
         protected CountInformation nI;
         protected RectangleRepresentation rI;
@@ -30,11 +29,9 @@ namespace GeometryFriendsAgents
 
         private bool finished;
 
-        public CircleCoopAgent(Rectangle area, CollectibleRepresentation[] diamonds, ObstacleRepresentation[] platforms, ObstacleRepresentation[] rectanglePlatforms, ObstacleRepresentation[] circlePlatforms, CircleSingleplayer circleSingleplayer)
+        public CircleCoopAgent(Rectangle area, CollectibleRepresentation[] diamonds, ObstacleRepresentation[] platforms, ObstacleRepresentation[] rectanglePlatforms, ObstacleRepresentation[] circlePlatforms)
         {
             coopRules = new CoopRules(area, diamonds, platforms, rectanglePlatforms, circlePlatforms);
-
-            this.circleSingleplayer = circleSingleplayer;
 
             finished = false;
         }
@@ -43,6 +40,13 @@ namespace GeometryFriendsAgents
         {
             //Splits the diamonds into each category
             actionRules = coopRules.ApplyRules(cI, rI);
+
+            if(actionRules == null || actionRules.Count == 0)
+            {
+                finished = true;
+                return;
+            }
+
             iterator = actionRules.GetEnumerator();
 
             iterator.MoveNext();
@@ -80,7 +84,10 @@ namespace GeometryFriendsAgents
 
         public void ActionSimulatorUpdated(ActionSimulator updatedSimulator)
         {
-            iterator.Current.ActionSimulatorUpdated(updatedSimulator);
+            if (!finished)
+            {
+                iterator.Current.ActionSimulatorUpdated(updatedSimulator);
+            }
         }
 
         public Moves GetAction()
@@ -103,7 +110,12 @@ namespace GeometryFriendsAgents
 
         public DebugInformation[] GetDebugInformation()
         {
-            return circleSingleplayer.GetDebugInformation();
+            if (!finished)
+            {
+                return iterator.Current.GetCircleDebugInformation();
+            }
+
+            return new DebugInformation[0];
         }
 
     }

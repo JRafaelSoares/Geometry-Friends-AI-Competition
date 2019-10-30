@@ -25,7 +25,8 @@ namespace GeometryFriendsAgents
         protected Rectangle area;
 
         private List<ActionRule> actionRules;
-        private List<ActionRule>.Enumerator iterator;
+        private int currentAction;
+        protected TimeSpan currentRuleTime;
 
         private bool finished;
 
@@ -33,7 +34,11 @@ namespace GeometryFriendsAgents
         {
             coopRules = new CoopRules(area, diamonds, platforms, rectanglePlatforms, circlePlatforms);
 
+            currentRuleTime = new TimeSpan(0);
+
             finished = false;
+
+            currentAction = 0;
         }
 
         public void Setup(CountInformation nI, RectangleRepresentation rI, CircleRepresentation cI, ObstacleRepresentation[] oI, ObstacleRepresentation[] rPI, ObstacleRepresentation[] cPI, CollectibleRepresentation[] colI, Rectangle area, double timeLimit)
@@ -47,10 +52,7 @@ namespace GeometryFriendsAgents
                 return;
             }
 
-            iterator = actionRules.GetEnumerator();
-
-            iterator.MoveNext();
-            iterator.Current.Setup(nI, rI, cI, oI, rPI, cPI, colI, area, 100.0);
+            actionRules[currentAction].Setup(nI, rI, cI, oI, rPI, cPI, colI, area, 100.0);
 
             this.nI = nI;
             this.rI = rI;
@@ -66,17 +68,20 @@ namespace GeometryFriendsAgents
         {
             if (!finished)
             {
-                if (!iterator.Current.isFinished())
+                if (!actionRules[currentAction].isFinished() && (currentRuleTime.TotalSeconds < 30 || currentAction == actionRules.Count))
                 {
-                    iterator.Current.SensorsUpdate(rI, cI, colI);
+                    actionRules[currentAction].SensorsUpdate(rI, cI, colI);
                 }
                 else
                 {
-                    finished = !iterator.MoveNext();
+                    currentAction++;
+                    finished = (currentAction >= actionRules.Count);
+
+                    currentRuleTime = new TimeSpan(0);
 
                     if (!finished)
                     {
-                        iterator.Current.Setup(nI, rI, cI, oI, rPI, cPI, colI, area, 100.0);
+                        actionRules[currentAction].Setup(nI, rI, cI, oI, rPI, cPI, colI, area, 100.0);
                     }
                 }
             }
@@ -86,7 +91,7 @@ namespace GeometryFriendsAgents
         {
             if (!finished)
             {
-                iterator.Current.ActionSimulatorUpdated(updatedSimulator);
+                actionRules[currentAction].ActionSimulatorUpdated(updatedSimulator);
             }
         }
 
@@ -94,7 +99,7 @@ namespace GeometryFriendsAgents
         {
             if (!finished)
             {
-                return iterator.Current.getActionCircle();
+                return actionRules[currentAction].getActionCircle();
             }
 
             return Moves.NO_ACTION;
@@ -104,7 +109,8 @@ namespace GeometryFriendsAgents
         {
             if (!finished)
             {
-                iterator.Current.Update(elapsedGameTime);
+                currentRuleTime = currentRuleTime.Add(elapsedGameTime);
+                actionRules[currentAction].Update(elapsedGameTime);
             }
         }
 
@@ -112,7 +118,7 @@ namespace GeometryFriendsAgents
         {
             if (!finished)
             {
-                return iterator.Current.GetCircleDebugInformation();
+                return actionRules[currentAction].GetCircleDebugInformation();
             }
 
             return new DebugInformation[0];

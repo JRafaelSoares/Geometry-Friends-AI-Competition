@@ -17,7 +17,7 @@ namespace GeometryFriendsAgents
     {
         //agent implementation specificiation
         private bool implementedAgent;
-        private string agentName = "RRTRectangle2017";
+        private string agentName = "RRTRectangleWithCoopRules2019";
 
         //game type
         private RectangleSingleplayer singlePlayer;

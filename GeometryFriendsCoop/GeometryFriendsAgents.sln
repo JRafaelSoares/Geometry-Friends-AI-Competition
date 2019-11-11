@@ -6,17 +6,6 @@ MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GeometryFriendsAgents", "GeometryFriendsAgents.csproj", "{6F45AB29-7874-4B3D-8073-B2D5F0C1A35F}"
 EndProject
 Project("{911E67C6-3D85-4FCE-B560-20A9C3E3FF48}") = "GeometryFriends", "GeometryFriendsGame\Release\GeometryFriends.exe", "{B6A17290-A929-4253-B89A-40B2FD1B692C}"
-	ProjectSection(DebuggerProjectSystem) = preProject
-		PortSupplier = 00000000-0000-0000-0000-000000000000
-		Executable = C:\Users\Pedro\Documents\GitHub\Geometry-Friends-AI-Competition\GeometryFriendsCoop\GeometryFriendsGame\Release\GeometryFriends.exe
-		RemoteMachine = DESKTOP-AL48HJV
-		StartingDirectory = C:\Users\Pedro\Documents\GitHub\Geometry-Friends-AI-Competition\GeometryFriendsCoop\GeometryFriendsGame\Release
-		Environment = Default
-		LaunchingEngine = 00000000-0000-0000-0000-000000000000
-		UseLegacyDebugEngines = No
-		LaunchSQLEngine = No
-		AttachLaunchAction = No
-	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

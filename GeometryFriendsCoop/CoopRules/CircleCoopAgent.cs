@@ -77,8 +77,12 @@ namespace GeometryFriendsAgents
                     currentAction++;
                     finished = (currentAction >= actionRules.Count);
 
-                    currentRuleTime = new TimeSpan(0);
+                    if (currentRuleTime.TotalSeconds >= 30)
+                    {
+                        actionRules.Add(actionRules[currentAction - 1]);
+                    }
 
+                        currentRuleTime = new TimeSpan(0);
                     if (!finished)
                     {
                         actionRules[currentAction].Setup(nI, rI, cI, oI, rPI, cPI, colI, area, 100.0);

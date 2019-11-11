@@ -100,5 +100,8 @@
     <GreenElevators />
     <OrangeElevators />
     <TimeLimit value="120" />
+    <HighScores>
+      <HighScore name="RRTCircleWithCoopRules2019&amp;RRTRectangleWithCoopRules2019" value="43" />
+    </HighScores>
   </Level5>
 </Levels>

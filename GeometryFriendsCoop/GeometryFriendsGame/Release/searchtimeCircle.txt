@@ -175,3 +175,83 @@ TotalNodes: 20
 Explored Nodes (Once): 20
 Explored Nodes (Total): 28
 TotalNodes: 21
+0.063
+Explored Nodes (Once): 5
+Explored Nodes (Total): 7
+TotalNodes: 6
+0.125
+Explored Nodes (Once): 6
+Explored Nodes (Total): 8
+TotalNodes: 6
+0.003
+Explored Nodes (Once): 3
+Explored Nodes (Total): 3
+TotalNodes: 4
+0
+Explored Nodes (Once): 3
+Explored Nodes (Total): 3
+TotalNodes: 4
+0.321
+Explored Nodes (Once): 103
+Explored Nodes (Total): 237
+TotalNodes: 104
+0.405
+Explored Nodes (Once): 104
+Explored Nodes (Total): 238
+TotalNodes: 105
+4.15
+Explored Nodes (Once): 209
+Explored Nodes (Total): 941
+TotalNodes: 210
+4.212
+Explored Nodes (Once): 210
+Explored Nodes (Total): 942
+TotalNodes: 211
+0.054
+Explored Nodes (Once): 4
+Explored Nodes (Total): 5
+TotalNodes: 5
+0.108
+Explored Nodes (Once): 5
+Explored Nodes (Total): 6
+TotalNodes: 6
+0.004
+Explored Nodes (Once): 20
+Explored Nodes (Total): 37
+TotalNodes: 21
+0.036
+Explored Nodes (Once): 21
+Explored Nodes (Total): 38
+TotalNodes: 22
+0.003
+Explored Nodes (Once): 6
+Explored Nodes (Total): 6
+TotalNodes: 7
+0
+Explored Nodes (Once): 11
+Explored Nodes (Total): 11
+TotalNodes: 12
+0.004
+Explored Nodes (Once): 15
+Explored Nodes (Total): 25
+TotalNodes: 16
+0.056
+Explored Nodes (Once): 16
+Explored Nodes (Total): 26
+TotalNodes: 17
+0.005
+Explored Nodes (Once): 32
+Explored Nodes (Total): 55
+TotalNodes: 33
+0.037
+Explored Nodes (Once): 33
+Explored Nodes (Total): 56
+TotalNodes: 34
+0.814
+Explored Nodes (Once): 4
+Explored Nodes (Total): 5
+TotalNodes: 5
+0.8650001
+Explored Nodes (Once): 5
+Explored Nodes (Total): 6
+TotalNodes: 6

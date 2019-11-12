@@ -1,2 +1,0 @@
-C:\Users\João Rafael Soares\Desktop\Bolsa\SourceCode\obj\x86\Debug\GeometryFriendsAgents.csprojAssemblyReference.cache
-C:\Users\João Rafael Soares\Desktop\Bolsa\SourceCode\obj\x86\Debug\GeometryFriendsAgents.csproj.CoreCompileInputs.cache

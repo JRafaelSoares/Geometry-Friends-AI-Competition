@@ -99,3 +99,13 @@ TotalNodes: 17
 Explored Nodes (Once): 17
 Explored Nodes (Total): 20
 TotalNodes: 18
+Level Started
+Level Started
+1.221
+Explored Nodes (Once): 31
+Explored Nodes (Total): 45
+TotalNodes: 32
+1.228
+Explored Nodes (Once): 31
+Explored Nodes (Total): 45
+TotalNodes: 32
